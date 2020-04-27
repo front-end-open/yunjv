@@ -54,6 +54,7 @@
     }
   },
   "gitHooks": {
-    "commit-msg": "commitlint -E GIT_PARAMS"
+    "commit-msg": "commitlint -E GIT_PARAMS",
+    "pre-push": "yarn lint:strict --cache && yarn test:unit --onlyChanged"
   }
 }
