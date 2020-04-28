@@ -19,10 +19,10 @@ jobs:
       - name: Check lint
         run: yarn lint:strict
 
-      - name: Check unit test
-        run: |
-          echo "IS_TEST=true" >> .env.local
-          yarn test:unit
+      # - name: Check unit test
+      #   run: |
+      #     echo "IS_TEST=true" >> .env.local
+      #     yarn test:unit
 
   build:
     needs: check
