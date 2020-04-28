@@ -1,17 +1,17 @@
 const transformCommitType = (type) => {
   const commitTypeMapping = {
-    feat: 'Features',
-    fix: 'Bug Fixes',
-    perf: 'Performance Improvements',
-    revert: 'Reverts',
-    docs: 'Documentation',
-    style: 'Styles',
-    refactor: 'Code Refactoring',
-    test: 'Tests',
-    build: 'Build System',
-    ci: 'Continuous Integration',
-    chore: 'Chores',
-    default: 'Miscellaneous',
+    feat: '功能',
+    fix: '修复',
+    perf: '优化',
+    revert: '回滚',
+    docs: '文档',
+    style: '格式',
+    refactor: '重构',
+    test: '测试',
+    build: '构建工具',
+    ci: '持续集成',
+    chore: '杂务',
+    default: '其他',
   }
   return commitTypeMapping[type] || commitTypeMapping['default']
 }
@@ -87,7 +87,7 @@ module.exports = {
       {
         changelogFile: 'docs/CHANGELOG.md',
         changelogTitle:
-          '# Changelog\n\nAll notable changes to this project will be documented in this file. See\n[Conventional Commits](https://conventionalcommits.org) for commit guidelines.',
+          '# 变更日志\n\n规范参考：[Conventional Commits](https://conventionalcommits.org)',
       },
     ],
     ['@semantic-release/npm', { npmPublish: false }],
