@@ -21,7 +21,7 @@ jobs:
 
       - name: Check unit test
         run: |
-          IS_TEST=true
+          echo "IS_TEST=true" >> .env.local
           yarn test:unit
 
   build:
