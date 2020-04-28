@@ -43,6 +43,11 @@
     "vue-cli-plugin-electron-builder": "~1.4.6",
     "vue-template-compiler": "^2.6.11"
   },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ],
   "commitlint": {
     "extends": [
       "@commitlint/config-conventional"
