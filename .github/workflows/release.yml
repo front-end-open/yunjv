@@ -20,7 +20,9 @@ jobs:
         run: yarn lint:strict
 
       - name: Check unit test
-        run: yarn test:unit
+        run: |
+          IS_TEST=true
+          yarn test:unit
 
   build:
     needs: check
