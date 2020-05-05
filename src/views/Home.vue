@@ -1,6 +1,5 @@
 <template>
   <div>
-    <HelloWorld msg="Welcome to YunJv" />
     <el-table
       :class="$style.tableWrapper"
       :data="tableData1"
@@ -19,8 +18,6 @@
 </template>
 
 <script>
-import HelloWorld from '@/components/HelloWorld.vue'
-
 export default {
   data() {
     return {
@@ -72,9 +69,6 @@ export default {
         ])
       }, 1000)
     },
-  },
-  components: {
-    HelloWorld,
   },
 }
 </script>
