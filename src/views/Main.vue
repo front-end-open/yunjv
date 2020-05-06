@@ -1,6 +1,12 @@
 <template>
   <el-container class="main-container">
     <el-aside width="200px">
+      <div class="user">
+        <el-avatar
+          src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+        ></el-avatar>
+        <p>anonymous</p>
+      </div>
       <el-menu
         router
         :default-active="$route.path"
@@ -44,6 +50,10 @@ export default {
 <style lang="less" scoped>
 .main-container {
   height: 100vh;
+}
+.user {
+  text-align: center;
+  padding: 10px 0;
 }
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
