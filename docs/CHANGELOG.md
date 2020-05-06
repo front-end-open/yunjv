@@ -2,6 +2,32 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.1.0](https://github.com/PachVerb/yunjv/compare/v1.0.0...v1.1.0) (2020-05-06)
+
+
+### 修复
+
+* 使用 normalize.css 处理样式兼容 ([d33eb28](https://github.com/PachVerb/yunjv/commit/d33eb28546e1eb15ab2696a064843858751e7fe2))
+
+
+### 功能
+
+* 基础布局 ([dd6a202](https://github.com/PachVerb/yunjv/commit/dd6a2021191c7e0c8e6be477d1126c4e54028282))
+* 添加用户信息栏 ([478eb23](https://github.com/PachVerb/yunjv/commit/478eb238911c083144335371b8303ee4507058cf))
+
+
+### 构建工具
+
+* 添加 element-ui demo ([1058e9e](https://github.com/PachVerb/yunjv/commit/1058e9e139a3da87f7c6ce2f39aa3097793f78be))
+
+
+### 重构
+
+* 分离样式到 main.less ([a78d126](https://github.com/PachVerb/yunjv/commit/a78d1265dc1422342888c02607e71872efdb37fc))
+* 删除 helloworld ([60e529c](https://github.com/PachVerb/yunjv/commit/60e529cf350cac3101c0e713ae71f836aa2b4329))
+* 注释掉 fa-icon 全局样式 ([4c530eb](https://github.com/PachVerb/yunjv/commit/4c530eb4bf7bd3a0cdde69268835e40ec7314702))
+* 配置 less 全局变量 ([f7fb438](https://github.com/PachVerb/yunjv/commit/f7fb438eb491a0239ecb17718b2412647334b887))
+
 # 1.0.0 (2020-04-29)
 
 
