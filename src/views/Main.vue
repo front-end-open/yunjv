@@ -53,10 +53,9 @@ export default {
 }
 .user {
   text-align: center;
-  padding: 10px 0;
+  padding: @space 0;
 }
 .el-menu-vertical-demo:not(.el-menu--collapse) {
-  width: 200px;
-  min-height: 400px;
+  width: @main-aside-width;
 }
 </style>
