@@ -1,10 +1,11 @@
 'use strict'
 
-import { app, protocol, BrowserWindow } from 'electron'
+import { ipcMain, app, protocol, BrowserWindow, shell } from 'electron'
 import {
   createProtocol,
   installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
+import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -15,6 +16,30 @@ let win
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
+
+// 通信
+ipcMain.on('asynchronous-message', function(event, arg) {
+  const baiduWin = LoginBaidu(arg.url)
+  const webConmentBaidu = baiduWin.webContents
+  baiduWin.webContents.on('new-window', (event, url) => {
+    event.preventDefault()
+    shell.openExternal(url)
+  })
+  webConmentBaidu.openDevTools({
+    detach: true,
+  })
+  webConmentBaidu.on('did-finish-load', () => {
+    console.log('页面已经完成导航')
+  })
+  webConmentBaidu.on('did-get-redirect-request', (Headers) => {
+    console.log(Headers)
+  })
+  console.log(arg)
+  event.sender.send('asynchronous-reply', {
+    obj: baiduWin,
+    message: 'ok, i havd help you to open window',
+  })
+})
 
 function createWindow() {
   // Create the browser window.
@@ -62,6 +87,7 @@ app.on('activate', () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
+  console.log(LoginBaidu)
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
     try {

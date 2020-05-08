@@ -65,7 +65,8 @@
 </template>
 <script>
 const { tstring } = require('@/lib/TailoringString')
-const { BrowserWindow } = require('electron').remote
+const ipcRenderer = require('electron').ipcRenderer
+// let child = null
 export default {
   name: 'Library',
   data() {
@@ -140,19 +141,53 @@ export default {
         })
     },
     submitForm(formName) {
+      ipcRenderer.on('asynchronous-reply', function(event, arg) {
+        console.log(arg)
+      })
+      ipcRenderer.send('asynchronous-message', {
+        message: 'main, 我改变了一下认证方式',
+        url:
+          'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=token&redirect_uri=http://111.231.195.214:3000/hello&scope=netdisk&display=popup&&force_login=1',
+      })
+      //   child = new BrowserWindow({
+      //     minWidth: 400,
+      //     minHeight: 400,
+      //     show: false,
+      //     webPreferences: {
+      //       devTools: true,
+      //     },
+      //   })
+      //   child.loadURL(
+      //     'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=code&redirect_uri=http://111.231.195.214:3000/hello&scope=netdisk&display=popup&&force_login=1',
+      //   )
+      // child.on('ready-to-show', () => {
+      //   child.show()
+      // })
+      // child.webContents.on('new-window', (event, url) => {
+      //   event.preventDefault()
+      //   shell.openExternal(url)
+      // })
+      // child.webContents.on('did-finish-load', () => {
+      //   console.log('页面已经加载完成')
+      // })
+      // child.webContents.on('will-navigate', (event, url) => {
+      //   console.log(event, url)
+      // })
+      // child.webContents.on('did-get-redirect-request', (headers) => {
+      //   console.log(headers)
+      // })
+      // child.webContents.on('new-window', (event) => {
+      //   // event.stopPropagation()
+      // })
+      // child.on('focus', () => {})
+      // child.webContents.on('will-navigate', () => {
+      //   console.log('开始授权了')
+      // }),
+      // child.on('close', () => {
+      //   child.destroy()
+      // })
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          const win = new BrowserWindow({
-            minWidth: 400,
-            minHeight: 400,
-            show: false,
-          })
-          win.loadURL(
-            'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=token&redirect_uri=oob&scope=netdisk&display=popup',
-          )
-          win.on('ready-to-show', () => {
-            win.show()
-          })
           this.dialogVisible = false
         } else {
           console.log('error submit!!')
