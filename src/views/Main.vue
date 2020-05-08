@@ -32,6 +32,7 @@
       </el-menu>
     </el-aside>
     <el-main>
+      <div></div>
       <router-view />
     </el-main>
   </el-container>
@@ -57,5 +58,7 @@ export default {
 }
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: @main-aside-width;
+}
+.toobar {
 }
 </style>
