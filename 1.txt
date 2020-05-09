@@ -1,0 +1,32 @@
+let win = new BrowserWindow({
+    minHeight: 400,
+    minWidth: 400,
+    show: false,
+    webPreferences: {
+      devTools: true,
+    },
+  })
+  win.loadURL(url)
+  win.on('ready-to-show', () => {
+    win.show()
+  })
+  win.on('close', () => {
+    win = null
+  })
+
+const provider = new OAuth2Provider({
+    authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=code&redirect_uri=http://111.231.195.214:3000/yunjv&scope=netdisk&display=popup&&force_login=1'',
+    access_token_url:
+      'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
+    response_type: 'code',
+    client_id: 'UHtXpF46VABa01jCCQiNAdhy',
+    redirect_uri: 'http://111.231.195.214:3000/yunjv', //Important! RFC says OPTIONAL. But REQUIRED for this library.
+  })
+  provider
+    .perform(win)
+    .then((res) => {
+      console.log(res)
+    })
+    .catch((err) => {
+      console.log(err)
+    })

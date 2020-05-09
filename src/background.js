@@ -6,6 +6,8 @@ import {
   installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
+const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
+const qs = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -18,27 +20,47 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 // 通信
+
 ipcMain.on('asynchronous-message', function(event, arg) {
-  const baiduWin = LoginBaidu(arg.url)
-  const webConmentBaidu = baiduWin.webContents
-  baiduWin.webContents.on('new-window', (event, url) => {
-    event.preventDefault()
-    shell.openExternal(url)
-  })
-  webConmentBaidu.openDevTools({
-    detach: true,
-  })
-  webConmentBaidu.on('did-finish-load', () => {
-    console.log('页面已经完成导航')
-  })
-  webConmentBaidu.on('did-get-redirect-request', (Headers) => {
-    console.log(Headers)
-  })
   console.log(arg)
-  event.sender.send('asynchronous-reply', {
-    obj: baiduWin,
-    message: 'ok, i havd help you to open window',
+
+  const baiduWin = new BrowserWindow({
+    width: 600,
+    height: 800,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
   })
+
+  if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
+
+  const provider = new OAuth2Provider({
+    authorize_url:
+      'https://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&display=popup&force_login=1&confirm_login=1',
+    access_token_url:
+      'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
+    response_type: 'token',
+    client_id: 'UHtXpF46VABa01jCCQiNAdhy',
+    client_secret: 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV',
+    grant_type: 'authorization_code',
+    redirect_uri: 'http://111.231.195.214:3000/yunjv',
+    scope: 'basic,netdisk',
+  })
+  provider
+    .perform(baiduWin)
+    .then((raw) => {
+      const result = qs.parse(raw)
+      event.reply('asynchronous-reply', {
+        state: 1,
+        info: result,
+      })
+      console.log('result', result)
+      baiduWin.close()
+    })
+    .catch((err) => {
+      console.error(err)
+    })
 })
 
 function createWindow() {

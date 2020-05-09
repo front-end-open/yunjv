@@ -16,6 +16,7 @@
   "main": "background.js",
   "dependencies": {
     "core-js": "^3.6.4",
+    "electron-oauth-helper": "^5.0.3",
     "element-ui": "^2.13.1",
     "normalize.css": "^8.0.1",
     "vue": "^2.6.11",

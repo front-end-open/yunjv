@@ -61,6 +61,17 @@
         >
       </span>
     </el-dialog>
+    <el-row :gutter="12">
+      <el-col :span="8" v-for="(list, index) in server" :key="index">
+        <el-card shadow="hover">
+          <h4>{{ list.serverName }}</h4>
+          <el-progress
+            :percentage="list.range"
+            :color="customColors"
+          ></el-progress>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 <script>
@@ -127,6 +138,14 @@ export default {
           label: 'SeaFile',
         },
       ],
+      customColors: [
+        { color: '#f56c6c', percentage: 20 },
+        { color: '#e6a23c', percentage: 40 },
+        { color: '#5cb87a', percentage: 60 },
+        { color: '#1989fa', percentage: 80 },
+        { color: '#6f7ad3', percentage: 100 },
+      ],
+      server: [],
       value: '',
     }
   },
@@ -141,53 +160,18 @@ export default {
         })
     },
     submitForm(formName) {
-      ipcRenderer.on('asynchronous-reply', function(event, arg) {
-        console.log(arg)
-      })
-      ipcRenderer.send('asynchronous-message', {
-        message: 'main, 我改变了一下认证方式',
-        url:
-          'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=token&redirect_uri=http://111.231.195.214:3000/hello&scope=netdisk&display=popup&&force_login=1',
-      })
-      //   child = new BrowserWindow({
-      //     minWidth: 400,
-      //     minHeight: 400,
-      //     show: false,
-      //     webPreferences: {
-      //       devTools: true,
-      //     },
-      //   })
-      //   child.loadURL(
-      //     'http://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&response_type=code&redirect_uri=http://111.231.195.214:3000/hello&scope=netdisk&display=popup&&force_login=1',
-      //   )
-      // child.on('ready-to-show', () => {
-      //   child.show()
-      // })
-      // child.webContents.on('new-window', (event, url) => {
-      //   event.preventDefault()
-      //   shell.openExternal(url)
-      // })
-      // child.webContents.on('did-finish-load', () => {
-      //   console.log('页面已经加载完成')
-      // })
-      // child.webContents.on('will-navigate', (event, url) => {
-      //   console.log(event, url)
-      // })
-      // child.webContents.on('did-get-redirect-request', (headers) => {
-      //   console.log(headers)
-      // })
-      // child.webContents.on('new-window', (event) => {
-      //   // event.stopPropagation()
-      // })
-      // child.on('focus', () => {})
-      // child.webContents.on('will-navigate', () => {
-      //   console.log('开始授权了')
-      // }),
-      // child.on('close', () => {
-      //   child.destroy()
-      // })
+      const list = {}
       this.$refs[formName].validate((valid) => {
         if (valid) {
+          ipcRenderer.send('asynchronous-message', 'ping')
+          ipcRenderer.on('asynchronous-reply', (event, arg) => {
+            const { state } = arg
+            if (state) {
+              list.serverName = this.value
+              list.range = 100
+              this.server.push(list)
+            }
+          })
           this.dialogVisible = false
         } else {
           console.log('error submit!!')
