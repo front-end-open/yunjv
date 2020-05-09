@@ -1,6 +1,6 @@
 'use strict'
 
-import { ipcMain, app, protocol, BrowserWindow, shell } from 'electron'
+import { ipcMain, app, protocol, BrowserWindow } from 'electron'
 import {
   createProtocol,
   installVueDevtools,
