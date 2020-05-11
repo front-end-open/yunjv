@@ -32,8 +32,9 @@
       </el-menu>
     </el-aside>
     <el-main>
-      <div></div>
-      <router-view />
+      <keep-alive>
+        <router-view />
+      </keep-alive>
     </el-main>
   </el-container>
 </template>
