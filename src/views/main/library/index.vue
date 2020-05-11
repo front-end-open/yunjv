@@ -19,7 +19,6 @@
         :rules="rules"
         ref="ruleForm"
         label-width="100px"
-        class="demo-ruleForm"
       >
         <el-form-item label="服务名称" prop="name">
           <el-input
@@ -80,8 +79,70 @@
     <el-row :gutter="12">
       <el-col :span="8" v-for="(list, index) in server" :key="index">
         <el-card shadow="hover">
-          <div class="dele" style="text-align: right">
-            <v-icon name="trash-alt" @click="deleServer(index)"></v-icon>
+          <div class="drop" style="text-align: right">
+            <el-dropdown trigger="click" @command="configServer">
+              <span class="el-dropdown-link">
+                <i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item
+                  :command="`change${index}`"
+                  icon="el-icon-s-tools"
+                  >修改配置</el-dropdown-item
+                >
+                <el-dropdown-item :command="index" icon="el-icon-delete-solid"
+                  >删除服务</el-dropdown-item
+                >
+              </el-dropdown-menu>
+            </el-dropdown>
+          </div>
+          <div class="serDialog">
+            <el-dialog
+              title="提示"
+              :visible.sync="dialogVisible2"
+              width="30%"
+              :before-close="handleClose"
+            >
+              <el-form
+                :model="sapServerConfig"
+                :rules="rulesinG"
+                ref="configForm"
+                label-width="200px"
+              >
+                <el-form-item label="标签" prop="serverName">
+                  <el-input
+                    v-model="sapServerConfig.serverName"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="服务类型">
+                  <span>{{ sapServerConfig.type }}</span>
+                </el-form-item>
+                <el-form-item label="URL" prop="host">
+                  <el-input v-model="sapServerConfig.host" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="Port" prop="port">
+                  <el-input
+                    v-model.number="sapServerConfig.port"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="账户" prop="user">
+                  <el-input v-model="sapServerConfig.user" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password" clearable>
+                  <el-input
+                    v-model.number="sapServerConfig.password"
+                  ></el-input>
+                </el-form-item>
+              </el-form>
+              <span slot="footer" class="dialog-footer">
+                <el-button @click="dialogVisible2 = false">取 消</el-button>
+                <el-button type="primary" @click="submit('configForm')"
+                  >确 定</el-button
+                >
+              </span>
+            </el-dialog>
           </div>
           <div>
             <v-icon name="server"></v-icon>
@@ -116,7 +177,7 @@ const ipcRenderer = require('electron').ipcRenderer
 export default {
   name: 'Library',
   data() {
-    var validateIP = (rule, value, callback) => {
+    var validateHost = (rule, value, callback) => {
       // IP匹配正则
       const regexp = new RegExp(
         /^(?:(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})\.){3}(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})$/,
@@ -126,6 +187,12 @@ export default {
         callback(new Error('输入IP不合法'))
       } else {
         callback()
+      }
+    }
+    var validatePort = (rule, value, callback) => {
+      if (value < 0 || value > 65535) {
+        console.log(value)
+        callback(new Error('端口非法，请从新输入'))
       }
     }
     return {
@@ -159,13 +226,46 @@ export default {
             trigger: 'blur',
           },
           {
-            validator: validateIP,
+            validator: validateHost,
             trigger: ['blur', 'change'],
           },
         ],
         port: [
           { required: true, message: '端口不能为空' },
           { type: 'number', message: '端口必须为数字值' },
+        ],
+        usr: [
+          { min: 0, max: 200, message: '长度在 0-200之间', trigger: 'change' },
+        ],
+        pwd: [
+          { min: 0, max: 200, message: '长度在 0-200之间', trigger: 'change' },
+        ],
+      },
+      rulesinG: {
+        serverName: [
+          { required: true, message: '输入服务名称', trigger: 'blur' },
+          {
+            min: 0,
+            max: 50,
+            message: '长度在 0 到 50 个字符',
+            trigger: 'blur',
+          },
+        ],
+        port: [
+          { required: true, message: '端口不能为空' },
+          { type: 'number', message: '端口必须为数字值' },
+          { validator: validatePort, trigger: 'blur' },
+        ],
+        host: [
+          {
+            required: true,
+            message: '输入IP',
+            trigger: 'blur',
+          },
+          {
+            validator: validateHost,
+            trigger: ['blur', 'change'],
+          },
         ],
         usr: [
           { min: 0, max: 200, message: '长度在 0-200之间', trigger: 'change' },
@@ -192,6 +292,8 @@ export default {
         { color: '#6f7ad3', percentage: 100 },
       ],
       server: [],
+      sapServerConfig: {},
+      dialogVisible2: false,
     }
   },
   created() {
@@ -227,6 +329,7 @@ export default {
               if (state) {
                 //授权成功
                 list.serverName = this.ruleForm.name
+                list.type = this.ruleForm.option
                 list.range = 100
                 list.token = info.access_token
                 this.server.push(list)
@@ -237,6 +340,7 @@ export default {
           } else {
             list.serverName = this.ruleForm.name //ftp
             list.host = this.ruleForm.IP
+            list.type = this.ruleForm.option
             list.port = this.ruleForm.port
             list.user = this.ruleForm.usr
             list.password = this.ruleForm.password
@@ -250,7 +354,7 @@ export default {
 
           this.dialogVisible = false // 关闭dialog的时机
         } else {
-          console.log('error submit!!')
+          // this.sapServerConfig.push(config)
           return false
         }
       })
@@ -265,29 +369,48 @@ export default {
         this.tag = false
       }
     },
-    deleServer(tag) {
-      const config = JSON.parse(localStorage.getItem('config'))
-      //[].length
-      if (this.server) {
-        this.server.splice(tag, 1)
-        config.splice(tag, 1)
-        localStorage.setItem('config', JSON.stringify(config))
-        this.$message({
-          message: '删除成功',
-          type: 'success',
-        })
+    configServer(commtag) {
+      if (Number.isInteger(commtag)) {
+        const config = JSON.parse(localStorage.getItem('config'))
+        //[].length
+        if (this.server) {
+          this.server.splice(Number(commtag), 1)
+          config.splice(Number(commtag), 1)
+          localStorage.setItem('config', JSON.stringify(config))
+          this.$message({
+            message: '删除成功',
+            type: 'success',
+          })
+        }
+      } else {
+        const tag = tstring(commtag),
+          config = JSON.parse(localStorage.getItem('config'))[tag]
+        // 后续情况，需要在打开对话框的时候，就请求当前服务配置
+        if (config.type && tstring(config.type)) {
+          this.sapServerConfig = config
+          this.dialogVisible2 = true //打开对话框
+        } else {
+          alert('暂不提供修改')
+        }
       }
+    },
+    submit(formName) {
+      this.$refs[formName][1].validate((valid) => {
+        if (valid) {
+          this.dialogVisible2 = false
+          this.$message({
+            message: '修改成功',
+            type: 'success',
+          })
+        } else {
+          return false
+        }
+        console.log(this.$refs[formName])
+      })
     },
   },
   computed: {},
   watch: {},
-  mounted() {
-    if (localStorage.getItem(`${this.ruleForm.name}`)) {
-      this.server.push(
-        JSON.parse(localStorage.getItem(`${this.ruleForm.name}`)),
-      )
-    }
-  },
 }
 </script>
 <style lang="less" scoped>
