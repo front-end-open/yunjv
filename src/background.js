@@ -50,28 +50,44 @@ ipcMain.on('asynchronous-message', function(event, arg) {
       },
     })
     if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
-
-    const provider = new OAuth2Provider({
-      authorize_url:
-        'https://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&display=popup&force_login=1&confirm_login=1',
+    const config = {
+      // authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
+      // response_type: 'token',
+      // client_id: 'UHtXpF46VABa01jCCQiNAdhy',
+      // redirect_uri: 'http://111.231.195.214:3000/yunjv',
+      // scope: 'basic,netdisk',
+      authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
       access_token_url:
         'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
-      response_type: 'token',
+      response_type: 'code',
       client_id: 'UHtXpF46VABa01jCCQiNAdhy',
-      client_secret: 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV',
-      grant_type: 'authorization_code',
       redirect_uri: 'http://111.231.195.214:3000/yunjv',
-      scope: 'basic,netdisk',
+    }
+    const provider = new OAuth2Provider(config)
+    provider.on('before-authorize-request', (parameter) => {
+      parameter['force_login'] = 1
+      parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
+      parameter['scope'] = 'basic,netdisk'
+    })
+
+    provider.on('before-access-token-request', (parameter) => {
+      const code = parameter.code
+      parameter['grant_type'] = 'authorization_code'
+      parameter['code'] = code
+      parameter['client_id'] = 'UHtXpF46VABa01jCCQiNAdhy'
+      parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
+      parameter['redirect_uri'] = 'http://111.231.195.214:3000/yunjv'
     })
     provider
       .perform(baiduWin)
       .then((raw) => {
-        const result = qs.parse(raw)
+        console.log(raw)
+        const { body } = raw
         event.reply('asynchronous-reply', {
           state: 1,
-          info: result,
+          info: body,
         })
-        console.log('result', result)
+        // console.log('result', raw.body)
         baiduWin.close()
       })
       .catch((err) => {
@@ -83,7 +99,7 @@ ipcMain.on('asynchronous-message', function(event, arg) {
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
-    width: 800,
+    minWidth: 1000,
     height: 600,
     webPreferences: {
       nodeIntegration: true,

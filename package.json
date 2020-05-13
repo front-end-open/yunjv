@@ -15,6 +15,7 @@
   },
   "main": "background.js",
   "dependencies": {
+    "axios": "^0.19.2",
     "core-js": "^3.6.4",
     "electron-oauth-helper": "^5.0.3",
     "element-ui": "^2.13.1",
