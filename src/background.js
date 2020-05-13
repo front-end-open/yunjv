@@ -7,7 +7,6 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
-const qs = require('querystring')
 const Client = require('ftp')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
