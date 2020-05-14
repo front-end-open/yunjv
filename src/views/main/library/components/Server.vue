@@ -9,6 +9,7 @@
         </div>
       </el-col>
     </el-row>
+
     <el-dialog
       title="服务添加"
       :visible.sync="dialogVisible"
@@ -77,110 +78,114 @@
       </span>
     </el-dialog>
 
-    <el-row :gutter="12">
-      <el-col :span="8" v-for="(list, index) in server" :key="index">
-        <div class="cardBox">
-          <el-card shadow="hover">
-            <div class="drop" style="text-align: right">
-              <el-dropdown trigger="click" @command="configServer">
-                <span class="el-dropdown-link">
-                  <i class="el-icon-arrow-down el-icon--right"></i>
-                </span>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item
-                    :command="`change${index}`"
-                    icon="el-icon-s-tools"
-                    >修改配置</el-dropdown-item
-                  >
-                  <el-dropdown-item :command="index" icon="el-icon-delete-solid"
-                    >删除服务</el-dropdown-item
-                  >
-                  <el-dropdown-item
-                    command="openFileList"
-                    icon="el-icon-delete-solid"
-                    >查看文件</el-dropdown-item
-                  >
-                </el-dropdown-menu>
-              </el-dropdown>
-            </div>
-            <div class="serDialog">
-              <el-dialog
-                title="配置修改"
-                :visible.sync="dialogVisible2"
-                width="30%"
-                :before-close="handleClose"
-              >
-                <el-form
-                  :model="sapServerConfig"
-                  :rules="rulesinG"
-                  ref="sapServerConfig"
+    <div class="server-list">
+      <el-row :gutter="12">
+        <el-col :span="8" v-for="(list, index) in server" :key="index">
+          <div class="cardBox">
+            <el-card shadow="hover">
+              <div class="drop" style="text-align: right">
+                <el-dropdown trigger="click" @command="configServer">
+                  <span class="el-dropdown-link">
+                    <i class="el-icon-arrow-down el-icon--right"></i>
+                  </span>
+                  <el-dropdown-menu slot="dropdown">
+                    <el-dropdown-item
+                      :command="`change${index}`"
+                      icon="el-icon-s-tools"
+                      >修改配置</el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      :command="index"
+                      icon="el-icon-delete-solid"
+                      >删除服务</el-dropdown-item
+                    >
+                    <el-dropdown-item
+                      command="openFileList"
+                      icon="el-icon-delete-solid"
+                      >查看文件</el-dropdown-item
+                    >
+                  </el-dropdown-menu>
+                </el-dropdown>
+              </div>
+              <div class="serDialog">
+                <el-dialog
+                  title="配置修改"
+                  :visible.sync="dialogVisible2"
+                  width="30%"
+                  :before-close="handleClose"
                 >
-                  <el-form-item label="标签" prop="serverName">
-                    <el-input
-                      v-model="sapServerConfig.serverName"
-                      clearable
-                    ></el-input>
-                  </el-form-item>
-                  <el-form-item label="服务类型">
-                    <span>{{ sapServerConfig.type }}</span>
-                  </el-form-item>
-                  <el-form-item label="URL" prop="host">
-                    <el-input
-                      v-model="sapServerConfig.host"
-                      clearable
-                    ></el-input>
-                  </el-form-item>
-                  <el-form-item label="Port" prop="port">
-                    <el-input
-                      v-model.number="sapServerConfig.port"
-                      clearable
-                    ></el-input>
-                  </el-form-item>
-                  <el-form-item label="账户" prop="user">
-                    <el-input
-                      v-model="sapServerConfig.user"
-                      clearable
-                    ></el-input>
-                  </el-form-item>
-                  <el-form-item label="密码" prop="password" clearable>
-                    <el-input
-                      v-model.number="sapServerConfig.password"
-                    ></el-input>
-                  </el-form-item>
-                </el-form>
-                <span slot="footer" class="dialog-footer">
-                  <el-button @click="dialogVisible2 = false">取 消</el-button>
-                  <el-button type="primary" @click="submitConfigFrom()"
-                    >确 定</el-button
+                  <el-form
+                    :model="sapServerConfig"
+                    :rules="rulesinG"
+                    ref="sapServerConfig"
                   >
-                </span>
-              </el-dialog>
-            </div>
-            <div>
-              <v-icon name="server"></v-icon>
-              <h2
-                style="display:inline-block; vertical-align: 2px; padding-left: 12px;"
-              >
-                {{ list.serverName }}
-              </h2>
-            </div>
+                    <el-form-item label="标签" prop="serverName">
+                      <el-input
+                        v-model="sapServerConfig.serverName"
+                        clearable
+                      ></el-input>
+                    </el-form-item>
+                    <el-form-item label="服务类型">
+                      <span>{{ sapServerConfig.type }}</span>
+                    </el-form-item>
+                    <el-form-item label="URL" prop="host">
+                      <el-input
+                        v-model="sapServerConfig.host"
+                        clearable
+                      ></el-input>
+                    </el-form-item>
+                    <el-form-item label="Port" prop="port">
+                      <el-input
+                        v-model.number="sapServerConfig.port"
+                        clearable
+                      ></el-input>
+                    </el-form-item>
+                    <el-form-item label="账户" prop="user">
+                      <el-input
+                        v-model="sapServerConfig.user"
+                        clearable
+                      ></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码" prop="password" clearable>
+                      <el-input
+                        v-model.number="sapServerConfig.password"
+                      ></el-input>
+                    </el-form-item>
+                  </el-form>
+                  <span slot="footer" class="dialog-footer">
+                    <el-button @click="dialogVisible2 = false">取 消</el-button>
+                    <el-button type="primary" @click="submitConfigFrom()"
+                      >确 定</el-button
+                    >
+                  </span>
+                </el-dialog>
+              </div>
+              <div>
+                <v-icon name="server"></v-icon>
+                <h2
+                  style="display:inline-block; vertical-align: 2px; padding-left: 12px;"
+                >
+                  {{ list.serverName }}
+                </h2>
+              </div>
 
-            <div>
-              <v-icon name="code-branch"></v-icon>
-              <h4
-                style="display:inline-block;vertical-align:2px; padding-left: 12px"
-              >
-                {{ list.host ? list.host : '' }}
-              </h4>
-            </div>
-            <el-progress
-              :percentage="list.range"
-              :color="customColors"
-            ></el-progress>
-          </el-card>
-        </div>
-      </el-col>
-    </el-row>
+              <div>
+                <v-icon name="code-branch"></v-icon>
+                <h4
+                  style="display:inline-block;vertical-align:2px; padding-left: 12px"
+                >
+                  {{ list.host ? list.host : '' }}
+                </h4>
+              </div>
+              <el-progress
+                :percentage="list.range"
+                :color="customColors"
+              ></el-progress>
+            </el-card>
+          </div>
+        </el-col>
+      </el-row>
+    </div>
   </div>
 </template>
 <script>
@@ -328,6 +333,7 @@ export default {
         config = localStorage.getItem('config')
           ? JSON.parse(localStorage.getItem('config'))
           : []
+      console.log(config)
       const tag = tstring(this.ruleForm.option) // 展开添加服务面板tag
       this.$refs[formName].validate((valid) => {
         if (valid) {
@@ -349,30 +355,49 @@ export default {
               }
             })
           } else {
+            console.log('ftp')
             //在每次组件加载时，拿到服务器数据，添加服务时候进行比对，对于同样的iP将排除
-            if (JSON.parse(localStorage.getItem('config'))) {
-              for (let val of JSON.parse(localStorage.getItem('config'))) {
-                if (val.host == this.ruleForm.IP) {
-                  alert('服务已被添加')
-                  break
-                }
-              }
-            } else {
-              // ftp服务添加
-              list.serverName = this.ruleForm.name //ftp
-              list.host = this.ruleForm.IP
-              list.type = this.ruleForm.option
-              list.port = this.ruleForm.port
-              list.user = this.ruleForm.usr
-              list.password = this.ruleForm.password
-              list.range = 50
-              list.tag = tag
-              this.server.push(list)
+            // if (config !== []) {
+            //   console.log('ftp2')
+            //   for (let val of config) {
+            //     console.log(val)
+            //     if (val.host || val.host !== this.ruleForm.IP) {
+            //       // 添加相同服务拒绝
+            //       //再次添加不同服务
+            //       list.serverName = this.ruleForm.name //ftp
+            //       list.host = this.ruleForm.IP
+            //       list.type = this.ruleForm.option
+            //       list.port = this.ruleForm.port
+            //       list.user = this.ruleForm.usr
+            //       list.password = this.ruleForm.password
+            //       list.range = 50
+            //       list.tag = tag
+            //       this.server.push(list)
+            //       config.push(list)
+            //       window.localStorage.setItem(`config`, JSON.stringify(config))
+            //       ipcRenderer.send('asynchronous-message', list)
+            //       break
+            //     } else {
+            //       alert('服务已经被添加')
+            //       break
+            //     }
+            //   }
+            // } else {
+            console.log('添加新服务')
+            // ftp服务添加
+            list.serverName = this.ruleForm.name //ftp
+            list.host = this.ruleForm.IP
+            list.type = this.ruleForm.option
+            list.port = this.ruleForm.port
+            list.user = this.ruleForm.usr
+            list.password = this.ruleForm.password
+            list.range = 50
+            list.tag = tag
+            this.server.push(list)
 
-              config.push(list)
-              window.localStorage.setItem(`config`, JSON.stringify(config))
-              ipcRenderer.send('asynchronous-message', list)
-            }
+            config.push(list)
+            window.localStorage.setItem(`config`, JSON.stringify(config))
+            // ipcRenderer.send('asynchronous-message', list)
           }
           this.dialogVisible = false // 关闭dialog的时机
         } else {
@@ -391,6 +416,8 @@ export default {
       }
     },
     configServer(commtag) {
+      let config = JSON.parse(localStorage.getItem('config'))
+
       if (Number.isInteger(commtag)) {
         const config = JSON.parse(localStorage.getItem('config'))
         //[].length
@@ -404,7 +431,19 @@ export default {
           })
         }
       } else if (commtag === 'openFileList') {
-        this.$router.push('/main/library/filelist')
+        config.forEach((val) => {
+          if (tstring(val.type) === 1) {
+            this.$router.push({
+              path: '/main/library/filelist',
+              query: { server: 'ftp' },
+            })
+          } else if (tstring(val.type)) {
+            this.$router.push({
+              path: '/main/library/filelist',
+              query: { server: 'baid' },
+            })
+          }
+        })
       } else {
         const tag = tstring(commtag),
           config = JSON.parse(localStorage.getItem('config'))[tag]
@@ -442,3 +481,8 @@ export default {
   },
 }
 </script>
+<style lang="less" scoped>
+.server-list {
+  margin: 20px;
+}
+</style>

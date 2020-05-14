@@ -6,6 +6,11 @@ module.exports = {
         ws: true,
         changeOrigin: true,
       },
+      '/rest/2.0/xpan/file/multimedia': {
+        target: 'https://pan.baidu.com',
+        ws: true,
+        changeOrigin: true,
+      },
       '/rest/2.0/xpan/multimedia': {
         target: 'https://pan.baidu.com',
         ws: true,
