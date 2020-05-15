@@ -21,7 +21,7 @@ protocol.registerSchemesAsPrivileged([
 
 // 通信
 
-ipcMain.on('asynchronous-message', function(event, arg) {
+ipcMain.on('asynchronous-message', function(event) {
   const baiduWin = new BrowserWindow({
     width: 600,
     height: 800,
