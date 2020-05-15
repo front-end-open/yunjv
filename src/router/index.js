@@ -10,7 +10,10 @@ import libraryFileList from '../views/main/library/components/fileList.vue'
 import Server from '../views/main/library/components/Server.vue'
 
 Vue.use(VueRouter)
-
+// const originalPush = VueRouter.prototype.push
+// VueRouter.prototype.push = function push(location) {
+//   return originalPush.call(this, location).catch((err) => err)
+// }
 const routes = [
   {
     path: '/',
@@ -29,12 +32,14 @@ const routes = [
         props: true,
         children: [
           {
-            path: 'filelist',
-            component: libraryFileList,
-          },
-          {
             path: 'server',
             component: Server,
+          },
+          {
+            path: 'filelist/:id',
+            name: 'filelist',
+            component: libraryFileList,
+            props: true,
           },
         ],
       },

@@ -121,11 +121,13 @@
         </div>
       </el-dialog>
     </el-main>
+    <h1>{{ query }}</h1>
   </el-container>
 </template>
 <script>
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
+const SambaClient = require('samba-client')
 const Client = require('ftp')
 export default {
   data() {
@@ -151,12 +153,15 @@ export default {
       },
       rowfileID: '',
       path: '/',
+      query: this.$route.query.server,
     }
   },
   created() {
-    const config = JSON.parse(localStorage.getItem('config'))[0]
+    const { index } = this.$route.params
+    const config = JSON.parse(localStorage.getItem('config'))[index]
     const { token } = config
-    if (this.$route.query.server == 'ftp') {
+    console.log(config)
+    if (this.$route.params.server == 'ftp') {
       const c = new Client()
       c.on('ready', function() {
         c.list(false, function(err, list) {
@@ -175,7 +180,7 @@ export default {
         pasvTimeout: 10000000,
         keepalive: 10000000,
       })
-    } else {
+    } else if (this.$route.params.server == 'baid') {
       let id = 1
       this.$http
         .get(`/rest/2.0/xpan/file?method=list&access_token=${token}`)
@@ -203,8 +208,16 @@ export default {
           console.log(list)
         })
         .catch((error) => {
-          console.log(error.toJSON())
+          console.log(error)
         })
+    } else if (this.$route.query.server == 'smb') {
+      try {
+        this.smbclient().then((res) => {
+          console.log(res)
+        })
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   methods: {
@@ -302,6 +315,22 @@ export default {
     },
     handleDelete(index, row) {
       console.log(index, row)
+    },
+    async smbclient() {
+      let client = new SambaClient({
+        address: '192.168.1.4', // required
+        username: 'share', // not required, defaults to guest
+        password: '175623', // not required
+        domain: 'WORKGROUP', // not required
+        maxProtocol: 'SMB', // not required
+      })
+      const list = await client.listFiles('share', 'share')
+      return list
+    },
+  },
+  watch: {
+    '$router': function(newVal, oldVal) {
+      console.log(newVal, oldVal)
     },
   },
 }

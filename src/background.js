@@ -7,7 +7,7 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
-const Client = require('ftp')
+// const Client = require('ftp')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -22,82 +22,53 @@ protocol.registerSchemesAsPrivileged([
 // 通信
 
 ipcMain.on('asynchronous-message', function(event, arg) {
-  console.log(event, arg)
-  console.log(arg)
-  const { tag, host, port, user, password } = arg
+  const baiduWin = new BrowserWindow({
+    width: 600,
+    height: 800,
+    show: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+    },
+  })
+  if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
   const config = {
-    host: host,
-    port: port,
-    user: user,
-    password: password,
-    keepalive: 10000,
+    authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
+    access_token_url:
+      'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
+    response_type: 'code',
+    client_id: 'UHtXpF46VABa01jCCQiNAdhy',
+    redirect_uri: 'http://111.231.195.214:3000/yunjv',
   }
-  if (tag === 1) {
-    const c = new Client()
-    c.on('ready', function() {
-      c.list(function(err, list) {
-        if (err) throw err
-        console.dir(list)
-        c.end()
+  const provider = new OAuth2Provider(config)
+  provider.on('before-authorize-request', (parameter) => {
+    parameter['force_login'] = 1
+    parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
+    parameter['scope'] = 'basic,netdisk'
+  })
+  provider.on('before-access-token-request', (parameter) => {
+    const code = parameter.code
+    parameter['grant_type'] = 'authorization_code'
+    parameter['code'] = code
+    parameter['client_id'] = 'UHtXpF46VABa01jCCQiNAdhy'
+    parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
+    parameter['redirect_uri'] = 'http://111.231.195.214:3000/yunjv'
+  })
+  provider
+    .perform(baiduWin)
+    .then((raw) => {
+      console.log(raw)
+      const { body } = raw
+      event.reply('asynchronous-reply', {
+        state: 1,
+        info: body,
       })
-      console.log('OK')
+      // console.log('result', raw.body)
+      baiduWin.close()
     })
-    c.connect(config)
-  } else {
-    const baiduWin = new BrowserWindow({
-      width: 600,
-      height: 800,
-      show: true,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true,
-      },
+    .catch((err) => {
+      console.error(err)
     })
-    if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
-    const config = {
-      // authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
-      // response_type: 'token',
-      // client_id: 'UHtXpF46VABa01jCCQiNAdhy',
-      // redirect_uri: 'http://111.231.195.214:3000/yunjv',
-      // scope: 'basic,netdisk',
-      authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
-      access_token_url:
-        'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
-      response_type: 'code',
-      client_id: 'UHtXpF46VABa01jCCQiNAdhy',
-      redirect_uri: 'http://111.231.195.214:3000/yunjv',
-    }
-    const provider = new OAuth2Provider(config)
-    provider.on('before-authorize-request', (parameter) => {
-      parameter['force_login'] = 1
-      parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
-      parameter['scope'] = 'basic,netdisk'
-    })
-
-    provider.on('before-access-token-request', (parameter) => {
-      const code = parameter.code
-      parameter['grant_type'] = 'authorization_code'
-      parameter['code'] = code
-      parameter['client_id'] = 'UHtXpF46VABa01jCCQiNAdhy'
-      parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
-      parameter['redirect_uri'] = 'http://111.231.195.214:3000/yunjv'
-    })
-    provider
-      .perform(baiduWin)
-      .then((raw) => {
-        console.log(raw)
-        const { body } = raw
-        event.reply('asynchronous-reply', {
-          state: 1,
-          info: body,
-        })
-        // console.log('result', raw.body)
-        baiduWin.close()
-      })
-      .catch((err) => {
-        console.error(err)
-      })
-  }
 })
 
 function createWindow() {

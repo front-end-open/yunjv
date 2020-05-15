@@ -95,12 +95,12 @@
                       >修改配置</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="index"
+                      :command="'dele' + index"
                       icon="el-icon-delete-solid"
                       >删除服务</el-dropdown-item
                     >
                     <el-dropdown-item
-                      command="openFileList"
+                      :command="server[index].type + index"
                       icon="el-icon-delete-solid"
                       >查看文件</el-dropdown-item
                     >
@@ -300,6 +300,10 @@ export default {
           value: 'ftp1',
           label: 'Ftp',
         },
+        {
+          value: 'SMB2',
+          label: 'SMB',
+        },
       ],
       customColors: [
         { color: '#f56c6c', percentage: 20 },
@@ -308,7 +312,7 @@ export default {
         { color: '#1989fa', percentage: 80 },
         { color: '#6f7ad3', percentage: 100 },
       ],
-      server: [],
+      server: [], //添加服务暂存配置
       sapServerConfig: {},
       dialogVisible2: false,
     }
@@ -333,12 +337,13 @@ export default {
         config = localStorage.getItem('config')
           ? JSON.parse(localStorage.getItem('config'))
           : []
-      console.log(config)
+      let server_tag = 0
       const tag = tstring(this.ruleForm.option) // 展开添加服务面板tag
       this.$refs[formName].validate((valid) => {
         if (valid) {
           if (tag === 0) {
             // 百度认证
+            ++server_tag
             ipcRenderer.send('asynchronous-message', 'ping') // 发送消息
             ipcRenderer.on('asynchronous-reply', (event, arg) => {
               const { state, info } = arg
@@ -346,58 +351,65 @@ export default {
               if (state) {
                 //授权成功
                 list.serverName = this.ruleForm.name
+                list.host = ''
+                list.port = ''
+                list.user = ''
+                list.pwd = ''
+                list.tag = tstring(this.ruleForm.option)
                 list.type = this.ruleForm.option
-                list.range = 100
+                list.server_tag = server_tag
+                list.range = 100 //后面需要单独获取
                 list.token = access_token
                 this.server.push(list)
-                config.push(list)
+                config.push(list) //添加服务配置到数据库
                 window.localStorage.setItem(`config`, JSON.stringify(config)) //存储配置
               }
             })
           } else {
-            console.log('ftp')
             //在每次组件加载时，拿到服务器数据，添加服务时候进行比对，对于同样的iP将排除
-            // if (config !== []) {
-            //   console.log('ftp2')
-            //   for (let val of config) {
-            //     console.log(val)
-            //     if (val.host || val.host !== this.ruleForm.IP) {
-            //       // 添加相同服务拒绝
-            //       //再次添加不同服务
-            //       list.serverName = this.ruleForm.name //ftp
-            //       list.host = this.ruleForm.IP
-            //       list.type = this.ruleForm.option
-            //       list.port = this.ruleForm.port
-            //       list.user = this.ruleForm.usr
-            //       list.password = this.ruleForm.password
-            //       list.range = 50
-            //       list.tag = tag
-            //       this.server.push(list)
-            //       config.push(list)
-            //       window.localStorage.setItem(`config`, JSON.stringify(config))
-            //       ipcRenderer.send('asynchronous-message', list)
-            //       break
-            //     } else {
-            //       alert('服务已经被添加')
-            //       break
-            //     }
-            //   }
-            // } else {
-            console.log('添加新服务')
-            // ftp服务添加
-            list.serverName = this.ruleForm.name //ftp
-            list.host = this.ruleForm.IP
-            list.type = this.ruleForm.option
-            list.port = this.ruleForm.port
-            list.user = this.ruleForm.usr
-            list.password = this.ruleForm.password
-            list.range = 50
-            list.tag = tag
-            this.server.push(list)
+            const isADD = config.some((val) => {
+              return val.host === this.ruleForm.IP
+            })
+            console.log(isADD)
+            if (config.length > 0) {
+              if (isADD) {
+                alert('服务已经添加')
+              } else {
+                ++server_tag
+                list.serverName = this.ruleForm.name //ftp
+                list.host = this.ruleForm.IP
+                list.type = this.ruleForm.option
+                list.port = this.ruleForm.port
+                list.user = this.ruleForm.usr
+                list.pwd = this.ruleForm.password
+                list.range = 50
+                list.tag = tag
+                list.server_tag = server_tag //标识服务的添加状态
+                list.token = ''
+                this.server.push(list)
 
-            config.push(list)
-            window.localStorage.setItem(`config`, JSON.stringify(config))
-            // ipcRenderer.send('asynchronous-message', list)
+                config.push(list)
+                window.localStorage.setItem(`config`, JSON.stringify(config))
+              }
+            } else {
+              console.log('添加新服务')
+              // ftp,smb服务添加
+              ++server_tag
+              list.serverName = this.ruleForm.name //ftp
+              list.host = this.ruleForm.IP
+              list.type = this.ruleForm.option
+              list.port = this.ruleForm.port
+              list.user = this.ruleForm.usr
+              list.pwd = this.ruleForm.password
+              list.range = 50
+              list.tag = tag
+              list.server_tag = server_tag //标识服务的添加状态
+              list.token = ''
+              this.server.push(list)
+
+              config.push(list)
+              window.localStorage.setItem(`config`, JSON.stringify(config))
+            }
           }
           this.dialogVisible = false // 关闭dialog的时机
         } else {
@@ -409,51 +421,57 @@ export default {
       this.$refs[formName].resetFields()
     },
     optionCheck(value) {
-      if (value && tstring(this.ruleForm.option) === 1) {
+      if (value && tstring(this.ruleForm.option) !== 0) {
         this.tag = true
       } else {
         this.tag = false
       }
     },
     configServer(commtag) {
+      const opreation = commtag.slice(0, -1),
+        index = tstring(commtag)
       let config = JSON.parse(localStorage.getItem('config'))
 
-      if (Number.isInteger(commtag)) {
-        const config = JSON.parse(localStorage.getItem('config'))
+      if (opreation == 'dele') {
         //[].length
         if (this.server) {
-          this.server.splice(Number(commtag), 1)
-          config.splice(Number(commtag), 1)
+          this.server.splice(index, 1)
+          config.splice(index, 1)
           localStorage.setItem('config', JSON.stringify(config))
           this.$message({
             message: '删除成功',
             type: 'success',
           })
         }
-      } else if (commtag === 'openFileList') {
-        config.forEach((val) => {
-          if (tstring(val.type) === 1) {
-            this.$router.push({
-              path: '/main/library/filelist',
-              query: { server: 'ftp' },
-            })
-          } else if (tstring(val.type)) {
-            this.$router.push({
-              path: '/main/library/filelist',
-              query: { server: 'baid' },
-            })
-          }
-        })
-      } else {
-        const tag = tstring(commtag),
-          config = JSON.parse(localStorage.getItem('config'))[tag]
+      } else if (opreation == 'change') {
+        config = JSON.parse(localStorage.getItem('config'))[index]
         // 后续情况，需要在打开对话框的时候，就请求当前服务配置
-        if (config.type && tstring(config.type)) {
+        if (config.type && tstring(config.type) !== 0) {
           this.sapServerConfig = config
-          this.sapServerConfig.flat = tag
+          this.sapServerConfig.flat = index
           this.dialogVisible2 = true //打开对话框
         } else {
           alert('暂不提供修改')
+        }
+      } else {
+        const index = commtag.slice(-1),
+          tag = commtag.slice(-2)
+        console.log(tag)
+        if (tag == 1) {
+          this.$router.push({
+            name: 'filelist',
+            params: { server: 'ftp', index },
+          })
+        } else if (tag == 0) {
+          this.$router.push({
+            name: 'filelist',
+            params: { server: 'baid', index },
+          })
+        } else {
+          this.$router.push({
+            name: 'filelist',
+            params: { server: 'smb', index },
+          })
         }
       }
     },

@@ -9987,6 +9987,11 @@ safe-regex@^1.1.0:
   resolved "https://registry.npm.taobao.org/safer-buffer/download/safer-buffer-2.1.2.tgz#44fa161b0187b9549dd84bb91802f9bd8385cd6a"
   integrity sha1-RPoWGwGHuVSd2Eu5GAL5vYOFzWo=
 
+samba-client@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.npm.taobao.org/samba-client/download/samba-client-3.2.0.tgz#43653a5111b8030843dc4b3908e34df6210be021"
+  integrity sha1-Q2U6URG4AwhD3Es5CONN9iEL4CE=
+
 sane@^4.0.3:
   version "4.1.0"
   resolved "https://registry.npm.taobao.org/sane/download/sane-4.1.0.tgz#ed881fd922733a6c461bc189dc2b6c006f3ffded"
