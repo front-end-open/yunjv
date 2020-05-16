@@ -381,7 +381,7 @@ export default {
                 list.type = this.ruleForm.option
                 list.port = this.ruleForm.port
                 list.user = this.ruleForm.usr
-                list.pwd = this.ruleForm.password
+                list.pwd = this.ruleForm.pwd
                 list.range = 50
                 list.tag = tag
                 list.server_tag = server_tag //标识服务的添加状态
@@ -400,7 +400,7 @@ export default {
               list.type = this.ruleForm.option
               list.port = this.ruleForm.port
               list.user = this.ruleForm.usr
-              list.pwd = this.ruleForm.password
+              list.pwd = this.ruleForm.pwd
               list.range = 50
               list.tag = tag
               list.server_tag = server_tag //标识服务的添加状态
@@ -455,8 +455,7 @@ export default {
         }
       } else {
         const index = commtag.slice(-1),
-          tag = commtag.slice(-2)
-        console.log(tag)
+          tag = commtag.slice(-2, -1)
         if (tag == 1) {
           this.$router.push({
             name: 'filelist',

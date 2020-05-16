@@ -127,8 +127,9 @@
 <script>
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
-const SambaClient = require('samba-client')
-const Client = require('ftp')
+const ftp = require('basic-ftp')
+// const Client = require('ftp')
+// var fs = require('fs')
 export default {
   data() {
     return {
@@ -160,26 +161,27 @@ export default {
     const { index } = this.$route.params
     const config = JSON.parse(localStorage.getItem('config'))[index]
     const { token } = config
-    console.log(config)
     if (this.$route.params.server == 'ftp') {
-      const c = new Client()
-      c.on('ready', function() {
-        c.list(false, function(err, list) {
-          if (err) throw err
-          console.log(list)
-          c.end()
-        })
-        console.log('OK')
-      })
-      c.connect({
-        host: config.host,
-        port: config.port,
-        user: '',
-        password: '',
-        connTimeout: 10000000,
-        pasvTimeout: 10000000,
-        keepalive: 10000000,
-      })
+      // const c = new Client()
+      // c.on('ready', function() {
+      //   c.get('world.txt', false, (error, strem) => {
+      //     if (error) throw error
+      //     console.log(strem)
+      //     c.end()
+      //   })
+      //   console.log('OK')
+      // })
+      // c.connect({
+      //   host: '127.0.0.1',
+      //   port: '',
+      //   user: 'username',
+      //   password: '175623',
+      //   secure: null,
+      //   connTimeout: null,
+      //   pasvTimeout: null,
+      //   aliveTimeout: null,
+      // })
+      this.smbclient()
     } else if (this.$route.params.server == 'baid') {
       let id = 1
       this.$http
@@ -317,15 +319,20 @@ export default {
       console.log(index, row)
     },
     async smbclient() {
-      let client = new SambaClient({
-        address: '192.168.1.4', // required
-        username: 'share', // not required, defaults to guest
-        password: '175623', // not required
-        domain: 'WORKGROUP', // not required
-        maxProtocol: 'SMB', // not required
-      })
-      const list = await client.listFiles('share', 'share')
-      return list
+      const client = new ftp.Client()
+      client.ftp.verbose = true
+      try {
+        await client.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        console.log(await client.list('hello.txt'))
+      } catch (err) {
+        console.log(err)
+      }
+      client.close()
     },
   },
   watch: {
