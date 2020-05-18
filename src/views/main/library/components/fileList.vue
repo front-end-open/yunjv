@@ -32,6 +32,18 @@
       </el-row>
     </el-header>
     <el-main>
+      <el-row type="flex" :gutter="12">
+        <el-col :span="24">
+          <div class="bread" style="margin: 12px">
+            <el-breadcrumb separator="/">
+              <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+              <el-breadcrumb-item><a href="/">活动管理</a></el-breadcrumb-item>
+              <el-breadcrumb-item>活动列表</el-breadcrumb-item>
+              <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+            </el-breadcrumb>
+          </div>
+        </el-col>
+      </el-row>
       <el-table
         :data="tableData"
         style="width: 100%;margin-bottom: 20px;"
@@ -40,6 +52,7 @@
         lazy
         :load="load"
         @select="download"
+        @cell-click="loadFile"
         :default-expand-all="false"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
@@ -125,12 +138,14 @@
   </el-container>
 </template>
 <script>
+// import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 const ftp = require('basic-ftp')
-// const Client = require('ftp')
+const client = new ftp.Client()
 // var fs = require('fs')
 export default {
+  name: 'fileList',
   data() {
     return {
       tableData: [],
@@ -155,33 +170,31 @@ export default {
       rowfileID: '',
       path: '/',
       query: this.$route.query.server,
+      singleFile: {},
     }
   },
   created() {
     const { index } = this.$route.params
-    const config = JSON.parse(localStorage.getItem('config'))[index]
-    const { token } = config
+    if (index) {
+      var config = JSON.parse(localStorage.getItem('config'))[index]
+      var { token } = config
+    }
+
     if (this.$route.params.server == 'ftp') {
-      // const c = new Client()
-      // c.on('ready', function() {
-      //   c.get('world.txt', false, (error, strem) => {
-      //     if (error) throw error
-      //     console.log(strem)
-      //     c.end()
-      //   })
-      //   console.log('OK')
-      // })
-      // c.connect({
-      //   host: '127.0.0.1',
-      //   port: '',
-      //   user: 'username',
-      //   password: '175623',
-      //   secure: null,
-      //   connTimeout: null,
-      //   pasvTimeout: null,
-      //   aliveTimeout: null,
-      // })
-      this.smbclient()
+      this.smbclient().then((res) => {
+        for (let [index, item] of res.entries()) {
+          const { name, size, isDirectory, modifiedAt } = item
+          this.singleFile = {}
+          this.singleFile.id = index
+          this.singleFile.server_filename = name
+          this.singleFile.size = size
+          this.singleFile.path = `/${name}`
+          this.singleFile.isdir = Number(isDirectory)
+          this.singleFile.local_mtime = modifiedAt
+          this.tableData.push(this.singleFile)
+          console.log(index, item)
+        }
+      })
     } else if (this.$route.params.server == 'baid') {
       let id = 1
       this.$http
@@ -212,7 +225,7 @@ export default {
         .catch((error) => {
           console.log(error)
         })
-    } else if (this.$route.query.server == 'smb') {
+    } else if (this.$route.params.server == 'smb') {
       try {
         this.smbclient().then((res) => {
           console.log(res)
@@ -319,7 +332,6 @@ export default {
       console.log(index, row)
     },
     async smbclient() {
-      const client = new ftp.Client()
       client.ftp.verbose = true
       try {
         await client.access({
@@ -328,11 +340,53 @@ export default {
           password: '175623',
           secure: false,
         })
-        console.log(await client.list('hello.txt'))
+        client.ftp.verbose = false // 传输信息展示
+
+        const file = await client.list('')
+        client.trackProgress() // 传输跟踪
+        return file
       } catch (err) {
         console.log(err)
       }
       client.close()
+    },
+    async loadFile(row, column, cell, event) {
+      this.tableData = []
+      // Vue.set(this.tableData, '/d/g', [])
+      console.log(row, column, cell, event)
+      try {
+        //异步错误捕获
+        await client.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        if (row.isdir) {
+          const listFile = await client.list(row.path)
+          for (let [index, item] of listFile.entries()) {
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.id = index
+            this.singleFile.server_filename = name
+            this.singleFile.size = size
+            this.singleFile.path = `${row.path}/${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableData.push(this.singleFile)
+            console.log(index, item)
+          }
+          if (row.isdir == 1) {
+            this.$router.push({
+              name: 'filelist',
+              params: { id: 'new' },
+            })
+          }
+        }
+        client.close()
+      } catch (error) {
+        console.log(error)
+      }
     },
   },
   watch: {
