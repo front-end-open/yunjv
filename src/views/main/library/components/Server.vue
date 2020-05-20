@@ -459,17 +459,17 @@ export default {
         if (tag == 1) {
           this.$router.push({
             name: 'filelist',
-            params: { server: 'ftp', index },
+            params: { id: 'ftp', index },
           })
         } else if (tag == 0) {
           this.$router.push({
             name: 'filelist',
-            params: { server: 'baid', index },
+            params: { id: 'baid', index },
           })
         } else {
           this.$router.push({
             name: 'filelist',
-            params: { server: 'smb', index },
+            params: { id: 'smb', index },
           })
         }
       }

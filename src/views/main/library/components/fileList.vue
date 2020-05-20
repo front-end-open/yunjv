@@ -36,10 +36,12 @@
         <el-col :span="24">
           <div class="bread" style="margin: 12px">
             <el-breadcrumb separator="/">
-              <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-              <el-breadcrumb-item><a href="/">活动管理</a></el-breadcrumb-item>
-              <el-breadcrumb-item>活动列表</el-breadcrumb-item>
-              <el-breadcrumb-item>活动详情</el-breadcrumb-item>
+              <el-breadcrumb-item
+                v-for="(item, index) in pathbread"
+                :key="index"
+                :to="{ path: item.path }"
+                >{{ item.name }}</el-breadcrumb-item
+              >
             </el-breadcrumb>
           </div>
         </el-col>
@@ -48,11 +50,10 @@
         :data="tableData"
         style="width: 100%;margin-bottom: 20px;"
         row-key="id"
-        border
         lazy
         :load="load"
         @select="download"
-        @cell-click="loadFile"
+        @cell-dblclick="loadFile"
         :default-expand-all="false"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
@@ -134,16 +135,16 @@
         </div>
       </el-dialog>
     </el-main>
-    <h1>{{ query }}</h1>
   </el-container>
 </template>
 <script>
 // import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
+const SambaClient = require('samba-client')
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
-// var fs = require('fs')
+// const path = require('path')
 export default {
   name: 'fileList',
   data() {
@@ -169,33 +170,43 @@ export default {
       },
       rowfileID: '',
       path: '/',
-      query: this.$route.query.server,
+      query: this.$route.params.id,
       singleFile: {},
+      pathbread: [],
+      parents: [],
+      cliDirTag: 0,
     }
   },
   created() {
+    //属性路由
+    this.pathbread = [
+      {
+        name: `${this.$route.params.id}:`,
+        path: `/main/Library/filelist/${this.$route.params.id}`,
+      },
+    ]
     const { index } = this.$route.params
     if (index) {
       var config = JSON.parse(localStorage.getItem('config'))[index]
       var { token } = config
     }
 
-    if (this.$route.params.server == 'ftp') {
-      this.smbclient().then((res) => {
+    if (this.$route.params.id == 'ftp') {
+      this.ftpclient().then((res) => {
         for (let [index, item] of res.entries()) {
           const { name, size, isDirectory, modifiedAt } = item
           this.singleFile = {}
           this.singleFile.id = index
           this.singleFile.server_filename = name
           this.singleFile.size = size
+          this.singleFile.parent = '/'
           this.singleFile.path = `/${name}`
           this.singleFile.isdir = Number(isDirectory)
           this.singleFile.local_mtime = modifiedAt
           this.tableData.push(this.singleFile)
-          console.log(index, item)
         }
       })
-    } else if (this.$route.params.server == 'baid') {
+    } else if (this.$route.params.id == 'baid') {
       let id = 1
       this.$http
         .get(`/rest/2.0/xpan/file?method=list&access_token=${token}`)
@@ -225,14 +236,8 @@ export default {
         .catch((error) => {
           console.log(error)
         })
-    } else if (this.$route.params.server == 'smb') {
-      try {
-        this.smbclient().then((res) => {
-          console.log(res)
-        })
-      } catch (error) {
-        console.log(error)
-      }
+    } else if (this.$route.params.id == 'smb') {
+      // this.smbClient()
     }
   },
   methods: {
@@ -331,7 +336,7 @@ export default {
     handleDelete(index, row) {
       console.log(index, row)
     },
-    async smbclient() {
+    async ftpclient() {
       client.ftp.verbose = true
       try {
         await client.access({
@@ -350,19 +355,18 @@ export default {
       }
       client.close()
     },
-    async loadFile(row, column, cell, event) {
-      this.tableData = []
-      // Vue.set(this.tableData, '/d/g', [])
-      console.log(row, column, cell, event)
-      try {
-        //异步错误捕获
-        await client.access({
-          host: 'localhost',
-          user: 'username',
-          password: '175623',
-          secure: false,
-        })
-        if (row.isdir) {
+    async loadFile(row) {
+      if (row.isdir == 1) {
+        this.cliDirTag = 1
+        this.tableData = []
+        try {
+          //异步错误捕获
+          await client.access({
+            host: 'localhost',
+            user: 'username',
+            password: '175623',
+            secure: false,
+          })
           const listFile = await client.list(row.path)
           for (let [index, item] of listFile.entries()) {
             const { name, size, isDirectory, modifiedAt } = item
@@ -370,28 +374,71 @@ export default {
             this.singleFile.id = index
             this.singleFile.server_filename = name
             this.singleFile.size = size
+            this.singleFile.parent = row.server_filename
             this.singleFile.path = `${row.path}/${name}`
             this.singleFile.isdir = Number(isDirectory)
             this.singleFile.local_mtime = modifiedAt
             this.tableData.push(this.singleFile)
-            console.log(index, item)
           }
-          if (row.isdir == 1) {
-            this.$router.push({
-              name: 'filelist',
-              params: { id: 'new' },
-            })
-          }
+
+          this.$router.push({
+            name: 'filelist',
+            params: {
+              id: `${row.server_filename}`,
+              title: `${this.singleFile.path}`,
+            },
+          })
+          client.close()
+        } catch (error) {
+          console.log(error)
         }
-        client.close()
+      }
+    },
+    async smbClient() {
+      try {
+        let client = new SambaClient({
+          address: 'localhost', // required
+          username: 'user', // not required, defaults to guest
+          password: '175623', // not require
+        })
+        console.log(await client.getFile('hello.txt', 'smb-share/'))
       } catch (error) {
         console.log(error)
       }
     },
   },
+  mounted() {
+    // this.pathbread = this.$route.path
+    // console.log(this.$route.matched)
+  },
   watch: {
-    '$router': function(newVal, oldVal) {
-      console.log(newVal, oldVal)
+    '$route': function(newVal, oldVal) {
+      const Path = {}
+      if (this.parents.length == 0) {
+        Path.name = newVal.params.id
+        Path.path = newVal.path
+        this.parents.push(oldVal.params.id)
+        this.pathbread.push(Path)
+        console.log(this.parents, 0)
+      } else {
+        this.parents.push(oldVal.params.id)
+        for (let val of this.parents) {
+          if (newVal.params.id === val) {
+            this.cliDirTag = 0
+          }
+        }
+
+        if (this.cliDirTag === 1) {
+          Path.name = newVal.params.id
+          Path.path = newVal.path
+          this.pathbread.push(Path)
+          console.log('ok')
+        } else {
+          return
+        }
+      }
+
+      console.log(newVal)
     },
   },
 }
