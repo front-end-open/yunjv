@@ -39,7 +39,7 @@
               <el-breadcrumb-item
                 v-for="(item, index) in pathbread"
                 :key="index"
-                :to="{ path: item.path }"
+                :to="{ path: item.path, query: { path: item.filePath } }"
                 >{{ item.name }}</el-breadcrumb-item
               >
             </el-breadcrumb>
@@ -53,7 +53,7 @@
         lazy
         :load="load"
         @select="download"
-        @cell-dblclick="loadFile"
+        @cell-click="loadFile"
         :default-expand-all="false"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
@@ -117,9 +117,9 @@
             <el-form-item label="路径" prop="path">
               <el-select v-model="path" placeholder="请选择">
                 <el-option
-                  v-for="item in tableData"
+                  v-for="item in filterDate"
                   :key="item.fs_id"
-                  :label="'/' + item.server_filename"
+                  :label="item.path"
                   :value="item.path"
                 >
                 </el-option>
@@ -141,6 +141,7 @@
 // import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
+// import { distinct } from '@/lib/arryDuplicateRemove.js'
 const SambaClient = require('samba-client')
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
@@ -175,6 +176,7 @@ export default {
       pathbread: [],
       parents: [],
       cliDirTag: 0,
+      isSame: '',
     }
   },
   created() {
@@ -183,8 +185,10 @@ export default {
       {
         name: `${this.$route.params.id}:`,
         path: `/main/Library/filelist/${this.$route.params.id}`,
+        filePath: '/',
       },
     ]
+    this.parents.push(this.$route.params.id)
     const { index } = this.$route.params
     if (index) {
       var config = JSON.parse(localStorage.getItem('config'))[index]
@@ -200,6 +204,7 @@ export default {
           this.singleFile.server_filename = name
           this.singleFile.size = size
           this.singleFile.parent = '/'
+          this.singleFile.parentsPath = '/'
           this.singleFile.path = `/${name}`
           this.singleFile.isdir = Number(isDirectory)
           this.singleFile.local_mtime = modifiedAt
@@ -283,25 +288,38 @@ export default {
     createDiretory() {
       this.centerDialogVisible = true
     },
-    submitForm(formName) {
-      const config = JSON.parse(localStorage.getItem('config'))[0]
-      const { token } = config
+    async submitForm(formName) {
+      await client.access({
+        host: 'localhost',
+        user: 'username',
+        password: '175623',
+        secure: false,
+      })
+      console.log(
+        await client.uploadFromDir(
+          '/Users/ousan/desktop/uploadFile',
+          this.path,
+        ),
+      )
+      // const config = JSON.parse(localStorage.getItem('config'))[0]
+      // const { token } = config
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.$http
-            .post(`/rest/2.0/xpan/file?method=create`, {
-              //身份认证失败，没有权限
-              access_token: token,
-              path: this.path,
-              isdir: '1',
-              size: '0',
-            })
-            .then((res) => {
-              console.log(res.data)
-            })
-            .catch((error) => {
-              console.log(error.toJSON())
-            })
+          // this.$http
+          //   .post(`/rest/2.0/xpan/file?method=create`, {
+          //     //身份认证失败，没有权限
+          //     access_token: token,
+          //     path: this.path,
+          //     isdir: '1',
+          //     size: '0',
+          //   })
+          //   .then((res) => {
+          //     console.log(res.data)
+          //   })
+          //   .catch((error) => {
+          //     console.log(error.toJSON())
+          //   })
+          // await client.uploadFromDir(this.ruleForm.name, this.path)(res)
         } else {
           console.log('error submit!!')
           return false
@@ -357,6 +375,7 @@ export default {
     },
     async loadFile(row) {
       if (row.isdir == 1) {
+        //处理目录
         this.cliDirTag = 1
         this.tableData = []
         try {
@@ -367,25 +386,28 @@ export default {
             password: '175623',
             secure: false,
           })
-          const listFile = await client.list(row.path)
+          const listFile = await client.list(row.path) // row 请求目录
           for (let [index, item] of listFile.entries()) {
             const { name, size, isDirectory, modifiedAt } = item
             this.singleFile = {}
+            this.singleFile.parent = row.server_filename //行目录名
+            //子目录请求内容
             this.singleFile.id = index
             this.singleFile.server_filename = name
-            this.singleFile.size = size
-            this.singleFile.parent = row.server_filename
-            this.singleFile.path = `${row.path}/${name}`
+            this.singleFile.size = SizeConvert(size)
+            this.singleFile.parentsPath = row.path
+            this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
             this.singleFile.isdir = Number(isDirectory)
             this.singleFile.local_mtime = modifiedAt
-            this.tableData.push(this.singleFile)
+            this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
           }
 
+          this.path = row.path
           this.$router.push({
             name: 'filelist',
             params: {
               id: `${row.server_filename}`,
-              title: `${this.singleFile.path}`,
+              title: `${row.path}`,
             },
           })
           client.close()
@@ -406,39 +428,88 @@ export default {
         console.log(error)
       }
     },
-  },
-  mounted() {
-    // this.pathbread = this.$route.path
-    // console.log(this.$route.matched)
-  },
-  watch: {
-    '$route': function(newVal, oldVal) {
-      const Path = {}
-      if (this.parents.length == 0) {
-        Path.name = newVal.params.id
-        Path.path = newVal.path
-        this.parents.push(oldVal.params.id)
-        this.pathbread.push(Path)
-        console.log(this.parents, 0)
+    async getFile(path, parent) {
+      if (path) {
+        try {
+          await client.access({
+            host: 'localhost',
+            user: 'username',
+            password: '175623',
+            secure: false,
+          })
+          var source = await client.list(path)
+          return source
+        } catch (error) {
+          console.log(error)
+        }
+        client.close()
       } else {
-        this.parents.push(oldVal.params.id)
-        for (let val of this.parents) {
-          if (newVal.params.id === val) {
-            this.cliDirTag = 0
+        await client.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        source = await client.list(parent)
+        client.close()
+      }
+      return source
+    },
+  },
+  computed: {
+    filterDate: function() {
+      const inFiltered = this.tableData.filter((val) => {
+        if (val.isdir == 1) {
+          return true
+        }
+      })
+      return inFiltered
+      // return remvDuplicate(inFiltered)
+    },
+  },
+  mounted() {},
+  watch: {
+    '$route': function(newVal) {
+      console.log(newVal)
+      const Path = {}
+      for (let val of this.parents) {
+        //面包屑路由切换
+        if (newVal.params.id === val) {
+          this.cliDirTag = 0
+        }
+      }
+      if (this.cliDirTag === 1) {
+        //目录切换
+        Path.name = newVal.params.id
+        Path.filePath = newVal.params.title
+        Path.path = newVal.path
+        this.parents.push(newVal.params.id)
+        this.pathbread.push(Path)
+      } else {
+        for (let [index, item] of this.parents.entries()) {
+          if (newVal.params.id === item) {
+            this.isSame = index
           }
         }
 
-        if (this.cliDirTag === 1) {
-          Path.name = newVal.params.id
-          Path.path = newVal.path
-          this.pathbread.push(Path)
-          console.log('ok')
-        } else {
-          return
-        }
+        this.getFile(newVal.query.path, newVal.params.id).then((res) => {
+          this.tableData = []
+          for (let item of res) {
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.id = (Math.random() + 1) * 10
+            this.singleFile.server_filename = name
+            this.singleFile.size = SizeConvert(size)
+            this.singleFile.parentsPath = newVal.query.path
+            this.singleFile.path = `${newVal.query.path}${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableData.push(this.singleFile)
+          }
+          this.pathbread.splice(this.isSame + 1)
+          this.parents.splice(this.isSame + 1)
+        })
       }
-
-      console.log(newVal)
     },
   },
 }
