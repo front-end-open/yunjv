@@ -35,4 +35,19 @@ module.exports = {
       },
     },
   },
+  pluginOptions: {
+    electronBuilder: {
+      builderOptions: {
+        productName: 'YunJv',
+        artifactName: '${productName}-Setup-${version}.${ext}',
+        win: {
+          signAndEditExecutable: false,
+          target: ['nsis', 'portable'],
+        },
+        portable: {
+          artifactName: '${productName}-Portable-${version}.${ext}',
+        },
+      },
+    },
+  },
 }
