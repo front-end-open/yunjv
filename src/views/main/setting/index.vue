@@ -1,20 +1,18 @@
 import "./ren.js"
 
 <template>
-  <div class="Ls">
-    <div>
-      <el-row type="flex" justify="left">
-        <h3>传输设置</h3>
-      </el-row>
+  <div class="Ls flexCol">
+    <el-card shadow="hover">
+      <h3 class="marginB30 fontSizeS">传输设置</h3>
       <ul>
         <li class="marginB30">
-          <el-row type="flex" class="row-bg marginB15" justify="left">
+          <el-row type="flex" class="row-bg marginB15 fontSizeF" justify="left">
             <h4>并行任务:</h4>
           </el-row>
           <el-row type="flex">
-            <el-col :span="6" :offset="3">
-              <div>
-                <span class="fontSizeforth">上传并行任务数：</span>
+            <el-col :span="7" :offset="3" class="inine_h_dad">
+              <div class="nowarp">
+                <span class="fontSizeF inline_h">上传并行任务数：</span>
                 <el-select v-model="upload" size="mini" class="udLoad">
                   <el-option
                     v-for="item in optionsUp"
@@ -26,9 +24,9 @@ import "./ren.js"
                 </el-select>
               </div>
             </el-col>
-            <el-col :span="6" :offset="1">
-              <div>
-                <span class="fontSizeforth">下载并行任务数：</span>
+            <el-col :span="7" :offset="2">
+              <div class="nowarp">
+                <span class="fontSizeF inline_h">下载并行任务数：</span>
                 <el-select v-model="download" size="mini" class="udLoad">
                   <el-option
                     v-for="item in optionsDown"
@@ -43,15 +41,15 @@ import "./ren.js"
           </el-row>
         </li>
         <li>
-          <el-row type="flex" justify="left" class="marginB15">
+          <el-row type="flex" justify="left" class="marginB15 fontSizeF">
             <h4>文件下载路径:</h4>
           </el-row>
           <el-row type="flex">
-            <el-col :span="6" :offset="4">
+            <el-col :span="6" :offset="3">
               <el-input
                 placeholder="请浏览文件路径"
-                ref="files_name"
                 size="mini"
+                v-model="filePath"
               >
               </el-input>
             </el-col>
@@ -65,34 +63,42 @@ import "./ren.js"
           </el-row>
         </li>
       </ul>
-    </div>
+    </el-card>
 
     <!-- 分割线 -->
-    <el-divider></el-divider>
+    <!-- <el-divider></el-divider> -->
 
-    <div>
-      <h3>使用反馈</h3>
-      <ul class="fontSizeforth">
-        <li><el-link href="#" target="_blank">反馈建议</el-link></li>
+    <el-card shadow="hover">
+      <h3 class="marginB30 fontSizeS">使用反馈</h3>
+      <ul>
+        <li>
+          <el-link href="#" target="_blank">反馈建议</el-link>
+        </li>
       </ul>
-    </div>
+    </el-card>
 
     <!-- 分割线 -->
-    <el-divider></el-divider>
+    <!-- <el-divider></el-divider> -->
 
-    <div>
-      <h3>自动更新</h3>
-      <ul class="fontSizeforth">
-        <li><el-link href="#" target="_blank">版本更新</el-link></li>
+    <el-card shadow="hover">
+      <h3 class="marginB30 fontSizeS">自动更新</h3>
+      <ul>
+        <li>
+          <el-link
+            href="https://github.com/PachVerb/yunjv/releases"
+            target="_blank"
+            >版本更新</el-link
+          >
+        </li>
       </ul>
-    </div>
+    </el-card>
 
     <!-- 分割线 -->
-    <el-divider></el-divider>
+    <!-- <el-divider></el-divider> -->
 
-    <div>
-      <h3>关于</h3>
-      <ul class="fontSizeforth">
+    <el-card shadow="hover">
+      <h3 class="marginB30 fontSizeS">关于</h3>
+      <ul class="fontSizeF">
         <li>{{ aboutName }}</li>
         <li>当前版本：{{ aboutEdition }}</li>
         <li>
@@ -104,16 +110,17 @@ import "./ren.js"
         </li>
         <li>{{ aboutOwnership }}</li>
       </ul>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script>
 // 获取文件路径
-const { dialog } = require('electron').remote
+
 export default {
   data() {
     return {
+      filePath: '', //下载文件地址
       upload: '1', //上传并行任务数
       optionsUp: [
         {
@@ -164,6 +171,7 @@ export default {
   methods: {
     //点击浏览按钮 将input的value值替换为文件夹路径
     files() {
+      const { dialog } = require('electron').remote
       dialog.showOpenDialog(
         {
           properties: ['openFile', 'openDirectory'],
@@ -171,7 +179,7 @@ export default {
           buttonLabel: '买单',
         },
         (result) => {
-          this.$refs.files_name.value = result
+          this.filePath = String(result)
         },
       )
     },
@@ -190,8 +198,20 @@ li {
 .el-select {
   width: 53px;
 }
-.fontSizeforth {
+/* 14号字 */
+.fontSizeF {
   font-size: 14px;
+  line-height: 14px;
+}
+/* 16号字 */
+.fontSizeS {
+  font-size: 16px;
+}
+.inline_h {
+  line-height: 27px;
+}
+.inine_h_dad {
+  line-height: 100%;
 }
 .Ls {
   /*全局字符间距 */
@@ -202,5 +222,19 @@ li {
 }
 .marginB30 {
   margin-bottom: 30px;
+}
+.nowarp {
+  /* 并行任务数不换行 */
+  display: flex;
+  flex-wrap: warp;
+}
+.flexCol {
+  /* 全局flex */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.el-card.is-hover-shadow {
+  margin-bottom: 15px;
 }
 </style>
