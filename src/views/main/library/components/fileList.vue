@@ -138,14 +138,13 @@
   </el-container>
 </template>
 <script>
-// import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
-// import { distinct } from '@/lib/arryDuplicateRemove.js'
 const SambaClient = require('samba-client')
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
-// const path = require('path')
+client.ftp.verbose = false
+client.trackProgress()
 export default {
   name: 'fileList',
   data() {
@@ -289,37 +288,31 @@ export default {
       this.centerDialogVisible = true
     },
     async submitForm(formName) {
-      await client.access({
-        host: 'localhost',
-        user: 'username',
-        password: '175623',
-        secure: false,
-      })
-      console.log(
-        await client.uploadFromDir(
-          '/Users/ousan/desktop/uploadFile',
-          this.path,
-        ),
-      )
-      // const config = JSON.parse(localStorage.getItem('config'))[0]
-      // const { token } = config
+      //   await client.access({
+      //     host: 'localhost',
+      //     user: 'username',
+      //     password: '175623',
+      //     secure: false,
+      //   })
+      //   console.log(await client.ensureDir(`${this.path}/${this.ruleForm.name}`))
+      const config = JSON.parse(localStorage.getItem('config'))[0]
+      const { token } = config
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // this.$http
-          //   .post(`/rest/2.0/xpan/file?method=create`, {
-          //     //身份认证失败，没有权限
-          //     access_token: token,
-          //     path: this.path,
-          //     isdir: '1',
-          //     size: '0',
-          //   })
-          //   .then((res) => {
-          //     console.log(res.data)
-          //   })
-          //   .catch((error) => {
-          //     console.log(error.toJSON())
-          //   })
-          // await client.uploadFromDir(this.ruleForm.name, this.path)(res)
+          this.$http
+            .post(`/rest/2.0/xpan/file?method=create`, {
+              //身份认证失败，没有权限
+              access_token: token,
+              path: this.path,
+              isdir: '1',
+              size: '0',
+            })
+            .then((res) => {
+              console.log(res.data)
+            })
+            .catch((error) => {
+              console.log(error.toJSON())
+            })
         } else {
           console.log('error submit!!')
           return false
@@ -467,7 +460,9 @@ export default {
       // return remvDuplicate(inFiltered)
     },
   },
-  mounted() {},
+  mounted() {
+    console.log(client.closed)
+  },
   watch: {
     '$route': function(newVal) {
       console.log(newVal)
