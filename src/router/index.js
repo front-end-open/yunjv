@@ -6,6 +6,8 @@ import MainLibrary from '../views/main/library'
 import MainTransmission from '../views/main/transmission'
 import MainBackup from '../views/main/backup'
 import MainSetting from '../views/main/setting'
+import { Upload } from 'element-ui'
+import { DownloadItem } from 'electron'
 
 Vue.use(VueRouter)
 
@@ -27,6 +29,18 @@ const routes = [
       {
         path: 'transmission',
         component: MainTransmission,
+        chihdren: [
+          {
+            path: '/transmission/up',
+            name: 'up',
+            component: Upload,
+          },
+          {
+            path: '/transmission/down',
+            name: 'down',
+            component: DownloadItem,
+          },
+        ],
       },
       {
         path: 'backup',
