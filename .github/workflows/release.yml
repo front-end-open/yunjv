@@ -64,10 +64,10 @@ jobs:
         run: yarn build -p never
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2-preview
+        uses: actions/upload-artifact@v2
         with:
           name: dist_electron
-          path: dist_electron/*.*
+          path: dist_electron/?*.*
 
   list:
     needs: build

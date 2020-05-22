@@ -6,7 +6,7 @@ import ElementUI from 'element-ui'
 import 'vue-awesome/icons'
 import Icon from 'vue-awesome/components/Icon'
 Vue.component('v-icon', Icon)
-
+import './server/index.js'
 import './style/main.less'
 
 Vue.use(ElementUI)

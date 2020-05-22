@@ -2,6 +2,8 @@
   "name": "yunjv",
   "version": "1.1.0",
   "private": true,
+  "author": "SCITC",
+  "description": "YunJv",
   "scripts": {
     "serve": "vue-cli-service electron:serve",
     "build": "vue-cli-service electron:build",
@@ -15,11 +17,14 @@
   },
   "main": "background.js",
   "dependencies": {
+    "axios": "^0.19.2",
+    "basic-ftp": "^4.5.4",
     "core-js": "^3.6.4",
     "electron-oauth-helper": "^5.0.3",
     "element-ui": "^2.13.1",
     "ftp": "^0.3.10",
     "normalize.css": "^8.0.1",
+    "samba-client": "^3.2.0",
     "vue": "^2.6.11",
     "vue-awesome": "^4.0.2",
     "vue-router": "^3.1.6",
