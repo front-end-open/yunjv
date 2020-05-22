@@ -3,7 +3,7 @@
 import { ipcMain, app, protocol, BrowserWindow } from 'electron'
 import {
   createProtocol,
-  installVueDevtools,
+  // installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
@@ -120,11 +120,11 @@ app.on('ready', async () => {
   console.log(LoginBaidu)
   if (isDevelopment && !process.env.IS_TEST) {
     // Install Vue Devtools
-    try {
-      await installVueDevtools()
-    } catch (e) {
-      console.error('Vue Devtools failed to install:', e.toString())
-    }
+    // try {
+    //   await installVueDevtools()
+    // } catch (e) {
+    //   console.error('Vue Devtools failed to install:', e.toString())
+    // }
   }
   createWindow()
 })

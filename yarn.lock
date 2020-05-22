@@ -2377,6 +2377,11 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
+basic-ftp@^4.5.4:
+  version "4.5.4"
+  resolved "https://registry.yarnpkg.com/basic-ftp/-/basic-ftp-4.5.4.tgz#a89b2814409b4e5cb1617826034c58c8f2839ae7"
+  integrity sha512-ANVxqM7BFmlDJydULi14QCvARgSf+wjaGuS6qzl+WxTpN/shFE7c/pN8uxDQfHGZ/MtdUOco/+YeUKjfco8v4A==
+
 batch@0.6.1:
   version "0.6.1"
   resolved "https://registry.npm.taobao.org/batch/download/batch-0.6.1.tgz#dc34314f4e679318093fc760272525f94bf25c16"
