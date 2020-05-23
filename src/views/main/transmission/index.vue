@@ -20,11 +20,9 @@
           index="/transmission/up"
         >
           <el-table-column type="selection" width="50"></el-table-column>
-          <el-table-column prop="upName" label="文件名称" width="150">
-          </el-table-column>
-          <el-table-column prop="upSize" label="文件大小" width="150">
-          </el-table-column>
-          <el-table-column prop="upEvolve" label="上传进度" width="200">
+          <el-table-column prop="upName" label="文件名称"> </el-table-column>
+          <el-table-column prop="upSize" label="文件大小"> </el-table-column>
+          <el-table-column prop="upEvolve" label="上传进度">
             <el-progress
               :text-inside="true"
               :stroke-width="16"
@@ -32,9 +30,40 @@
               :color="customColor"
             ></el-progress>
           </el-table-column>
-          <el-table-column prop="upDate" label="上传日期" width="150">
+
+          <el-table-column prop="upDate" label="上传日期"> </el-table-column>
+          <el-table-column width="180">
+            <template slot-scope="upscope">
+              <el-button
+                type="warning"
+                icon="el-icon-video-pause"
+                @click.native.stop="pauseup(upscope.$index, upEvolve)"
+                size="small"
+                circle
+              ></el-button
+              ><el-button
+                type="warning"
+                icon="el-icon-video-play"
+                @click.native.self="palyup(upscope.$index, upEvolve)"
+                size="small"
+                circle
+              ></el-button>
+              <el-button
+                type="danger"
+                icon="el-icon-delete"
+                @click.native.prevent="deleteup(upscope.$index, upData)"
+                size="small"
+                circle
+              >
+              </el-button>
+              <el-button
+                icon="el-icon-folder"
+                @click.native.capture="folderup(upscope.$index, upData)"
+                size="small"
+                circle
+              ></el-button>
+            </template>
           </el-table-column>
-          <el-table-column width="300"> </el-table-column>
         </el-table>
       </el-tab-pane>
       <!-- <el-tab-pane label="下载" name="down"
