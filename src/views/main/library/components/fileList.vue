@@ -53,8 +53,9 @@
         lazy
         :load="load"
         @select="download"
-        @cell-click="loadFile"
         :default-expand-all="false"
+        @row-dblclick="loadFile"
+        @row-contextmenu="createDiretory"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column type="selection" width="50"> </el-table-column>
@@ -84,7 +85,7 @@
             <el-button
               size="mini"
               type="text"
-              @click="handleEdit(scope.$index, scope.row)"
+              @click="editFileName(scope.$index, scope.row)"
               >重命名</el-button
             >
             <el-button
@@ -97,6 +98,7 @@
         </el-table-column>
       </el-table>
 
+      <!-- 创建文件夹 -->
       <el-dialog
         title="新建"
         :visible.sync="centerDialogVisible"
@@ -114,7 +116,7 @@
             <el-form-item label="目录名称" prop="name">
               <el-input v-model="ruleForm.name"></el-input>
             </el-form-item>
-            <el-form-item label="路径" prop="path">
+            <!-- <el-form-item label="路径" prop="path">
               <el-select v-model="path" placeholder="请选择">
                 <el-option
                   v-for="item in filterDate"
@@ -124,7 +126,7 @@
                 >
                 </el-option>
               </el-select>
-            </el-form-item>
+            </el-form-item> -->
             <el-form-item>
               <el-button type="primary" @click="submitForm('ruleForm')"
                 >立即创建</el-button
@@ -134,12 +136,31 @@
           </el-form>
         </div>
       </el-dialog>
+      <!-- 重命名 -->
+      <el-dialog
+        title="提示"
+        :visible.sync="centerDialogVisible2"
+        width="30%"
+        center
+      >
+        <el-form :inline="true" :model="formDate" class="demo-form-inline">
+          <el-form-item label="审批人">
+            <el-input v-model="formDate.name" placeholder="审批人"></el-input>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="centerDialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitChange">确 定</el-button>
+        </span>
+      </el-dialog>
     </el-main>
   </el-container>
 </template>
 <script>
+import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
+const ipcRenderer = require('electron').ipcRenderer
 const SambaClient = require('samba-client')
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
@@ -151,6 +172,7 @@ export default {
     return {
       tableData: [],
       centerDialogVisible: false,
+      centerDialogVisible2: false,
       labelPosition: 'right',
       formLabelAlign: {
         name: '',
@@ -168,6 +190,9 @@ export default {
         ],
         path: [{ required: true, message: '请指定文件路径', trigger: 'blur' }],
       },
+      formDate: {
+        name: '',
+      },
       rowfileID: '',
       path: '/',
       query: this.$route.params.id,
@@ -176,6 +201,8 @@ export default {
       parents: [],
       cliDirTag: 0,
       isSame: '',
+      rightEventrowDate: null,
+      rowDate: [],
     }
   },
   created() {
@@ -284,40 +311,85 @@ export default {
 
       console.log(tree)
     },
-    createDiretory() {
-      this.centerDialogVisible = true
+    createDiretory(row) {
+      if (row.isdir) {
+        console.log(row)
+        this.rightEventrowDate = row
+        this.centerDialogVisible = true
+      }
     },
-    async submitForm(formName) {
-      //   await client.access({
-      //     host: 'localhost',
-      //     user: 'username',
-      //     password: '175623',
-      //     secure: false,
-      //   })
-      //   console.log(await client.ensureDir(`${this.path}/${this.ruleForm.name}`))
-      const config = JSON.parse(localStorage.getItem('config'))[0]
-      const { token } = config
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          this.$http
-            .post(`/rest/2.0/xpan/file?method=create`, {
-              //身份认证失败，没有权限
-              access_token: token,
-              path: this.path,
-              isdir: '1',
-              size: '0',
-            })
-            .then((res) => {
-              console.log(res.data)
-            })
-            .catch((error) => {
-              console.log(error.toJSON())
-            })
-        } else {
-          console.log('error submit!!')
-          return false
-        }
+    async submitForm() {
+      // switch (this.query) {
+      //   case 'ftp':
+      await client.access({
+        host: 'localhost',
+        user: 'username',
+        password: '175623',
+        secure: false,
       })
+      await client.ensureDir(
+        `${this.rightEventrowDate.path}/${this.ruleForm.name}`,
+      )
+      // for (let val of this.tableData) {
+      //   if (val.id == this.rightEventrowDate.id) {
+      //     this.server_filename = this.ruleForm.name
+      //   }
+      // }
+      this.centerDialogVisible = false
+      ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
+      ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
+        console.log(arg)
+      })
+      client.close()
+      //     break
+      //   case 'smb':
+      //     break
+      //   case 'baid':
+      //     var config = JSON.parse(localStorage.getItem('config'))[0]
+      //     var { token } = config
+
+      //     this.$http
+      //       .post(`/rest/2.0/xpan/file?method=create`, {
+      //         //身份认证失败，没有权限
+      //         access_token: token,
+      //         path: this.path,
+      //         isdir: '1',
+      //         size: '0',
+      //       })
+      //       .then((res) => {
+      //         console.log(res.data)
+      //       })
+      //       .catch((error) => {
+      //         console.log(error.toJSON())
+      //       })
+      //     console.log('error submit!!')
+      //     break
+      //   case 'seaFile':
+      //     break
+      // }
+    },
+    async submitChange() {
+      try {
+        await client.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        await client.rename(
+          this.rowDate[1].path,
+          this.rowDate[1].parentsPath + this.formDate.name,
+        )
+        Vue.set(
+          this.tableData[this.rowDate[0]],
+          'server_filename',
+          this.formDate,
+        )
+        client.close()
+        this.centerDialogVisible2 = false
+      } catch (error) {
+        console.log(error)
+      }
     },
     resetForm(formName) {
       this.$refs[formName].resetFields()
@@ -341,8 +413,10 @@ export default {
           console.log(error)
         })
     },
-    handleEdit(index, row) {
-      console.log(index, row)
+    async editFileName(index, row) {
+      this.centerDialogVisible2 = true
+      this.rowDate.push(index, row)
+      this.formDate.name = row.server_filename
     },
     handleDelete(index, row) {
       console.log(index, row)
@@ -465,7 +539,6 @@ export default {
   },
   watch: {
     '$route': function(newVal) {
-      console.log(newVal)
       const Path = {}
       for (let val of this.parents) {
         //面包屑路由切换

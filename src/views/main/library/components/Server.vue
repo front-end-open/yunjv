@@ -344,8 +344,8 @@ export default {
           if (tag === 0) {
             // 百度认证
             ++server_tag
-            ipcRenderer.send('asynchronous-message', 'ping') // 发送消息
-            ipcRenderer.on('asynchronous-reply', (event, arg) => {
+            ipcRenderer.send('async-authcode', 'ping') // 发送消息
+            ipcRenderer.on('async-authcode-reply', (event, arg) => {
               const { state, info } = arg
               const { access_token } = JSON.parse(info)
               if (state) {

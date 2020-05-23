@@ -188,7 +188,7 @@ export default {
   watch: {},
 }
 </script>
-<style>
+<style scoped>
 ul,
 ol,
 li {

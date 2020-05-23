@@ -1,17 +1,14 @@
 'use strict'
 
-import { ipcMain, app, protocol, BrowserWindow } from 'electron'
+import { Notification, ipcMain, app, protocol, BrowserWindow } from 'electron'
 import {
   createProtocol,
-  // installVueDevtools,
+  installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
-// const Client = require('ftp')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
 let win
 
 // Scheme must be registered before the app is ready
@@ -19,9 +16,8 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
 
-// 通信
-
-ipcMain.on('asynchronous-message', function(event) {
+// 通信-授权
+ipcMain.on('async-authcode', function(event) {
   const baiduWin = new BrowserWindow({
     width: 600,
     height: 800,
@@ -59,18 +55,29 @@ ipcMain.on('asynchronous-message', function(event) {
     .then((raw) => {
       console.log(raw)
       const { body } = raw
-      event.reply('asynchronous-reply', {
+      event.reply('async-authcode-reply', {
         state: 1,
         info: body,
       })
-      // console.log('result', raw.body)
       baiduWin.close()
     })
     .catch((err) => {
       console.error(err)
     })
 })
-
+//通知消息
+ipcMain.on('async-openNotiton', function(event, arg) {
+  console.log(arg)
+  let Notition = new Notification({
+    body: '创建成功',
+    silent: true,
+    actions: {
+      type: 'button',
+      text: '关闭',
+    },
+  })
+  Notition.show()
+})
 function createWindow() {
   // Create the browser window.
   win = new BrowserWindow({
@@ -113,18 +120,14 @@ app.on('activate', () => {
   }
 })
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.on('ready', async () => {
   console.log(LoginBaidu)
   if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    // try {
-    //   await installVueDevtools()
-    // } catch (e) {
-    //   console.error('Vue Devtools failed to install:', e.toString())
-    // }
+    try {
+      await installVueDevtools()
+    } catch (e) {
+      console.error('Vue Devtools failed to install:', e.toString())
+    }
   }
   createWindow()
 })
