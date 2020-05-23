@@ -72,7 +72,9 @@ import "./ren.js"
       <h3 class="marginB30 fontSizeS">使用反馈</h3>
       <ul>
         <li>
-          <el-link href="#" target="_blank">反馈建议</el-link>
+          <el-link href="https://github.com/issues" target="_blank"
+            >反馈建议</el-link
+          >
         </li>
       </ul>
     </el-card>
