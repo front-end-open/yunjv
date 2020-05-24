@@ -304,6 +304,10 @@ export default {
           value: 'SMB2',
           label: 'SMB',
         },
+        {
+          value: 'webDAV3',
+          label: 'saefile',
+        },
       ],
       customColors: [
         { color: '#f56c6c', percentage: 20 },
@@ -466,11 +470,13 @@ export default {
             name: 'filelist',
             params: { id: 'baid', index },
           })
-        } else {
+        } else if (tag == 2) {
           this.$router.push({
             name: 'filelist',
             params: { id: 'smb', index },
           })
+        } else {
+          ipcRenderer.send('async-webdav', 'open-webdav')
         }
       }
     },

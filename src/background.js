@@ -17,49 +17,95 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 // 通信-授权
-ipcMain.on('async-authcode', function(event) {
-  const baiduWin = new BrowserWindow({
+ipcMain.on('async-authcode', function() {
+  // const baiduWin = new BrowserWindow({
+  //   width: 600,
+  //   height: 800,
+  //   show: true,
+  //   webPreferences: {
+  //     nodeIntegration: false,
+  //     contextIsolation: true,
+  //   },
+  // })
+  // if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
+  // const config = {
+  //   authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
+  //   access_token_url:
+  //     'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
+  //   response_type: 'code',
+  //   client_id: 'nIoc7T7GA953ao9LWfd53zGf',
+  //   redirect_uri: 'oob',
+  // }
+  // const provider = new OAuth2Provider(config)
+  // provider.on('before-authorize-request', (parameter) => {
+  //   parameter['force_login'] = 1
+  //   parameter['client_secret'] = 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y'
+  //   parameter['scope'] = 'basic,netdisk'
+  // })
+  // provider.on('before-access-token-request', (parameter) => {
+  //   const code = parameter.code
+  //   parameter['grant_type'] = 'authorization_code'
+  //   parameter['code'] = code
+  //   parameter['client_id'] = 'nIoc7T7GA953ao9LWfd53zGf'
+  //   parameter['client_secret'] = 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y'
+  //   parameter['redirect_uri'] = 'oob'
+  // })
+  // const provider = new OAuth2Provider({
+  //   authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
+  //   response_type: 'token',
+  //   client_id: 'nIoc7T7GA953ao9LWfd53zGf',
+  //   client_secret: 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y',
+  //   scope: 'basic,netdisk',
+  //   redirect_uri: 'oob',
+  // })
+  // provider.on('before-authorize-request', (parameter) => {
+  //   parameter['force_login'] = 1
+  // })
+  // provider
+  //   .perform(baiduWin)
+  //   .then((raw) => {
+  //     console.log(raw)
+  //     const { body } = raw
+  //     event.reply('async-authcode-reply', {
+  //       state: 1,
+  //       info: body,
+  //     })
+  //     baiduWin.close()
+  //   })
+  //   .catch((err) => {
+  //     console.error(err)
+  //   })
+  const authWin = new BrowserWindow({
     width: 600,
     height: 800,
-    show: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
-  if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
-  const config = {
-    authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
+
+  if (!process.env.IS_TEST) authWin.webContents.openDevTools()
+
+  const provider = new OAuth2Provider({
+    authorize_url:
+      'https://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&display=popup&force_login=1',
     access_token_url:
       'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
-    response_type: 'code',
-    client_id: 'UHtXpF46VABa01jCCQiNAdhy',
-    redirect_uri: 'http://111.231.195.214:3000/yunjv',
-  }
-  const provider = new OAuth2Provider(config)
+    response_type: 'token',
+    client_id: 'nIoc7T7GA953ao9LWfd53zGf',
+    client_secret: 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y',
+    grant_type: 'authorization_code',
+    redirect_uri: 'oob',
+    scope: 'basic,netdisk',
+  })
   provider.on('before-authorize-request', (parameter) => {
     parameter['force_login'] = 1
-    parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
-    parameter['scope'] = 'basic,netdisk'
-  })
-  provider.on('before-access-token-request', (parameter) => {
-    const code = parameter.code
-    parameter['grant_type'] = 'authorization_code'
-    parameter['code'] = code
-    parameter['client_id'] = 'UHtXpF46VABa01jCCQiNAdhy'
-    parameter['client_secret'] = 'RoWvLITnNAuhPvGOO6O7c3IxY5lGQQjV'
-    parameter['redirect_uri'] = 'http://111.231.195.214:3000/yunjv'
   })
   provider
-    .perform(baiduWin)
+    .perform(authWin)
     .then((raw) => {
       console.log(raw)
-      const { body } = raw
-      event.reply('async-authcode-reply', {
-        state: 1,
-        info: body,
-      })
-      baiduWin.close()
+      authWin.close()
     })
     .catch((err) => {
       console.error(err)
@@ -77,6 +123,19 @@ ipcMain.on('async-openNotiton', function(event, arg) {
     },
   })
   Notition.show()
+})
+//webDAV
+ipcMain.on('async-webdav', function(event, arg) {
+  console.log(arg)
+  let win = new BrowserWindow({
+    minWidth: '500',
+    minHeight: '400',
+    show: false,
+  })
+  win.loadURL('http://0.0.0.0/accounts/login/')
+  win.on('ready-to-show', () => {
+    win.show()
+  })
 })
 function createWindow() {
   // Create the browser window.

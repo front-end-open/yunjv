@@ -91,7 +91,7 @@
             <el-button
               size="mini"
               type="text"
-              @click="handleDelete(scope.$index, scope.row)"
+              @click="deleteFile(scope.$index, scope.row)"
               >删除</el-button
             >
           </template>
@@ -116,19 +116,8 @@
             <el-form-item label="目录名称" prop="name">
               <el-input v-model="ruleForm.name"></el-input>
             </el-form-item>
-            <!-- <el-form-item label="路径" prop="path">
-              <el-select v-model="path" placeholder="请选择">
-                <el-option
-                  v-for="item in filterDate"
-                  :key="item.fs_id"
-                  :label="item.path"
-                  :value="item.path"
-                >
-                </el-option>
-              </el-select>
-            </el-form-item> -->
             <el-form-item>
-              <el-button type="primary" @click="submitForm('ruleForm')"
+              <el-button type="primary" @click="submitForm()"
                 >立即创建</el-button
               >
               <el-button @click="resetForm('ruleForm')">重置</el-button>
@@ -162,6 +151,7 @@ import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 const ipcRenderer = require('electron').ipcRenderer
 const SambaClient = require('samba-client')
+
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
 client.ftp.verbose = false
@@ -203,10 +193,12 @@ export default {
       isSame: '',
       rightEventrowDate: null,
       rowDate: [],
+      servertypeIndex: null,
     }
   },
   created() {
-    //属性路由
+    console.log(this.$route.params)
+    //面包屑初始路径加载
     this.pathbread = [
       {
         name: `${this.$route.params.id}:`,
@@ -214,12 +206,10 @@ export default {
         filePath: '/',
       },
     ]
+    //服务索引
+    this.servertypeIndex = this.$route.params.index
+    //服务类型
     this.parents.push(this.$route.params.id)
-    const { index } = this.$route.params
-    if (index) {
-      var config = JSON.parse(localStorage.getItem('config'))[index]
-      var { token } = config
-    }
 
     if (this.$route.params.id == 'ftp') {
       this.ftpclient().then((res) => {
@@ -239,6 +229,10 @@ export default {
       })
     } else if (this.$route.params.id == 'baid') {
       let id = 1
+      const { index } = this.$route.params
+      const config = JSON.parse(localStorage.getItem('config'))[index],
+        { token } = config
+
       this.$http
         .get(`/rest/2.0/xpan/file?method=list&access_token=${token}`)
         .then((res) => {
@@ -268,10 +262,11 @@ export default {
           console.log(error)
         })
     } else if (this.$route.params.id == 'smb') {
-      // this.smbClient()
+      this.smbClient()
     }
   },
   methods: {
+    //文件列表tree懒加载， 该api已废弃
     load(tree, treeNode, resolve) {
       let childFileList = {}
       let children = []
@@ -311,6 +306,8 @@ export default {
 
       console.log(tree)
     },
+    //创建目录-开启模态款
+    //传递当前行数据
     createDiretory(row) {
       if (row.isdir) {
         console.log(row)
@@ -318,9 +315,9 @@ export default {
         this.centerDialogVisible = true
       }
     },
+    //创建目录
     async submitForm() {
-      // switch (this.query) {
-      //   case 'ftp':
+      //ftp服务
       await client.access({
         host: 'localhost',
         user: 'username',
@@ -330,44 +327,14 @@ export default {
       await client.ensureDir(
         `${this.rightEventrowDate.path}/${this.ruleForm.name}`,
       )
-      // for (let val of this.tableData) {
-      //   if (val.id == this.rightEventrowDate.id) {
-      //     this.server_filename = this.ruleForm.name
-      //   }
-      // }
       this.centerDialogVisible = false
       ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
       ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
         console.log(arg)
       })
       client.close()
-      //     break
-      //   case 'smb':
-      //     break
-      //   case 'baid':
-      //     var config = JSON.parse(localStorage.getItem('config'))[0]
-      //     var { token } = config
-
-      //     this.$http
-      //       .post(`/rest/2.0/xpan/file?method=create`, {
-      //         //身份认证失败，没有权限
-      //         access_token: token,
-      //         path: this.path,
-      //         isdir: '1',
-      //         size: '0',
-      //       })
-      //       .then((res) => {
-      //         console.log(res.data)
-      //       })
-      //       .catch((error) => {
-      //         console.log(error.toJSON())
-      //       })
-      //     console.log('error submit!!')
-      //     break
-      //   case 'seaFile':
-      //     break
-      // }
     },
+    //目录更名
     async submitChange() {
       try {
         await client.access({
@@ -391,15 +358,18 @@ export default {
         console.log(error)
       }
     },
+    //重置表单
     resetForm(formName) {
       this.$refs[formName].resetFields()
     },
+    //测试用api
     download(selection, row) {
       this.$refs.down.disabled = !this.$refs.down.disabled
-      // console.log(this.$refs.down)
       this.rowfileID = row.fs_id
     },
     // 百度下载
+    //测试用api
+    //测试用api
     downLoadFile() {
       // const config = JSON.parse(localStorage.getItem('config'))[0]
       // const { token } = config
@@ -415,34 +385,47 @@ export default {
       //   })
     },
     // 重命名
+    //重命名-开启模态框
+    //重命名-开启模态框
     async editFileName(index, row) {
       this.centerDialogVisible2 = true
       this.rowDate.push(index, row)
       this.formDate.name = row.server_filename
     },
-    handleDelete(index, row) {
+    //待开发
+    deleteFile(index, row) {
       console.log(index, row)
     },
+    //ftp服务文件列表获取
     async ftpclient() {
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       client.ftp.verbose = true
       try {
         await client.access({
-          host: 'localhost',
-          user: 'username',
-          password: '175623',
+          host: host,
+          user: user,
+          password: pwd,
           secure: false,
         })
         client.ftp.verbose = false // 传输信息展示
 
         const file = await client.list('')
-        client.trackProgress() // 传输跟踪
         return file
       } catch (err) {
         console.log(err)
       }
       client.close()
     },
+    //目录列表切换
     async loadFile(row) {
+      //ftp
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       if (row.isdir == 1) {
         //处理目录
         this.cliDirTag = 1
@@ -450,9 +433,9 @@ export default {
         try {
           //异步错误捕获
           await client.access({
-            host: 'localhost',
-            user: 'username',
-            password: '175623',
+            host: host,
+            user: user,
+            password: pwd,
             secure: false,
           })
           const listFile = await client.list(row.path) // row 请求目录
@@ -485,25 +468,33 @@ export default {
         }
       }
     },
+    //smb服务文件列表获取
     async smbClient() {
       try {
-        let client = new SambaClient({
-          address: 'localhost', // required
+        let smbclient = new SambaClient({
+          address: '\\\\\\\\172.20.52.172\\\\share', // required
           username: 'user', // not required, defaults to guest
-          password: '175623', // not require
+          password: '123456', // not require
         })
-        console.log(await client.getFile('hello.txt', 'smb-share/'))
+        let list = await smbclient.getFile('test')
+        console.log(smbclient.address, list)
       } catch (error) {
         console.log(error)
       }
     },
+    //面包屑切换文件列表加载
     async getFile(path, parent) {
+      //ftp
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       if (path) {
         try {
           await client.access({
-            host: 'localhost',
-            user: 'username',
-            password: '175623',
+            host: host,
+            user: user,
+            password: pwd,
             secure: false,
           })
           var source = await client.list(path)
@@ -542,13 +533,11 @@ export default {
         }
       })
       return inFiltered
-      // return remvDuplicate(inFiltered)
     },
   },
-  mounted() {
-    console.log(client.closed)
-  },
+  mounted() {},
   watch: {
+    //面包屑功能-路由列表加载
     '$route': function(newVal) {
       const Path = {}
       for (let val of this.parents) {
