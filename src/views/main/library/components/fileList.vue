@@ -16,7 +16,7 @@
                 <el-dropdown-item>复制到</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-            <el-button type="primary"
+            <el-button type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
             <el-button type="primary" ref="down" disabled @click="downLoadFile"
@@ -399,20 +399,22 @@ export default {
       // console.log(this.$refs.down)
       this.rowfileID = row.fs_id
     },
+    // 百度下载
     downLoadFile() {
-      const config = JSON.parse(localStorage.getItem('config'))[0]
-      const { token } = config
-      this.$http
-        .get(
-          `/rest/2.0/xpan/multimedia?method=filemetas&access_token=${token}&fs_id=${this.rowfileID}`,
-        )
-        .then((res) => {
-          console.log(res)
-        })
-        .catch((error) => {
-          console.log(error)
-        })
+      // const config = JSON.parse(localStorage.getItem('config'))[0]
+      // const { token } = config
+      // this.$http
+      //   .get(
+      //     `/rest/2.0/xpan/multimedia?method=filemetas&access_token=${token}&fs_id=${this.rowfileID}`,
+      //   )
+      //   .then((res) => {
+      //     console.log(res)
+      //   })
+      //   .catch((error) => {
+      //     console.log(error)
+      //   })
     },
+    // 重命名
     async editFileName(index, row) {
       this.centerDialogVisible2 = true
       this.rowDate.push(index, row)
@@ -521,6 +523,15 @@ export default {
         client.close()
       }
       return source
+    },
+    upLoadFile() {
+      if (this.$route.params.id == 'ftp') {
+        console.log('ftp')
+      } else if (this.$route.params.id == 'baid') {
+        console.log('baidu')
+      } else if (this.$route.params.id == 'smb') {
+        console.log('smb')
+      }
     },
   },
   computed: {
