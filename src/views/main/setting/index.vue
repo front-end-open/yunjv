@@ -1,5 +1,3 @@
-import "./ren.js"
-
 <template>
   <div class="Ls flexCol">
     <el-card shadow="hover">
@@ -65,9 +63,6 @@ import "./ren.js"
       </ul>
     </el-card>
 
-    <!-- 分割线 -->
-    <!-- <el-divider></el-divider> -->
-
     <el-card shadow="hover">
       <h3 class="marginB30 fontSizeS">使用反馈</h3>
       <ul>
@@ -79,10 +74,7 @@ import "./ren.js"
       </ul>
     </el-card>
 
-    <!-- 分割线 -->
-    <!-- <el-divider></el-divider> -->
-
-    <el-card shadow="hover">
+    <el-card shadow="hover bottomColR">
       <h3 class="marginB30 fontSizeS">自动更新</h3>
       <ul>
         <li>
@@ -112,6 +104,7 @@ import "./ren.js"
         </li>
         <li>{{ aboutOwnership }}</li>
       </ul>
+      <div class="bottomCol"></div>
     </el-card>
   </div>
 </template>
@@ -236,7 +229,13 @@ li {
   flex-direction: column;
   justify-content: space-between;
 }
-.el-card.is-hover-shadow {
+.el-card {
   margin-bottom: 15px;
+  border-radius: 20px;
+  background: rgb(249, 249, 249);
+}
+.el-card.is-hover-shadow:hover,
+.el-card:hover {
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
 }
 </style>
