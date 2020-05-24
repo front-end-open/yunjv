@@ -367,7 +367,6 @@ export default {
       this.$refs.down.disabled = !this.$refs.down.disabled
       this.rowfileID = row.fs_id
     },
-    // 百度下载
     //测试用api
     //测试用api
     downLoadFile() {
