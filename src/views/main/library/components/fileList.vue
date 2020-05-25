@@ -150,12 +150,9 @@ import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 const ipcRenderer = require('electron').ipcRenderer
-const SambaClient = require('samba-client')
-
+const SMB = require('@marsaud/smb2')
 const ftp = require('basic-ftp')
 const client = new ftp.Client()
-client.ftp.verbose = false
-client.trackProgress()
 export default {
   name: 'fileList',
   data() {
@@ -401,7 +398,6 @@ export default {
         Number(this.servertypeIndex)
       ]
       const { host, user, pwd } = config
-      client.ftp.verbose = true
       try {
         await client.access({
           host: host,
@@ -409,10 +405,8 @@ export default {
           password: pwd,
           secure: false,
         })
-        client.ftp.verbose = false // 传输信息展示
 
-        const file = await client.list('')
-        return file
+        return await client.list('')
       } catch (err) {
         console.log(err)
       }
@@ -470,13 +464,16 @@ export default {
     //smb服务文件列表获取
     async smbClient() {
       try {
-        let smbclient = new SambaClient({
-          address: '\\\\\\\\172.20.52.172\\\\share', // required
-          username: 'user', // not required, defaults to guest
-          password: '123456', // not require
+        const smbclient = new SMB({
+          share: '\\\\172.20.87.53\\smbshare', // required
+          domain: 'WORKGROUP', // not required
+          username: 'wangshan', // not required, defaults to guest
+          password: '175623', // not required
         })
-        let list = await smbclient.getFile('test')
-        console.log(smbclient.address, list)
+        smbclient.readFile('foo.txt', function(err, content) {
+          if (err) throw err
+          console.log(content)
+        })
       } catch (error) {
         console.log(error)
       }

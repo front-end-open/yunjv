@@ -1471,6 +1471,14 @@
     mkdirp "^0.5.1"
     rimraf "^2.5.2"
 
+"@marsaud/smb2@^0.16.0":
+  version "0.16.0"
+  resolved "https://registry.npm.taobao.org/@marsaud/smb2/download/@marsaud/smb2-0.16.0.tgz#98f7c7b3e18b0f17e3dc2ae6f0a52a7f38234bf4"
+  integrity sha1-mPfHs+GLDxfj3Crm8KUqfzgjS/Q=
+  dependencies:
+    ntlm "~0.1.1"
+    readable-stream "^3.0.6"
+
 "@mrmlnc/readdir-enhanced@^2.2.1":
   version "2.2.1"
   resolved "https://registry.npm.taobao.org/@mrmlnc/readdir-enhanced/download/@mrmlnc/readdir-enhanced-2.2.1.tgz#524af240d1a360527b730475ecfa1344aa540dde"
@@ -8757,6 +8765,11 @@ nth-check@^1.0.2, nth-check@~1.0.1:
   dependencies:
     boolbase "~1.0.0"
 
+ntlm@^0.1.3, ntlm@~0.1.1:
+  version "0.1.3"
+  resolved "https://registry.npm.taobao.org/ntlm/download/ntlm-0.1.3.tgz#3b814ebc530a1e6cd712dcf0cf590155931195c1"
+  integrity sha1-O4FOvFMKHmzXEtzwz1kBVZMRlcE=
+
 nugget@^2.0.1:
   version "2.0.1"
   resolved "https://registry.npm.taobao.org/nugget/download/nugget-2.0.1.tgz#201095a487e1ad36081b3432fa3cada4f8d071b0"
@@ -10924,6 +10937,13 @@ slice-ansi@^2.1.0:
     ansi-styles "^3.2.0"
     astral-regex "^1.0.0"
     is-fullwidth-code-point "^2.0.0"
+
+smb2@^0.2.11:
+  version "0.2.11"
+  resolved "https://registry.npm.taobao.org/smb2/download/smb2-0.2.11.tgz#75dfe06c9d6bcede67fa8bd185b1b3b5b7e9720a"
+  integrity sha1-dd/gbJ1rzt5n+ovRhbGztbfpcgo=
+  dependencies:
+    ntlm "^0.1.3"
 
 snapdragon-node@^2.0.1:
   version "2.1.1"
