@@ -284,6 +284,7 @@ import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
+
 const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
 const ftp = require('basic-ftp')
@@ -766,6 +767,7 @@ export default {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
+      console.log('ftpclonet')
       const { host, user, pwd } = config
       try {
         await client
