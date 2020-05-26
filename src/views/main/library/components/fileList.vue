@@ -16,7 +16,7 @@
                 <el-dropdown-item>复制到</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-            <el-button type="primary" :disabled="this.uptag" @click="upLoadFile"
+            <el-button type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
             <el-button
@@ -153,6 +153,7 @@
 import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
+import Server from '@/lib/ServerFactory.js'
 const ipcRenderer = require('electron').ipcRenderer
 const SMB = require('@marsaud/smb2')
 const ftp = require('basic-ftp')
@@ -174,7 +175,7 @@ export default {
       },
       ruleForm: {
         name: '新建文件夹',
-        path: '/',
+        path: '',
       },
       rules: {
         name: [
@@ -378,18 +379,19 @@ export default {
     //测试用api
     //测试用api
     downLoadFile() {
-      // const config = JSON.parse(localStorage.getItem('config'))[0]
-      // const { token } = config
-      // this.$http
-      //   .get(
-      //     `/rest/2.0/xpan/multimedia?method=filemetas&access_token=${token}&fs_id=${this.rowfileID}`,
-      //   )
-      //   .then((res) => {
-      //     console.log(res)
-      //   })
-      //   .catch((error) => {
-      //     console.log(error)
-      //   })
+      const filepath = dialog.showOpenDialog({
+        properties: ['openDirectory'],
+      })
+      const server = new Server(
+        'FTP',
+        this.servertypeIndex,
+        JSON.parse(localStorage.getItem('config')),
+        filepath[0],
+        this.path,
+      )
+      server.download().then((res) => {
+        console.log(res)
+      })
     },
     // 重命名
     //重命名-开启模态框
@@ -403,7 +405,7 @@ export default {
     deleteFile(index, row) {
       console.log(index, row)
     },
-    //ftp服务文件列表获取
+    //文件列表获取
     async ftpclient() {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
@@ -423,7 +425,7 @@ export default {
       }
       client.close()
     },
-    //目录列表切换
+    //目录切换
     async loadFile(row) {
       //ftp
       const config = JSON.parse(localStorage.getItem('config'))[
@@ -523,41 +525,26 @@ export default {
       return source
     },
     //文件上传
-    async upLoadFile() {
-      try {
-        await client.access({
-          host: '127.0.0.1',
-          user: 'username',
-          password: '175623',
+    upLoadFile() {
+      if (this.parents[0] == 'ftp') {
+        const filepath = dialog.showOpenDialog({
+          properties: ['openDirectory'],
         })
-        if (this.parents[0] == 'ftp') {
-          const filepath = dialog.showOpenDialog({
-            properties: ['openDirectory'],
-          })
-
-          await client.uploadFromDir(filepath[0], this.path)
-          const currentfilelist = await client.list(this.path)
-          for (let [index, item] of currentfilelist.entries()) {
-            console.log(index)
-            const { name, size, isDirectory, modifiedAt } = item
-            this.singleFile = {}
-            this.singleFile.id = (Math.random() + 1) * 10
-            this.singleFile.server_filename = name
-            this.singleFile.size = size
-            this.singleFile.parent = '/'
-            this.singleFile.parentsPath = '/'
-            this.singleFile.path = `/${name}`
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = modifiedAt
-            this.tableData.push(this.singleFile)
+        const server = new Server(
+          'FTP',
+          this.servertypeIndex,
+          JSON.parse(localStorage.getItem('config')),
+          filepath[0],
+          this.path,
+        )
+        server.upload().then((res) => {
+          console.log(res)
+          if (res) {
+            for (let val of res) {
+              this.tableData.push(val)
+            }
           }
-        } else if (this.parents[0] == 'baid') {
-          console.log('baidu')
-        } else if (this.parents[0] == 'smb') {
-          console.log('smb')
-        }
-      } catch (error) {
-        console.log(error)
+        })
       }
     },
   },

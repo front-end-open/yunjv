@@ -1,10 +1,15 @@
-const ftp = require('basic-ftp')
-const config = JSON.parse(localStorage.getItem('config'))
-
-export default function ServerFactory(type, serverindx, content) {
-  console.log(type, serverindx)
+const client = require('basic-ftp')
+const path = require('path')
+import convert from './SizeConvert.js'
+export default function ServerFactory(
+  type,
+  serverindx,
+  config,
+  localpath,
+  remotepath,
+) {
   if (this instanceof ServerFactory) {
-    return new this[type](content)
+    return new this[type](serverindx, config, localpath, remotepath)
   } else {
     throw new Error(
       '[wangshan-warn] the ServerFactory(constructor) must use new keywords! so you can new ServerFactory',
@@ -19,58 +24,72 @@ ServerFactory.prototype = {
   SMB: function() {
     console.log('Smb')
   },
-  FTP: function(serverindx, content) {
-    // 创建ftp服务实列
-    this.client = new ftp.Client()
-    //获取服务配置
-    const { host, user, password } = config[serverindx]
-    //服务连接
+  FTP: function(serverindx, config, localpath, remotepath) {
+    //连接ftp
+    const ftp = new client.Client()
+    // 服务连接
     // 文件上传
     this.upload = async function() {
-      this.client.access({
-        host,
-        user,
-        password,
-      })
-      this.client.ftp.verbose = true
-      return await this.client.uploadFromDir(content.local, content.remote)
+      let currentFileInfo = {},
+        fileData = []
+      try {
+        await ftp.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+        })
+        await ftp.uploadFromDir(localpath, remotepath)
+        const filelist = await ftp.list(remotepath)
+        for (let [index, item] of filelist.entries()) {
+          console.log(index)
+          const { name, size, isDirectory, modifiedAt } = item
+          currentFileInfo = {}
+          currentFileInfo.id = (Math.random() + 1) * 10
+          currentFileInfo.server_filename = name
+          currentFileInfo.size = convert(size)
+          currentFileInfo.parent = path.basename(remotepath)
+          currentFileInfo.parentsPath = remotepath
+          currentFileInfo.path = `${remotepath}/${name}`
+          currentFileInfo.isdir = Number(isDirectory)
+          currentFileInfo.local_mtime = modifiedAt
+          fileData.push(currentFileInfo)
+        }
+        return fileData
+      } catch (error) {
+        ftp.close()
+        console.log(error)
+      }
     }
     //文件下载
     this.download = async function() {
-      this.client.access({
-        host,
-        user,
-        password,
-      })
-      this.client.ftp.verbose = true
-      return await this.client.downloadToDir(content.local, content.remote)
+      try {
+        await ftp.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+        })
+        return await ftp.downloadToDir(localpath)
+      } catch (error) {
+        console.log(error)
+        ftp.close()
+      }
     }
-    //文件移动
-    this.remove = async function() {
-      this.client.access({
-        host,
-        user,
-        password,
-      })
-      this.client.ftp.verbose = true
-    }
-    //删除
-    this.delete = async function() {
-      this.client.access({
-        host,
-        user,
-        password,
-      })
-      this.client.ftp.verbose = true
-      //文件目录删除
-      this.client.removeDir(content.remote)
-      //文件删除
-      this.client.remove(content.remote)
-    }
-    //重命名
-    this.rename = async function() {
-      this.client.rename(config.remote, 'config.remote')
-    }
+    // //文件移动
+    // this.remove = async function() {
+    //   this.client.ftp.verbose = true
+    // }
+    // //删除
+    // this.delete = async function() {
+    //   this.client.ftp.verbose = true
+    //   //文件目录删除
+    //   this.client.removeDir()
+    //   //文件删除
+    //   this.client.remove()
+    // }
+    // //重命名
+    // this.rename = async function() {
+    //   this.client.rename(config.remote, 'config.remote')
+    // }
   },
   SEAFILE: function() {
     console.log('seafile')
