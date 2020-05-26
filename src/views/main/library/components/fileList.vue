@@ -16,10 +16,14 @@
                 <el-dropdown-item>复制到</el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
-            <el-button type="primary" @click="upLoadFile"
+            <el-button type="primary" :disabled="this.uptag" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
-            <el-button type="primary" ref="down" disabled @click="downLoadFile"
+            <el-button
+              type="primary"
+              ref="down"
+              :disabled="this.downtag"
+              @click="downLoadFile"
               >下载<i class="el-icon-download el-icon--right"></i
             ></el-button>
           </div>
@@ -152,7 +156,9 @@ import SizeConvert from '@/lib/SizeConvert.js'
 const ipcRenderer = require('electron').ipcRenderer
 const SMB = require('@marsaud/smb2')
 const ftp = require('basic-ftp')
+const { dialog } = require('electron').remote
 const client = new ftp.Client()
+console.log(client.ftp.encoding)
 export default {
   name: 'fileList',
   data() {
@@ -191,10 +197,11 @@ export default {
       rightEventrowDate: null,
       rowDate: [],
       servertypeIndex: null,
+      uptag: true,
+      downtag: true,
     }
   },
   created() {
-    console.log(this.$route.params)
     //面包屑初始路径加载
     this.pathbread = [
       {
@@ -359,10 +366,14 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields()
     },
-    //测试用api
+    // 选中行，获取行数据
     download(selection, row) {
-      this.$refs.down.disabled = !this.$refs.down.disabled
       this.rowfileID = row.fs_id
+      if (Number(row.isdir)) {
+        this.uptag = !this.uptag
+      } else {
+        this.downtag = !this.downtag
+      }
     },
     //测试用api
     //测试用api
@@ -511,13 +522,42 @@ export default {
       }
       return source
     },
-    upLoadFile() {
-      if (this.$route.params.id == 'ftp') {
-        console.log('ftp')
-      } else if (this.$route.params.id == 'baid') {
-        console.log('baidu')
-      } else if (this.$route.params.id == 'smb') {
-        console.log('smb')
+    //文件上传
+    async upLoadFile() {
+      try {
+        await client.access({
+          host: '127.0.0.1',
+          user: 'username',
+          password: '175623',
+        })
+        if (this.parents[0] == 'ftp') {
+          const filepath = dialog.showOpenDialog({
+            properties: ['openDirectory'],
+          })
+
+          await client.uploadFromDir(filepath[0], this.path)
+          const currentfilelist = await client.list(this.path)
+          for (let [index, item] of currentfilelist.entries()) {
+            console.log(index)
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.id = (Math.random() + 1) * 10
+            this.singleFile.server_filename = name
+            this.singleFile.size = size
+            this.singleFile.parent = '/'
+            this.singleFile.parentsPath = '/'
+            this.singleFile.path = `/${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableData.push(this.singleFile)
+          }
+        } else if (this.parents[0] == 'baid') {
+          console.log('baidu')
+        } else if (this.parents[0] == 'smb') {
+          console.log('smb')
+        }
+      } catch (error) {
+        console.log(error)
       }
     },
   },
