@@ -19,11 +19,7 @@
             <el-button type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
-            <el-button
-              type="primary"
-              ref="down"
-              :disabled="this.downtag"
-              @click="downLoadFile"
+            <el-button type="primary" :disabled="downtag" @click="downLoadFile"
               >下载<i class="el-icon-download el-icon--right"></i
             ></el-button>
           </div>
@@ -56,14 +52,13 @@
         row-key="id"
         lazy
         :load="load"
-        @select="download"
+        @select="selec"
         :default-expand-all="false"
         @row-dblclick="loadFile"
-        @row-contextmenu="createDiretory"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column type="selection" width="50"> </el-table-column>
-        <el-table-column label="文件名" sortable width="180">
+        <el-table-column label="名字" sortable width="180">
           <template slot-scope="scope">
             <i
               :class="
@@ -75,15 +70,12 @@
             }}</span>
           </template>
         </el-table-column>
-        <el-table-column
-          prop="local_ctime"
-          label="创建时间"
-          sortable
-          width="180"
-        >
-        </el-table-column>
-        <el-table-column prop="local_mtime" label="修改日期"></el-table-column>
         <el-table-column prop="size" label="大小"> </el-table-column>
+        <el-table-column prop="local_mtime" label="已改变" sortable width="180">
+        </el-table-column>
+        <el-table-column prop="permission" label="权限" sortable width="180">
+        </el-table-column>
+        <el-table-column prop="Owner" label="所有者"> </el-table-column>
         <el-table-column label="文件操作" fixed="right" width="150">
           <template slot-scope="scope">
             <el-button
@@ -137,8 +129,8 @@
         center
       >
         <el-form :inline="true" :model="formDate" class="demo-form-inline">
-          <el-form-item label="审批人">
-            <el-input v-model="formDate.name" placeholder="审批人"></el-input>
+          <el-form-item label="文件名">
+            <el-input v-model="formDate.name" placeholder="文件名"></el-input>
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
@@ -154,12 +146,14 @@ import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
+import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
 const SMB = require('@marsaud/smb2')
 const ftp = require('basic-ftp')
+const path = require('path')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
-console.log(client.ftp.encoding)
+client.ftp.verbose = true
 export default {
   name: 'fileList',
   data() {
@@ -196,9 +190,8 @@ export default {
       cliDirTag: 0,
       isSame: '',
       rightEventrowDate: null,
-      rowDate: [],
+      rowDate: {},
       servertypeIndex: null,
-      uptag: true,
       downtag: true,
     }
   },
@@ -218,8 +211,9 @@ export default {
 
     if (this.$route.params.id == 'ftp') {
       this.ftpclient().then((res) => {
+        console.log(res)
         for (let [index, item] of res.entries()) {
-          const { name, size, isDirectory, modifiedAt } = item
+          const { name, size, isDirectory, permissions, date, user } = item
           this.singleFile = {}
           this.singleFile.id = index
           this.singleFile.server_filename = name
@@ -228,7 +222,9 @@ export default {
           this.singleFile.parentsPath = '/'
           this.singleFile.path = `/${name}`
           this.singleFile.isdir = Number(isDirectory)
-          this.singleFile.local_mtime = modifiedAt
+          this.singleFile.local_mtime = date
+          this.singleFile.permission = OwnerConvert(permissions)
+          this.singleFile.Owner = user
           this.tableData.push(this.singleFile)
         }
       })
@@ -271,7 +267,7 @@ export default {
     }
   },
   methods: {
-    //文件列表tree懒加载， 该api已废弃
+    //百度tree懒加载， 该api已废弃
     load(tree, treeNode, resolve) {
       let childFileList = {}
       let children = []
@@ -311,39 +307,58 @@ export default {
 
       console.log(tree)
     },
-    //创建目录-开启模态款
-    //传递当前行数据
-    createDiretory(row) {
-      if (row.isdir) {
-        console.log(row)
-        this.rightEventrowDate = row
-        this.centerDialogVisible = true
-      }
+    //创建目录-开启模态
+    createDiretory() {
+      this.centerDialogVisible = true
     },
     //创建目录
     async submitForm() {
       //ftp服务
-      await client.access({
-        host: 'localhost',
-        user: 'username',
-        password: '175623',
-        secure: false,
-      })
-      await client.ensureDir(
-        `${this.rightEventrowDate.path}/${this.ruleForm.name}`,
-      )
-      this.centerDialogVisible = false
-      ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
-      ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
-        console.log(arg)
-      })
-      client.close()
+      let currentFileInfo = {},
+        fileData = []
+      try {
+        await client.access({
+          host: 'localhost',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        await client.ensureDir(`${this.path}/${this.ruleForm.name}`)
+        await client.list(this.path).then((res) => {
+          for (let [index, item] of res.entries()) {
+            console.log(index)
+            const { name, size, isDirectory, permissions, date, user } = item
+            currentFileInfo = {}
+            currentFileInfo.id = (Math.random() + 1) * 10
+            currentFileInfo.server_filename = name
+            currentFileInfo.size = SizeConvert(size)
+            currentFileInfo.parent = path.basename(this.path)
+            currentFileInfo.parentsPath = this.path
+            currentFileInfo.path = `${this.path}/${name}`
+            currentFileInfo.isdir = Number(isDirectory)
+            currentFileInfo.local_mtime = date
+            currentFileInfo.permission = OwnerConvert(permissions)
+            currentFileInfo.Owner = user
+            fileData.unshift(currentFileInfo)
+          }
+          this.tableData = fileData
+        })
+        ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
+        ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
+          console.log(arg)
+        })
+        this.centerDialogVisible = false
+      } catch (error) {
+        console.log(error)
+        this.centerDialogVisible = false
+        client.close()
+      }
     },
     //目录更名
     async submitChange() {
       try {
         await client.access({
-          host: 'localhost',
+          host: '1',
           user: 'username',
           password: '175623',
           secure: false,
@@ -368,12 +383,13 @@ export default {
       this.$refs[formName].resetFields()
     },
     // 选中行，获取行数据
-    download(selection, row) {
+    selec(selection, row) {
+      this.rowDate = row
       this.rowfileID = row.fs_id
-      if (Number(row.isdir)) {
-        this.uptag = !this.uptag
+      if (selection.length) {
+        this.downtag = false
       } else {
-        this.downtag = !this.downtag
+        this.downtag = true
       }
     },
     //测试用api
@@ -388,6 +404,7 @@ export default {
         JSON.parse(localStorage.getItem('config')),
         filepath[0],
         this.path,
+        this.rowDate,
       )
       server.download().then((res) => {
         console.log(res)
@@ -418,7 +435,7 @@ export default {
           password: pwd,
           secure: false,
         })
-
+        console.log(await client.send('PwD'))
         return await client.list('')
       } catch (err) {
         console.log(err)
@@ -446,7 +463,7 @@ export default {
           })
           const listFile = await client.list(row.path) // row 请求目录
           for (let [index, item] of listFile.entries()) {
-            const { name, size, isDirectory, modifiedAt } = item
+            const { name, size, isDirectory, permissions, date, user } = item
             this.singleFile = {}
             this.singleFile.parent = row.server_filename //行目录名
             //子目录请求内容
@@ -456,7 +473,9 @@ export default {
             this.singleFile.parentsPath = row.path
             this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
             this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = modifiedAt
+            this.singleFile.local_mtime = date
+            this.singleFile.permission = OwnerConvert(permissions)
+            this.singleFile.Owner = user
             this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
           }
 
@@ -536,9 +555,9 @@ export default {
           JSON.parse(localStorage.getItem('config')),
           filepath[0],
           this.path,
+          this.rowDate,
         )
         server.upload().then((res) => {
-          console.log(res)
           if (res) {
             for (let val of res) {
               this.tableData.push(val)
@@ -586,7 +605,7 @@ export default {
         this.getFile(newVal.query.path, newVal.params.id).then((res) => {
           this.tableData = []
           for (let item of res) {
-            const { name, size, isDirectory, modifiedAt } = item
+            const { name, size, isDirectory, permissions, date, user } = item
             this.singleFile = {}
             this.singleFile.id = (Math.random() + 1) * 10
             this.singleFile.server_filename = name
@@ -594,7 +613,9 @@ export default {
             this.singleFile.parentsPath = newVal.query.path
             this.singleFile.path = `${newVal.query.path}${name}`
             this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = modifiedAt
+            this.singleFile.local_mtime = date
+            this.singleFile.permission = OwnerConvert(permissions)
+            this.singleFile.Owner = user
             this.tableData.push(this.singleFile)
           }
           this.pathbread.splice(this.isSame + 1)
