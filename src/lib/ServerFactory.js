@@ -93,9 +93,9 @@ ServerFactory.prototype = {
       const { server_filename, path, isdir } = rowfileinfo
       try {
         await ftp.access({
-          host: 'localhost',
-          user: 'username',
-          password: '175623',
+          host: '10.10.12.8',
+          user: 'scitc',
+          password: 'scitc',
         })
         if (isdir) {
           ftp.trackProgress((info) => {
@@ -104,9 +104,15 @@ ServerFactory.prototype = {
             console.log('Transferred', info.bytes)
             console.log('Transferred Overall', info.bytesOverall)
           })
-          return await ftp.downloadToDir(localpath, path)
+          return await ftp.downloadToDir(localpath, path).then((res) => {
+            console.log(res)
+          })
         } else {
-          return await ftp.downloadTo(`${localpath}/${server_filename}`, path)
+          return await ftp
+            .downloadTo(`${localpath}/${server_filename}`, path)
+            .then((res) => {
+              console.log(res)
+            })
         }
       } catch (error) {
         ftp.close()
