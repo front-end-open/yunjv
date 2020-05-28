@@ -142,7 +142,7 @@
   </el-container>
 </template>
 <script>
-import Vue from 'vue'
+// import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
@@ -159,6 +159,7 @@ export default {
   data() {
     return {
       tableData: [],
+      tableDatas: [],
       centerDialogVisible: false,
       centerDialogVisible2: false,
       labelPosition: 'right',
@@ -354,28 +355,45 @@ export default {
         client.close()
       }
     },
-    //目录更名
+    //重命名-目录更该
     async submitChange() {
       try {
         await client.access({
-          host: '1',
-          user: 'username',
-          password: '175623',
+          host: '10.10.12.8',
+          user: 'scitc',
+          password: 'scitc',
           secure: false,
         })
         await client.rename(
-          this.rowDate[1].path,
-          this.rowDate[1].parentsPath + this.formDate.name,
+          this.rowDate[1].path, //设置要更改的文件/文件夹路径
+          `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
         )
-        Vue.set(
-          this.tableData[this.rowDate[0]],
-          'server_filename',
-          this.formDate,
-        )
-        client.close()
-        this.centerDialogVisible2 = false
+        await client.list(this.rowDate[1].parentsPath).then((res) => {
+          this.tableDatas = []
+          for (let [index, item] of res.entries()) {
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.parent = res.server_filename //行目录名
+            //子目录请求内容
+            this.singleFile.id = index + Math.random()
+            this.singleFile.server_filename = name
+            this.singleFile.size = SizeConvert(size)
+            this.singleFile.parentsPath = this.rowDate[1].parentsPath
+            this.singleFile.path =
+              this.rowDate[1].parentsPath == '/'
+                ? `${this.rowDate[1].parentsPath}${name}`
+                : `${this.rowDate[1].parentsPath}/${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
+          }
+        })
+        this.tableData = this.tableDatas //将新的列表赋给原列表
+
+        this.centerDialogVisible2 = false //关闭模态框
       } catch (error) {
         console.log(error)
+        client.close()
       }
     },
     //重置表单
@@ -410,11 +428,10 @@ export default {
         console.log(res)
       })
     },
-    // 重命名
-    //重命名-开启模态框
     //重命名-开启模态框
     async editFileName(index, row) {
-      this.centerDialogVisible2 = true
+      this.rowDate = []
+      this.centerDialogVisible2 = true //打开模态框
       this.rowDate.push(index, row)
       this.formDate.name = row.server_filename
     },
@@ -453,6 +470,7 @@ export default {
         //处理目录
         this.cliDirTag = 1
         this.tableData = []
+
         try {
           //异步错误捕获
           await client.access({
