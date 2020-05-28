@@ -153,7 +153,7 @@ const ftp = require('basic-ftp')
 const path = require('path')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
-client.ftp.verbose = true
+// client.ftp.verbose = true
 export default {
   name: 'fileList',
   data() {
@@ -224,7 +224,9 @@ export default {
           this.singleFile.path = `/${name}`
           this.singleFile.isdir = Number(isDirectory)
           this.singleFile.local_mtime = date
-          this.singleFile.permission = OwnerConvert(permissions)
+          this.singleFile.permission = permissions
+            ? OwnerConvert(permissions)
+            : ''
           this.singleFile.Owner = user
           this.tableData.push(this.singleFile)
         }
@@ -479,23 +481,39 @@ export default {
             password: pwd,
             secure: false,
           })
-          const listFile = await client.list(row.path) // row 请求目录
-          for (let [index, item] of listFile.entries()) {
-            const { name, size, isDirectory, permissions, date, user } = item
-            this.singleFile = {}
-            this.singleFile.parent = row.server_filename //行目录名
-            //子目录请求内容
-            this.singleFile.id = index
-            this.singleFile.server_filename = name
-            this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = row.path
-            this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = date
-            this.singleFile.permission = OwnerConvert(permissions)
-            this.singleFile.Owner = user
-            this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
-          }
+          await client
+            .list(row.path)
+            .then((res) => {
+              for (let [index, item] of res.entries()) {
+                const {
+                  name,
+                  size,
+                  isDirectory,
+                  permissions,
+                  date,
+                  user,
+                } = item
+                this.singleFile = {}
+                this.singleFile.parent = row.server_filename //行目录名
+                //子目录请求内容
+                this.singleFile.id = index
+                this.singleFile.server_filename = name
+                this.singleFile.size = SizeConvert(size)
+                this.singleFile.parentsPath = row.path + '/'
+                this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
+                this.singleFile.isdir = Number(isDirectory)
+                this.singleFile.local_mtime = date
+                this.singleFile.permission = permissions
+                  ? OwnerConvert(permissions)
+                  : ''
+                this.singleFile.Owner = user
+                this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
+              }
+            })
+            .catch((error) => {
+              alert('目录无内容')
+              console.log(error)
+            }) // row 请求目录
 
           this.path = row.path
           this.$router.push({
@@ -632,7 +650,9 @@ export default {
             this.singleFile.path = `${newVal.query.path}${name}`
             this.singleFile.isdir = Number(isDirectory)
             this.singleFile.local_mtime = date
-            this.singleFile.permission = OwnerConvert(permissions)
+            this.singleFile.permission = permissions
+              ? OwnerConvert(permissions)
+              : ''
             this.singleFile.Owner = user
             this.tableData.push(this.singleFile)
           }

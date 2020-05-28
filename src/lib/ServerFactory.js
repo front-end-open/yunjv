@@ -57,24 +57,32 @@ ServerFactory.prototype = {
         // } else {
         //   await ftp.appendFrom(localpath, parentsPath)
         // }
-        const filelist = await ftp.list(remotepath)
-        for (let [index, item] of filelist.entries()) {
-          console.log(index)
-          const { name, size, isDirectory, permissions, date, user } = item
-          currentFileInfo = {}
-          currentFileInfo.id = (Math.random() + 1) * 10
-          currentFileInfo.server_filename = name
-          currentFileInfo.size = convert(size)
-          currentFileInfo.parent = path.basename(remotepath)
-          currentFileInfo.parentsPath = remotepath
-          currentFileInfo.path = `${remotepath}/${name}`
-          currentFileInfo.isdir = Number(isDirectory)
-          currentFileInfo.local_mtime = date
-          currentFileInfo.permission = OwnerConvert(permissions)
-          currentFileInfo.Owner = user
-          fileData.push(currentFileInfo)
-        }
-        return fileData
+        await ftp
+          .list(remotepath)
+          .then((res) => {
+            for (let [index, item] of res.entries()) {
+              console.log(index)
+              const { name, size, isDirectory, permissions, date, user } = item
+              currentFileInfo = {}
+              currentFileInfo.id = (Math.random() + 1) * 10
+              currentFileInfo.server_filename = name
+              currentFileInfo.size = convert(size)
+              currentFileInfo.parent = path.basename(remotepath)
+              currentFileInfo.parentsPath = remotepath
+              currentFileInfo.path = `${remotepath}/${name}`
+              currentFileInfo.isdir = Number(isDirectory)
+              currentFileInfo.local_mtime = date
+              currentFileInfo.permission = permissions
+                ? OwnerConvert(permissions)
+                : ''
+              currentFileInfo.Owner = user
+              fileData.push(currentFileInfo)
+            }
+            return fileData
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       } catch (error) {
         ftp.close()
         console.log(error, JSON.stringify(error))
