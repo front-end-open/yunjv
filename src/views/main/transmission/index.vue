@@ -28,11 +28,13 @@
               :stroke-width="16"
               :percentage="0"
               :color="customColor"
+              :visible.sync="transmissionSchedule"
             ></el-progress>
           </el-table-column>
 
           <el-table-column prop="upDate" label="上传日期"> </el-table-column>
-          <el-table-column width="180">
+          <!-- 传输控制 -->
+          <el-table-column width="180" :visible.sync="transmissionControl">
             <template slot-scope="upscope">
               <el-button
                 type="warning"
@@ -176,33 +178,24 @@ export default {
 
       // percentage:#,
       customColor: '#409eff',
+      transmissionControl: false,
+      transmissionSchedule: false,
       upData: [
         {
-          upName: '文件1',
-          upSize: '120M',
+          upName: '1',
+          upSize: '2',
           upEvolve: ' ',
-          upDate: '2020-10-03',
-        },
-        {
-          upName: '文件2',
-          upSize: '12M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
-        },
-        {
-          upName: '文件3',
-          upSize: '13M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
-        },
-        {
-          upName: '文件4',
-          upSize: '14M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
+          upDate: '2010-02-01',
         },
       ],
-      downData: [{}],
+      downData: [
+        {
+          downName: '1',
+          downSize: '2',
+          dwonEvolve: ' ',
+          downDate: '2010-02-01',
+        },
+      ],
       loading: false,
     }
   },
