@@ -351,7 +351,7 @@ export default {
             ipcRenderer.send('async-authcode', 'ping') // 发送消息
             ipcRenderer.on('async-authcode-reply', (event, arg) => {
               const { state, info } = arg
-              const { access_token } = JSON.parse(info)
+              const { access_token } = info
               if (state) {
                 //授权成功
                 list.serverName = this.ruleForm.name

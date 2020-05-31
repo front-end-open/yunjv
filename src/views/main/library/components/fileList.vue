@@ -228,6 +228,7 @@ import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
 const SMB = require('@marsaud/smb2')
+// const SMB = require('samba-client')
 const ftp = require('basic-ftp')
 const path = require('path')
 const { dialog } = require('electron').remote
@@ -513,23 +514,22 @@ export default {
         this.downtag = true
       }
     },
-    //测试用api
-    //测试用api
+    //文件下载
     downLoadFile() {
-      const filepath = dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      })
-      const server = new Server(
-        'FTP',
-        this.servertypeIndex,
-        JSON.parse(localStorage.getItem('config')),
-        filepath[0],
-        this.path,
-        this.rowDate,
-      )
-      server.download().then((res) => {
-        console.log(res)
-      })
+      // const filepath = dialog.showOpenDialog({
+      //   properties: ['openDirectory'],
+      // })
+      // const server = new Server(
+      //   'FTP',
+      //   this.servertypeIndex,
+      //   JSON.parse(localStorage.getItem('config')),
+      //   filepath[0],
+      //   this.path,
+      //   this.rowDate,
+      // )
+      // server.download().then((res) => {
+      //   console.log(res)
+      // })
     },
     //重命名-开启模态框
     async editFileName(index, row) {
@@ -653,15 +653,46 @@ export default {
     async smbClient() {
       try {
         const smbclient = new SMB({
-          share: '\\\\172.20.87.53\\smbshare', // required
-          domain: 'WORKGROUP', // not required
-          username: 'wangshan', // not required, defaults to guest
-          password: '175623', // not required
+          share: '\\\\172.20.35.16\\share',
+          domain: 'WORKGROUP',
+          username: 'smb',
+          password: '175623',
         })
-        smbclient.readFile('foo.txt', function(err, content) {
+        // smbclient.exists('', function(err, exists) {
+        //   if (err) throw err
+        //   console.log(exists ? "it's there" : "it's not there!")
+        // })
+        // smbclient.mkdir('path\\to\\the\\directory', function(err) {
+        //   if (err) throw err
+        //   console.log('Directory created!')
+        // })
+        smbclient.readdir('', function(err, files) {
           if (err) throw err
-          console.log(content)
+          console.log(files)
         })
+        // smbclient.readFile('data.js', { encoding: 'utf-8' }, function(
+        //   err,
+        //   content,
+        // ) {
+        //   if (err) throw err
+        //   console.log(content)
+        // })
+        // smbclient.rename(
+        //   'path\\to\\my\\file.txt',
+        //   'new\\path\\to\\my\\new-file-name.txt',
+        //   function(err) {
+        //     if (err) throw err
+        //     console.log('file has been renamed')
+        //   },
+        // )
+        // smbclient.rmdir('path\\to\\the\\directory', function(err) {
+        //   if (err) throw err
+        //   console.log('Directory deleted!')
+        // })
+        // smbclient.unlink('path\\to\\my\\file.txt', function(err) {
+        //   if (err) throw err
+        //   console.log('file has been deleted')
+        // })
       } catch (error) {
         console.log(error)
       }

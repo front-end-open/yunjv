@@ -7,6 +7,7 @@ import {
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
+const querystring = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 
 let win
@@ -17,95 +18,41 @@ protocol.registerSchemesAsPrivileged([
 ])
 
 // 通信-授权
-ipcMain.on('async-authcode', function() {
-  // const baiduWin = new BrowserWindow({
-  //   width: 600,
-  //   height: 800,
-  //   show: true,
-  //   webPreferences: {
-  //     nodeIntegration: false,
-  //     contextIsolation: true,
-  //   },
-  // })
-  // if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
-  // const config = {
-  //   authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
-  //   access_token_url:
-  //     'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
-  //   response_type: 'code',
-  //   client_id: 'nIoc7T7GA953ao9LWfd53zGf',
-  //   redirect_uri: 'oob',
-  // }
-  // const provider = new OAuth2Provider(config)
-  // provider.on('before-authorize-request', (parameter) => {
-  //   parameter['force_login'] = 1
-  //   parameter['client_secret'] = 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y'
-  //   parameter['scope'] = 'basic,netdisk'
-  // })
-  // provider.on('before-access-token-request', (parameter) => {
-  //   const code = parameter.code
-  //   parameter['grant_type'] = 'authorization_code'
-  //   parameter['code'] = code
-  //   parameter['client_id'] = 'nIoc7T7GA953ao9LWfd53zGf'
-  //   parameter['client_secret'] = 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y'
-  //   parameter['redirect_uri'] = 'oob'
-  // })
-  // const provider = new OAuth2Provider({
-  //   authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
-  //   response_type: 'token',
-  //   client_id: 'nIoc7T7GA953ao9LWfd53zGf',
-  //   client_secret: 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y',
-  //   scope: 'basic,netdisk',
-  //   redirect_uri: 'oob',
-  // })
-  // provider.on('before-authorize-request', (parameter) => {
-  //   parameter['force_login'] = 1
-  // })
-  // provider
-  //   .perform(baiduWin)
-  //   .then((raw) => {
-  //     console.log(raw)
-  //     const { body } = raw
-  //     event.reply('async-authcode-reply', {
-  //       state: 1,
-  //       info: body,
-  //     })
-  //     baiduWin.close()
-  //   })
-  //   .catch((err) => {
-  //     console.error(err)
-  //   })
-  const authWin = new BrowserWindow({
+ipcMain.on('async-authcode', function(event) {
+  const baiduWin = new BrowserWindow({
     width: 600,
     height: 800,
+    show: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
-
-  if (!process.env.IS_TEST) authWin.webContents.openDevTools()
-
-  const provider = new OAuth2Provider({
-    authorize_url:
-      'https://openapi.baidu.com/oauth/2.0/authorize?client_id=UHtXpF46VABa01jCCQiNAdhy&display=popup&force_login=1',
-    access_token_url:
-      'https://openapi.baidu.com/oauth/2.0/token?grant_type=authorization_code',
+  if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
+  const config = {
+    authorize_url: 'http://openapi.baidu.com/oauth/2.0/authorize',
     response_type: 'token',
     client_id: 'nIoc7T7GA953ao9LWfd53zGf',
-    client_secret: 'oBMLK7VSa7sZAUAAjVUkriBGpSkbe6Y',
-    grant_type: 'authorization_code',
-    redirect_uri: 'oob',
-    scope: 'basic,netdisk',
-  })
+    redirect_uri: 'http://openapi.baidu.com/oauth/2.0/login_success',
+  }
+  const provider = new OAuth2Provider(config)
   provider.on('before-authorize-request', (parameter) => {
     parameter['force_login'] = 1
+    parameter['scope'] = 'basic,netdisk'
+    parameter['display'] = 'popup'
   })
+
   provider
-    .perform(authWin)
+    .perform(baiduWin)
     .then((raw) => {
       console.log(raw)
-      authWin.close()
+      const access_token = querystring.parse(raw)
+      console.log(access_token)
+      event.reply('async-authcode-reply', {
+        state: 1,
+        info: access_token,
+      })
+      baiduWin.close()
     })
     .catch((err) => {
       console.error(err)
@@ -162,7 +109,7 @@ function createWindow() {
   })
 }
 
-// Quit when all windows are closed.
+// 所有窗口关闭，退出程序
 app.on('window-all-closed', () => {
   // On macOS it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
