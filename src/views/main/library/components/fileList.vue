@@ -12,10 +12,91 @@
                 文件操作<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
               <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>移动到</el-dropdown-item>
-                <el-dropdown-item>复制到</el-dropdown-item>
+                <el-dropdown-item class="moveFile_btn_dad">
+                  <el-button
+                    class="moveFile_btn"
+                    type="text"
+                    @click="moveDialogFormVisible = true"
+                    >移动</el-button
+                  >
+
+                  <!-- <el-dialog
+                    title="移动到"
+                    :visible.sync="moveDialogFormVisible"
+                    append-to-body
+                    class="fixedWH"
+                    width="550px"
+                  >
+                    <div class="border">
+                      <el-tree
+                        :data="moveData"
+                        node-key="id"
+                        default-expand-all
+                        @node-drag-start="handleDragStart"
+                        @node-drag-enter="handleDragEnter"
+                        @node-drag-leave="handleDragLeave"
+                        @node-drag-over="handleDragOver"
+                        @node-drag-end="handleDragEnd"
+                        draggable
+                        :allow-drop="allowDrop"
+                        :allow-drag="allowDrag"
+                      >
+                      </el-tree>
+                    </div>
+
+                    <div slot="footer" class="dialog-footer">
+                      <el-button @click="moveDialogFormVisible = false"
+                        >取 消</el-button
+                      >
+                      <el-button
+                        type="primary"
+                        @click="moveDialogFormVisible = false"
+                        >确 定</el-button
+                      >
+                    </div>
+                  </el-dialog> -->
+                </el-dropdown-item>
+                <el-dropdown-item class="moveFile_btn_dad">
+                  <el-button
+                    class="moveFile_btn"
+                    type="text"
+                    @click="copeDialogFormVisibles"
+                    >复制</el-button
+                  >
+
+                  <el-dialog
+                    title="复制到"
+                    :visible.sync="copeDialogFormVisible"
+                    append-to-body
+                    class="fixedWH"
+                    width="550px"
+                  >
+                    <div class="border">
+                      <el-tree
+                        :data="moveData"
+                        :props="defaultProps"
+                        lazy
+                        :load="handclik"
+                        :icon-class="icon"
+                      >
+                      </el-tree>
+                    </div>
+
+                    <div slot="footer" class="dialog-footer">
+                      <el-button @click="copeDialogFormVisible = false"
+                        >取 消</el-button
+                      >
+                      <el-button
+                        type="primary"
+                        @click="copeDialogFormVisible = false"
+                        >确 定</el-button
+                      >
+                    </div>
+                  </el-dialog>
+                </el-dropdown-item>
               </el-dropdown-menu>
             </el-dropdown>
+
             <el-button type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
@@ -194,6 +275,22 @@ export default {
       rowDate: {},
       servertypeIndex: null,
       downtag: true,
+      //目录移动数据
+      moveDialogFormVisible: false,
+      copeDialogFormVisible: false,
+      copeDate: {},
+      copeFDate: {
+        name: '',
+      },
+      moveData: [],
+      children: [],
+      moveDataEs: [],
+      allData: [],
+      defaultProps: {
+        children: 'children',
+        label: 'label',
+      },
+      icon: 'el-icon-folder',
     }
   },
   created() {
@@ -229,6 +326,7 @@ export default {
             : ''
           this.singleFile.Owner = user
           this.tableData.push(this.singleFile)
+          console.log(name)
         }
       })
     } else if (this.$route.params.id == 'baid') {
@@ -456,12 +554,11 @@ export default {
           password: pwd,
           secure: false,
         })
-        console.log(await client.send('PwD'))
         return await client.list('')
       } catch (err) {
         console.log(err)
+        client.close()
       }
-      client.close()
     },
     //目录切换
     async loadFile(row) {
@@ -534,8 +631,9 @@ export default {
               : ''
             this.singleFile.Owner = user
             this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
+            console.log(item)
           }
-
+          console.log(row.path)
           this.path = row.path
           this.$router.push({
             name: 'filelist',
@@ -623,7 +721,66 @@ export default {
         })
       }
     },
+    //复制模态框
+
+    async copeDialogFormVisibles() {
+      this.copeDialogFormVisible = true //打开模态框
+      try {
+        this.moveDataEs = []
+        await this.ftpclient().then((res) => {
+          for (let [index, item] of res.entries()) {
+            const { name: label, isDirectory } = item
+            this.singleFile = {}
+            //子目录请求内容
+            if (isDirectory) {
+              this.singleFile.isLeaf = true
+              this.singleFile.id = index + Math.random(1)
+              this.singleFile.label = label //行目录名
+              this.singleFile.parentsPath = `/`
+              this.singleFile.path = `/${label}`
+              this.moveDataEs.push(this.singleFile) //把行请求内容加入到表格数
+            }
+          }
+          this.moveData = this.moveDataEs
+          console.log(this.moveData)
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    //文件移动/复制 更新目录
+    async handclik(node, resolve) {
+      try {
+        await client.access({
+          host: '10.10.12.8',
+          user: 'scitc',
+          password: 'scitc',
+          secure: false,
+        })
+        const moveDataEs = []
+        await client.list(node.data.path).then((res) => {
+          for (let [index, item] of res.entries()) {
+            this.singleFile = {}
+            const { name, isDirectory } = item
+            if (isDirectory) {
+              this.singleFile.id = index + Math.random()
+              this.singleFile.label = name
+              this.singleFile.isLeaf = true
+              this.singleFile.parentsPath = node.data.path
+              this.singleFile.path = `${node.data.path}/${name}`
+              moveDataEs.push(this.singleFile)
+            }
+          }
+          resolve(moveDataEs)
+          console.log(res)
+        })
+        console.log(node, resolve)
+      } catch (error) {
+        console.log(error)
+      }
+    },
   },
+
   computed: {
     filterDate: function() {
       const inFiltered = this.tableData.filter((val) => {
@@ -714,5 +871,18 @@ export default {
 .form {
   max-width: 400px;
   margin: auto;
+}
+.moveFile_btn {
+  width: 102%;
+}
+.moveFile_btn_dad {
+  padding: 0;
+  width: 80px;
+}
+.border {
+  border: 1px solid #ebeef5;
+  padding: 0 !important;
+  height: 331px;
+  overflow-y: scroll;
 }
 </style>
