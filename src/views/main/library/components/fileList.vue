@@ -129,8 +129,6 @@
         :data="tableData"
         style="width: 100%;margin-bottom: 20px;"
         row-key="id"
-        lazy
-        :load="load"
         @select="selec"
         :default-expand-all="false"
         @row-dblclick="loadFile"
@@ -295,21 +293,20 @@ export default {
   },
   created() {
     //面包屑初始路径加载
-    this.pathbread = [
-      {
-        name: `${this.$route.params.id}:`,
-        path: `/main/Library/filelist/${this.$route.params.id}`,
-        filePath: '/',
-      },
-    ]
     //服务索引
     this.servertypeIndex = this.$route.params.index
     //服务类型
     this.parents.push(this.$route.params.id)
 
     if (this.$route.params.id == 'ftp') {
+      this.pathbread = [
+        {
+          name: `${this.$route.params.id}:`,
+          path: `/main/Library/filelist/${this.$route.params.id}`,
+          filePath: '/',
+        },
+      ]
       this.ftpclient().then((res) => {
-        console.log(res)
         for (let [index, item] of res.entries()) {
           const { name, size, isDirectory, permissions, date, user } = item
           this.singleFile = {}
@@ -326,15 +323,20 @@ export default {
             : ''
           this.singleFile.Owner = user
           this.tableData.push(this.singleFile)
-          console.log(name)
         }
       })
     } else if (this.$route.params.id == 'baid') {
+      this.pathbread = [
+        {
+          name: `${this.$route.params.id}:`,
+          path: `/main/Library/filelist/${this.$route.params.id}`,
+          filePath: '/',
+        },
+      ]
       let id = 1
-      const { index } = this.$route.params
-      const config = JSON.parse(localStorage.getItem('config'))[index],
-        { token } = config
-
+      const { token } = JSON.parse(localStorage.getItem('config'))[
+        this.servertypeIndex
+      ] //服务配置
       this.$http
         .get(`/rest/2.0/xpan/file?method=list&access_token=${token}`)
         .then((res) => {
@@ -343,10 +345,6 @@ export default {
           for (let val of list) {
             // 由于返回数据没有标识，因此需要加上筛选拼接数据
             fileDate = {}
-            if (val.isdir === 1) {
-              fileDate.hasChildren = true
-              fileDate.children = []
-            }
             fileDate.id = id
             fileDate.fs_id = val.fs_id
             fileDate.server_filename = val.server_filename
@@ -358,7 +356,6 @@ export default {
             this.tableData.push(fileDate)
             ++id
           }
-          console.log(list)
         })
         .catch((error) => {
           console.log(error)
@@ -542,7 +539,7 @@ export default {
     deleteFile(index, row) {
       console.log(index, row)
     },
-    //文件列表获取
+    //ftp文件列表获取
     async ftpclient() {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
@@ -567,86 +564,120 @@ export default {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
-      if (row.isdir == 1) {
-        //处理目录
-        this.cliDirTag = 1
-        this.tableData = []
+      const { host, user, pwd, token } = config
+      switch (this.parents[0]) {
+        case 'ftp':
+          if (row.isdir == 1) {
+            //处理目录
+            this.cliDirTag = 1
+            this.tableData = [] //目录清空
 
-        try {
-          //异步错误捕获
-          await client.access({
-            host: host,
-            user: user,
-            password: pwd,
-            secure: false,
-          })
-          await client
-            .list(row.path)
-            .then((res) => {
-              for (let [index, item] of res.entries()) {
-                const {
-                  name,
-                  size,
-                  isDirectory,
-                  permissions,
-                  date,
-                  user,
-                } = item
-                this.singleFile = {}
-                this.singleFile.parent = row.server_filename //行目录名
-                //子目录请求内容
-                this.singleFile.id = index
-                this.singleFile.server_filename = name
-                this.singleFile.size = SizeConvert(size)
-                this.singleFile.parentsPath = row.path + '/'
-                this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
-                this.singleFile.isdir = Number(isDirectory)
-                this.singleFile.local_mtime = date
-                this.singleFile.permission = permissions
-                  ? OwnerConvert(permissions)
-                  : ''
-                this.singleFile.Owner = user
-                this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
-              }
-            })
-            .catch((error) => {
+            try {
+              //异步错误捕获
+              await client.access({
+                host: host,
+                user: user,
+                password: pwd,
+                secure: false,
+              })
+              await client.list(row.path).then((res) => {
+                for (let [index, item] of res.entries()) {
+                  const {
+                    name,
+                    size,
+                    isDirectory,
+                    permissions,
+                    date,
+                    user,
+                  } = item
+                  this.singleFile = {}
+                  this.singleFile.parent = row.server_filename //行目录名
+                  //子目录请求内容
+                  this.singleFile.id = index
+                  this.singleFile.server_filename = name
+                  this.singleFile.size = SizeConvert(size)
+                  this.singleFile.parentsPath = row.path + '/'
+                  this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
+                  this.singleFile.isdir = Number(isDirectory)
+                  this.singleFile.local_mtime = date
+                  this.singleFile.permission = permissions
+                    ? OwnerConvert(permissions)
+                    : ''
+                  this.singleFile.Owner = user
+                  this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
+                }
+                this.path = row.path
+                this.$router.push({
+                  name: 'filelist',
+                  params: {
+                    id: `${row.server_filename}`,
+                    title: `${row.path}`,
+                  },
+                })
+              })
+            } catch (error) {
+              this.$router.push({
+                name: 'filelist',
+                params: {
+                  id: `${row.server_filename}`,
+                  title: `${row.path}`,
+                },
+              })
               alert('目录无内容')
+              client.close()
               console.log(error)
-            }) // row 请求目录
-          const listFile = await client.list(row.path) // row 请求目录
-          for (let [index, item] of listFile.entries()) {
-            const { name, size, isDirectory, permissions, date, user } = item
-            this.singleFile = {}
-            this.singleFile.parent = row.server_filename //行目录名
-            //子目录请求内容
-            this.singleFile.id = index
-            this.singleFile.server_filename = name
-            this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = row.path
-            this.singleFile.path = `${row.path}/${name}` // 作为子目录，请求remote-path
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = date
-            this.singleFile.permission = permissions
-              ? OwnerConvert(permissions)
-              : ''
-            this.singleFile.Owner = user
-            this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
-            console.log(item)
+            }
           }
-          console.log(row.path)
-          this.path = row.path
-          this.$router.push({
-            name: 'filelist',
-            params: {
-              id: `${row.server_filename}`,
-              title: `${row.path}`,
-            },
-          })
-          client.close()
-        } catch (error) {
-          console.log(error)
-        }
+          break
+        case 'baid':
+          console.log(row)
+          if (row.isdir) {
+            this.cliDirTag = 1
+            this.tableData = []
+            this.$http
+              .get('/rest/2.0/xpan/multimedia', {
+                params: {
+                  path: row.path,
+                  access_token: token,
+                  order: 'size',
+                  method: 'listall',
+                  recursion: '0',
+                  desc: '1',
+                  start: 0,
+                },
+              })
+              .then((res) => {
+                const { list } = res.data
+                let fileDate = {},
+                  id = 0
+                for (let val of list) {
+                  // 由于返回数据没有标识，因此需要加上筛选拼接数据
+                  fileDate = {}
+                  fileDate.id = id
+                  fileDate.fs_id = val.fs_id
+                  fileDate.server_filename = val.server_filename
+                  fileDate.local_mtime = Dateformate(val.local_mtime)
+                  fileDate.local_ctime = Dateformate(val.local_ctime)
+                  fileDate.size = SizeConvert(val.size)
+                  fileDate.isdir = val.isdir
+                  fileDate.path = val.path
+                  this.tableData.push(fileDate)
+                  ++id
+                }
+                this.path = row.path
+                this.$router.push({
+                  name: 'filelist',
+                  params: {
+                    id: `${row.server_filename}`,
+                    title: `${row.path}`,
+                  },
+                })
+              })
+              .catch((error) => {
+                console.log(error.toJSON())
+              })
+          }
+          break
       }
     },
     //smb服务文件列表获取
@@ -658,41 +689,10 @@ export default {
           username: 'smb',
           password: '175623',
         })
-        // smbclient.exists('', function(err, exists) {
-        //   if (err) throw err
-        //   console.log(exists ? "it's there" : "it's not there!")
-        // })
-        // smbclient.mkdir('path\\to\\the\\directory', function(err) {
-        //   if (err) throw err
-        //   console.log('Directory created!')
-        // })
         smbclient.readdir('', function(err, files) {
           if (err) throw err
           console.log(files)
         })
-        // smbclient.readFile('data.js', { encoding: 'utf-8' }, function(
-        //   err,
-        //   content,
-        // ) {
-        //   if (err) throw err
-        //   console.log(content)
-        // })
-        // smbclient.rename(
-        //   'path\\to\\my\\file.txt',
-        //   'new\\path\\to\\my\\new-file-name.txt',
-        //   function(err) {
-        //     if (err) throw err
-        //     console.log('file has been renamed')
-        //   },
-        // )
-        // smbclient.rmdir('path\\to\\the\\directory', function(err) {
-        //   if (err) throw err
-        //   console.log('Directory deleted!')
-        // })
-        // smbclient.unlink('path\\to\\my\\file.txt', function(err) {
-        //   if (err) throw err
-        //   console.log('file has been deleted')
-        // })
       } catch (error) {
         console.log(error)
       }
@@ -703,32 +703,67 @@ export default {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
-      if (path) {
-        try {
+      const { host, user, pwd, token } = config
+      if (this.parents[0] == 'ftp') {
+        if (path) {
+          var source = null
+          try {
+            await client.access({
+              host: host,
+              user: user,
+              password: pwd,
+              secure: false,
+            })
+            source = await client.list(path)
+            // return source
+          } catch (error) {
+            client.close()
+            console.log(error)
+          }
+        } else {
           await client.access({
-            host: host,
-            user: user,
-            password: pwd,
+            host: 'localhost',
+            user: 'username',
+            password: '175623',
             secure: false,
           })
-          var source = await client.list(path)
-          return source
-        } catch (error) {
-          console.log(error)
+          source = await client.list(parent)
+          client.close()
         }
-        client.close()
-      } else {
-        await client.access({
-          host: 'localhost',
-          user: 'username',
-          password: '175623',
-          secure: false,
-        })
-        source = await client.list(parent)
-        client.close()
+        return source
+      } else if (this.parents[0] == 'baid') {
+        //待完成
+        let id = 1
+        this.$http
+          .get(`/rest/2.0/xpan/multimedia`, {
+            params: {
+              path: path,
+              method: 'listall',
+              access_token: token,
+            },
+          })
+          .then((res) => {
+            const { list } = res.data
+            let fileDate = {}
+            for (let val of list) {
+              // 由于返回数据没有标识，因此需要加上筛选拼接数据
+              fileDate = {}
+              fileDate.id = id
+              fileDate.fs_id = val.fs_id
+              fileDate.server_filename = val.server_filename
+              fileDate.local_mtime = Dateformate(val.local_mtime)
+              fileDate.local_ctime = Dateformate(val.local_ctime)
+              fileDate.size = SizeConvert(val.size)
+              fileDate.isdir = val.isdir
+              fileDate.path = val.path
+              this.tableData.push(fileDate)
+              ++id
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       }
-      return source
     },
     //文件上传
     upLoadFile() {
@@ -847,50 +882,64 @@ export default {
   },
   mounted() {},
   watch: {
+    //New.params.id 切换目录，当前目录
+    //New.params.title 当前目录路径
     //面包屑功能-路由列表加载
     '$route': function(newVal) {
-      const Path = {}
+      console.log(newVal)
+      const Path = {} //存入当前面包屑路径
+
       for (let val of this.parents) {
         //面包屑路由切换
         if (newVal.params.id === val) {
           this.cliDirTag = 0
         }
       }
+      // cliDirTag 表示路由的前进后退
       if (this.cliDirTag === 1) {
-        //目录切换
+        //目录切换，添加面包屑路径
         Path.name = newVal.params.id
         Path.filePath = newVal.params.title
         Path.path = newVal.path
         this.parents.push(newVal.params.id)
         this.pathbread.push(Path)
       } else {
+        //面包屑切换
+
         for (let [index, item] of this.parents.entries()) {
           if (newVal.params.id === item) {
-            this.isSame = index
+            this.isSame = index //
           }
         }
 
-        this.getFile(newVal.query.path, newVal.params.id).then((res) => {
+        if (this.parents[0] == 'ftp') {
+          this.getFile(newVal.query.path, newVal.params.id).then((res) => {
+            this.tableData = []
+            for (let item of res) {
+              const { name, size, isDirectory, permissions, date, user } = item
+              this.singleFile = {}
+              this.singleFile.id = (Math.random() + 1) * 10
+              this.singleFile.server_filename = name
+              this.singleFile.size = SizeConvert(size)
+              this.singleFile.parentsPath = newVal.query.path
+              this.singleFile.path = `${newVal.query.path}${name}`
+              this.singleFile.isdir = Number(isDirectory)
+              this.singleFile.local_mtime = date
+              this.singleFile.permission = permissions
+                ? OwnerConvert(permissions)
+                : ''
+              this.singleFile.Owner = user
+              this.tableData.push(this.singleFile)
+            }
+            this.pathbread.splice(this.isSame + 1)
+            this.parents.splice(this.isSame + 1)
+          })
+        } else if (this.parents[0] == 'baid') {
           this.tableData = []
-          for (let item of res) {
-            const { name, size, isDirectory, permissions, date, user } = item
-            this.singleFile = {}
-            this.singleFile.id = (Math.random() + 1) * 10
-            this.singleFile.server_filename = name
-            this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = newVal.query.path
-            this.singleFile.path = `${newVal.query.path}${name}`
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = date
-            this.singleFile.permission = permissions
-              ? OwnerConvert(permissions)
-              : ''
-            this.singleFile.Owner = user
-            this.tableData.push(this.singleFile)
-          }
+          this.getFile(newVal.query.path)
           this.pathbread.splice(this.isSame + 1)
           this.parents.splice(this.isSame + 1)
-        })
+        }
       }
     },
   },
