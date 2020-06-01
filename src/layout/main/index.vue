@@ -5,7 +5,7 @@
         <el-avatar
           src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
         ></el-avatar>
-        <p>anonymous</p>
+        <!-- <p>anonymous</p> -->
       </div>
       <el-menu
         router
