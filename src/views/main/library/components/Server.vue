@@ -160,7 +160,7 @@
                   </span>
                 </el-dialog>
               </div>
-              <div>
+              <div @click="configServer(server[index].type + index)">
                 <v-icon name="server"></v-icon>
                 <h2
                   style="display:inline-block; vertical-align: 2px; padding-left: 12px;"
