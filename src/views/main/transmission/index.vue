@@ -8,7 +8,7 @@
       @tab-click="handleClick"
       style="width:100%"
     >
-      <el-tab-pane label="上传" name="up">
+      <el-tab-pane label="上传" name="up" :value="1" :max="99">
         <el-table
           v-loading="loading"
           element-loading-text="拼了老命的加载中"
@@ -31,8 +31,9 @@
               :visible.sync="transmissionSchedule"
             ></el-progress>
           </el-table-column>
-
-          <el-table-column prop="upDate" label="上传日期"> </el-table-column>
+          <el-table-column prop="upDate" label="上传日期"
+            >{{ nowTime }}
+          </el-table-column>
           <!-- 传输控制 -->
           <el-table-column width="180" :visible.sync="transmissionControl">
             <template slot-scope="upscope">
@@ -180,36 +181,56 @@ export default {
       customColor: '#409eff',
       transmissionControl: false,
       transmissionSchedule: false,
-      upData: [
-        {
-          upName: '1',
-          upSize: '2',
-          upEvolve: ' ',
-          upDate: '2010-02-01',
-        },
-      ],
-      downData: [
-        {
-          downName: '1',
-          downSize: '2',
-          dwonEvolve: ' ',
-          downDate: '2010-02-01',
-        },
-      ],
       loading: false,
+      upData: [],
+      downData: [],
+      nowTime: '',
     }
   },
   created() {
     this.upload()
   },
   methods: {
+    getupData() {
+      axios.get('/components/fileLis.vue').then((upRes) => {
+        this.upData = []
+        for (var i = 0; i < upRes.data.data.total; i++) {
+          this.upName = upRes.data.data.message.upName
+          this.upSize = upRes.data.data.message.upSize
+          this.upEvolve = upRes.data.data.message.upEvolve
+        }
+      })
+    },
+    getdownData() {
+      axios.get('/components/fileLis.vue').then((downRes) => {
+        this.upData = []
+        for (var i = 0; i < downRes.data.data.total; i++) {
+          this.downName = downRes.data.data.message.upName
+          this.downSize = downRes.data.data.message.upSize
+          this.downEvolve = downRes.data.data.message.upEvolve
+        }
+      })
+    },
+    //当前时间
+    getTime() {
+      setInterval(() => {
+        this.nowtime = new Date().toLocaleString()
+      }, 1000)
+    },
     handleClick(tab, event) {
       console.log(tab, event)
     },
+    // 传输控制钩子
     pauseup(index, upEvolve) {
+      //暂停
+      upEvolve.splice(index, 1)
+    },
+    palyup(index, upEvolve) {
+      //开始
       upEvolve.splice(index, 1)
     },
     deleteup(index, ups) {
+      //删除
       ups.splice(index, 1)
     },
     submitUpload() {
