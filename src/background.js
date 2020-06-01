@@ -85,10 +85,18 @@ ipcMain.on('async-webdav', function(event, arg) {
   })
 })
 function createWindow() {
+  const windowHeight = 800
+  const windowWidth = 1024
+  const devtoolWidth = 500
+
   // Create the browser window.
   win = new BrowserWindow({
-    minWidth: 1000,
-    height: 600,
+    minWidth: 960,
+    width:
+      isDevelopment && !process.env.IS_TEST
+        ? windowWidth + devtoolWidth
+        : windowWidth,
+    height: windowHeight,
     webPreferences: {
       nodeIntegration: true,
     },
