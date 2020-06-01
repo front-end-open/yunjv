@@ -17,7 +17,7 @@
                     class="moveFile_btn"
                     type="text"
                     @click="moveDialogFormVisible = true"
-                    >移动</el-button
+                    >复制</el-button
                   >
 
                   <!-- <el-dialog
@@ -61,7 +61,7 @@
                     class="moveFile_btn"
                     type="text"
                     @click="copeDialogFormVisibles"
-                    >复制</el-button
+                    >移动</el-button
                   >
 
                   <el-dialog
@@ -86,9 +86,7 @@
                       <el-button @click="copeDialogFormVisible = false"
                         >取 消</el-button
                       >
-                      <el-button
-                        type="primary"
-                        @click="copeDialogFormVisible = false"
+                      <el-button type="primary" @click="copeOk"
                         >确 定</el-button
                       >
                     </div>
@@ -275,6 +273,7 @@ export default {
       rowDate: {},
       servertypeIndex: null,
       downtag: true,
+      showtag: false,
       //目录移动数据
       moveDialogFormVisible: false,
       copeDialogFormVisible: false,
@@ -285,7 +284,7 @@ export default {
       moveData: [],
       children: [],
       moveDataEs: [],
-      allData: [],
+      movePath: '',
       defaultProps: {
         children: 'children',
         label: 'label',
@@ -470,6 +469,7 @@ export default {
           this.rowDate[1].path, //设置要更改的文件/文件夹路径
           `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
         )
+
         await client.list(this.rowDate[1].parentsPath).then((res) => {
           this.tableDatas = []
           for (let [index, item] of res.entries()) {
@@ -505,9 +505,10 @@ export default {
     // 选中行，获取行数据
     selec(selection, row) {
       this.rowDate = row
-      this.rowfileID = row.fs_id
+      // this.rowfileID = row.fs_id
       if (selection.length) {
         this.downtag = false
+        // this.showtag = true
       } else {
         this.downtag = true
       }
@@ -721,7 +722,7 @@ export default {
         })
       }
     },
-    //复制模态框
+    //复制、移动__模态框
 
     async copeDialogFormVisibles() {
       this.copeDialogFormVisible = true //打开模态框
@@ -742,13 +743,13 @@ export default {
             }
           }
           this.moveData = this.moveDataEs
-          console.log(this.moveData)
         })
       } catch (error) {
         console.log(error)
+        client.close()
       }
     },
-    //文件移动/复制 更新目录
+    //文件移动/复制__更新目录
     async handclik(node, resolve) {
       try {
         await client.access({
@@ -772,11 +773,33 @@ export default {
             }
           }
           resolve(moveDataEs)
-          console.log(res)
         })
-        console.log(node, resolve)
+        this.movePath = `${node.data.path}/`
       } catch (error) {
         console.log(error)
+        client.close()
+      }
+    },
+    async copeOk() {
+      try {
+        await client.access({
+          host: '10.10.12.8',
+          user: 'scitc',
+          password: 'scitc',
+          secure: false,
+        })
+        await client
+          .rename(
+            this.rowDate.path,
+            `${this.movePath}${this.rowDate.server_filename}`,
+          )
+          .then((res) => {
+            console.log(res)
+          })
+        this.copeDialogFormVisible = false
+      } catch (error) {
+        console.log(error)
+        client.close()
       }
     },
   },
