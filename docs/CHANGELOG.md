@@ -2,6 +2,99 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.2.0](https://github.com/PachVerb/yunjv/compare/v1.1.0...v1.2.0) (2020-06-01)
+
+
+### 修复
+
+* 侧边栏高亮 ([d31db2c](https://github.com/PachVerb/yunjv/commit/d31db2c54b72a7efdf2cd15d3a268f1cb2266318))
+* 文案修改 ([5ba4287](https://github.com/PachVerb/yunjv/commit/5ba4287b1f934dc85932882a30e79162e5926cbc))
+* 调整窗口大小 ([ba6fb34](https://github.com/PachVerb/yunjv/commit/ba6fb34e0e2baefb96e41aaa3179a0c8ad4f87f8))
+* **back-filelist:** 再连接百度授权认证，tree更改目录切换功能。 ([46f3f18](https://github.com/PachVerb/yunjv/commit/46f3f1871fa1bac3c6b2440b00e3324d7c7ab867))
+* **background:** 连接百度网盘 ([4fe7b4a](https://github.com/PachVerb/yunjv/commit/4fe7b4a9c2002dd4e5b5eb5fb3b19cfb4c7d9d0f))
+* **filelist.vue:** 重命名视图更新 ([6c4aa38](https://github.com/PachVerb/yunjv/commit/6c4aa389936ba080bffbac2182144b8166c07153))
+* **library:** ftp文件列表加载失败 ([ddbfa41](https://github.com/PachVerb/yunjv/commit/ddbfa410a019b6d3e87d300b27a1ea4559fc9c2c))
+* 上传 ([858ba89](https://github.com/PachVerb/yunjv/commit/858ba8989b22437d7ca25b395961392944b97cb1))
+* 上传 ([d12f240](https://github.com/PachVerb/yunjv/commit/d12f2404ee6c2f5cec863d4ae057ce106079b7d2))
+* 上传2 ([e785a0b](https://github.com/PachVerb/yunjv/commit/e785a0b530559d3e4dbb8dc5d9a68d6d9c1dd9fe))
+* 上传第一次 ([8fed92d](https://github.com/PachVerb/yunjv/commit/8fed92d656f45c71f968d4de864471769b43e820))
+* 传输上传 ([806d5e8](https://github.com/PachVerb/yunjv/commit/806d5e84d7937044023b4564ccafe4f2673f9c1e))
+* 补注释 ([158a8bc](https://github.com/PachVerb/yunjv/commit/158a8bc218bbc3ac380ce5f6ee279e84613164ef))
+* **library:** 无法获取百度网盘重定向token, 认证失败 ([931e454](https://github.com/PachVerb/yunjv/commit/931e454380fdd38bcbde46ff99ea81b01a972fd0))
+* **setting/index.vue:** 修复文件路径的类型问题 ([eb82998](https://github.com/PachVerb/yunjv/commit/eb8299851cbaf39b681dd7b7f878afe03b808b52))
+* **setting/index.vue:** 文件路径获取 ([fc36e46](https://github.com/PachVerb/yunjv/commit/fc36e464e486a37578cfdc3888c94d81cc9a06e8))
+
+
+### 其他
+
+* index on dev: 7644b87 feat(filelist): 文件创建，重命名 ([fb93a8b](https://github.com/PachVerb/yunjv/commit/fb93a8bd782e462ec8cc08f93522343bf913201b))
+
+
+### 功能
+
+* **filelist:** 文件下载 ([26724fa](https://github.com/PachVerb/yunjv/commit/26724faca98b204903d1c28fa5cc7b9164c20422))
+* **filelist:** 文件创建，重命名 ([7644b87](https://github.com/PachVerb/yunjv/commit/7644b875cc4b65170d67c1b8c0b23317fbcdc793))
+* **filelist.vue:** smb文件列表 ([403783a](https://github.com/PachVerb/yunjv/commit/403783a5380846dad87167b14f99fd0d55c3c868))
+* **filelist.vue:** 复制和移动 ([2217cc2](https://github.com/PachVerb/yunjv/commit/2217cc2696d868538d92de07bc2a9edbb9334452))
+* **filelist.vue:** 移动功能的实现 ([7312c37](https://github.com/PachVerb/yunjv/commit/7312c378b621a9f50a577fd5bbe6e6b29d8f08ed))
+* **fillist:** 文件上传 ([88ee95f](https://github.com/PachVerb/yunjv/commit/88ee95ffab8dcc3f7ed3f72dab50898cd5650bf0))
+* **libary:** ftp文件列表，文件创建 ([38db76e](https://github.com/PachVerb/yunjv/commit/38db76e58a3d95873244131b382988d7b658f7df))
+* **library:** ftp服务链接 ([af0c2a2](https://github.com/PachVerb/yunjv/commit/af0c2a225451b9c745b452df8d10a0d796c84afa))
+* **library/filelist:** 创建文件 ([b69a11b](https://github.com/PachVerb/yunjv/commit/b69a11bdcc0f7ed455f03caf9e3a2f32d6167e4f))
+* 自定义图标 ([3a513a6](https://github.com/PachVerb/yunjv/commit/3a513a613cc59ccf6e359a367f1a707b5490dadb))
+* **libbrary:** 百度云服务添加 ([d8891c7](https://github.com/PachVerb/yunjv/commit/d8891c7d22d3e4fa08c6579933f3280f90cd0ab0))
+* **library:** ftp文件列表加载,切换更新目录 ([5b0e513](https://github.com/PachVerb/yunjv/commit/5b0e513f2fad35b5ff2da5fba54b5091d647e7ea))
+* **library:** ftp服务，面包屑添加 ([dd341ab](https://github.com/PachVerb/yunjv/commit/dd341abbf7601f7e8782875d0345025c7085e7ca))
+* **library:** 添加查看文件列表 ([5093031](https://github.com/PachVerb/yunjv/commit/509303169f067c861bd99bc624f5d1ff91a1f767))
+* **setting/index.vue:** 添加设置 ([8e43160](https://github.com/PachVerb/yunjv/commit/8e43160e1921f85c18547b183c074618f565a57a))
+* **src:** ftp服务链接 ([156e32d](https://github.com/PachVerb/yunjv/commit/156e32d55aa8d0d0c796f6d84a3d1fd69fbe81d3))
+* **src:** 服务页面，添加创建服务控件 ([ee96629](https://github.com/PachVerb/yunjv/commit/ee966290f00b205d2257ac5bd69da26beed813cd))
+* **src:** 添加 删除，添加服务功能 ([52c15a5](https://github.com/PachVerb/yunjv/commit/52c15a549ea48fc23964ff78a190e68fc8f4bff8))
+* **src:** 添加修改服务配置 ([f11f28b](https://github.com/PachVerb/yunjv/commit/f11f28be282b5c4bcadb5527a5a5d203664a8c70))
+* **src:** 百度网盘授权，服务列表添加 ([c9e6a92](https://github.com/PachVerb/yunjv/commit/c9e6a92cc370066d41c3d0d461cce823e2f10e88))
+
+
+### 持续集成
+
+* **github-actions:** 更新 `ctions/upload-artifact` ([b2b5f75](https://github.com/PachVerb/yunjv/commit/b2b5f75074e1c1d75626357253544cf9b8a83dc9))
+* **github-actions:** 自动清理 artifacts ([f6b6be1](https://github.com/PachVerb/yunjv/commit/f6b6be147e5cb4c0fe7062dae50913f13401adcc))
+
+
+### 文档
+
+* stash 冲突修复 ([55fd662](https://github.com/PachVerb/yunjv/commit/55fd662a69d47f130bb894362170c8f5b03204f7))
+* 代码格式调整 ([822f90d](https://github.com/PachVerb/yunjv/commit/822f90d9a0c691436a9b1608bf2cb6c6fddc4124))
+* 删除未使用模块 ([a239077](https://github.com/PachVerb/yunjv/commit/a23907720c5d1745df6e0d7c5fc5f3c1eb24638e))
+* 提交历史修复 ([22e5647](https://github.com/PachVerb/yunjv/commit/22e564784f6c70216ed37b101b5f59e1bbd2dfa5))
+* **background:** 删除多余qs模块 ([42ba732](https://github.com/PachVerb/yunjv/commit/42ba732ac27a18eecade523e63bbaccbeb02e630))
+* **src:** 注释多余参数 ([cc68be3](https://github.com/PachVerb/yunjv/commit/cc68be3b7b047dcdbf6accb3049c1bc1391316d3))
+
+
+### 杂务
+
+* **lint:** 关闭 no-console ([3af0efa](https://github.com/PachVerb/yunjv/commit/3af0efab33d0b4f950320f16bb7efe71e984f213))
+* 添加描述和作者信息 ([5920a6f](https://github.com/PachVerb/yunjv/commit/5920a6fdc97dec56b7abc9de21bdf83e002576c5))
+
+
+### 构建工具
+
+* 配置打包后的文件名，新增 windows 便携版 ([9f52cac](https://github.com/PachVerb/yunjv/commit/9f52cacf2faffe07261ac54c1d4c4a173de7a765))
+
+
+### 格式
+
+* 代码样式调整 ([37bffc6](https://github.com/PachVerb/yunjv/commit/37bffc6c37e908f1cdb647e853bd130f3fa98724))
+* **filist:** 代码格式化 ([66baa83](https://github.com/PachVerb/yunjv/commit/66baa83c798f93a194fcfb9a806b0096ea0fffdf))
+* **library:** 功能模块注释说明 ([18d056b](https://github.com/PachVerb/yunjv/commit/18d056b74103cbee237105ba747f998450d49d7d))
+* **setting/index.vue:** 添加样式 ([b78ca34](https://github.com/PachVerb/yunjv/commit/b78ca34017c8af3161c55fded66c179176a196cd))
+
+
+### 重构
+
+* **filelist:** 文件上传下载改进 ([f615504](https://github.com/PachVerb/yunjv/commit/f615504e3c4f54137f2eefe2427b00aae6b09635))
+* **library:** 修复ftp文件列表加载失败 ([b63ccc3](https://github.com/PachVerb/yunjv/commit/b63ccc389fa15396555d18e6cf37e05a55c2023c))
+* **persmissionconvert:** 文件列表权限列转换错误修复 ([88aed9a](https://github.com/PachVerb/yunjv/commit/88aed9ad7f020bbb0b75cc343b8a8d1ef24ec21d))
+
 # [1.1.0](https://github.com/PachVerb/yunjv/compare/v1.0.0...v1.1.0) (2020-05-06)
 
 
