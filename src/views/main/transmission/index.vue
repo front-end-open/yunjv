@@ -192,24 +192,25 @@ export default {
   },
   methods: {
     getupData() {
-      axios.get('/components/fileLis.vue').then((upRes) => {
-        this.upData = []
-        for (var i = 0; i < upRes.data.data.total; i++) {
-          this.upName = upRes.data.data.message.upName
-          this.upSize = upRes.data.data.message.upSize
-          this.upEvolve = upRes.data.data.message.upEvolve
-        }
-      })
+      // axios.get('/components/fileLis.vue').then((upRes) => {
+      //   console.log(upRes)
+      //   this.upData = []
+      //   for (var i = 0; i < upRes.data.data.total; i++) {
+      //     this.upName = upRes.data.data.message.upName
+      //     this.upSize = upRes.data.data.message.upSize
+      //     this.upEvolve = upRes.data.data.message.upEvolve
+      //   }
+      // })
     },
     getdownData() {
-      axios.get('/components/fileLis.vue').then((downRes) => {
-        this.upData = []
-        for (var i = 0; i < downRes.data.data.total; i++) {
-          this.downName = downRes.data.data.message.upName
-          this.downSize = downRes.data.data.message.upSize
-          this.downEvolve = downRes.data.data.message.upEvolve
-        }
-      })
+      // axios.get('/components/fileLis.vue').then((downRes) => {
+      //   this.upData = []
+      //   for (var i = 0; i < downRes.data.data.total; i++) {
+      //     this.downName = downRes.data.data.message.upName
+      //     this.downSize = downRes.data.data.message.upSize
+      //     this.downEvolve = downRes.data.data.message.upEvolve
+      //   }
+      // })
     },
     //当前时间
     getTime() {
