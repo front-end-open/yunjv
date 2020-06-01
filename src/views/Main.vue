@@ -1,6 +1,6 @@
 <template>
   <el-container class="main-container">
-    <el-aside width="200px">
+    <el-aside width="200px" class="aside">
       <div class="user">
         <el-avatar
           src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
@@ -9,7 +9,7 @@
       </div>
       <el-menu
         router
-        :default-active="$route.path"
+        :default-active="activeIndex"
         class="el-menu-vertical-demo"
         :collapse="isCollapse"
       >
@@ -44,7 +44,24 @@ export default {
   data() {
     return {
       isCollapse: false,
+      rootPaths: [
+        '/main/library',
+        '/main/transmission',
+        '/main/backup',
+        '/main/setting',
+      ],
     }
+  },
+  computed: {
+    activeIndex() {
+      const currentPath = this.$route.path
+      for (const rootPath of this.rootPaths) {
+        if (currentPath.substr(0, rootPath.length) === rootPath) {
+          return rootPath
+        }
+      }
+      return currentPath
+    },
   },
 }
 </script>
@@ -60,6 +77,7 @@ export default {
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: @main-aside-width;
 }
-.toobar {
+.aside {
+  user-select: none;
 }
 </style>
