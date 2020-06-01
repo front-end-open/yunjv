@@ -294,11 +294,11 @@ export default {
       options: [
         {
           value: 'baiduyun0',
-          label: '百度云盘',
+          label: '百度网盘',
         },
         {
           value: 'ftp1',
-          label: 'Ftp',
+          label: 'FTP',
         },
         {
           value: 'SMB2',
@@ -306,7 +306,7 @@ export default {
         },
         {
           value: 'webDAV3',
-          label: 'saefile',
+          label: 'Seafile',
         },
       ],
       customColors: [
