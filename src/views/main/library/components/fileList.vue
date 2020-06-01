@@ -411,47 +411,64 @@ export default {
     },
     //创建目录
     async submitForm() {
-      //ftp服务
-      let currentFileInfo = {},
-        fileData = []
-      try {
-        await client.access({
-          host: '10.10.12.8',
-          user: 'scitc',
-          password: 'scitc',
-          secure: false,
-        })
-        await client.ensureDir(`${this.path}/${this.ruleForm.name}`)
-        await client.list(this.path).then((res) => {
-          for (let [index, item] of res.entries()) {
-            console.log(index)
-            const { name, size, isDirectory, permissions, date, user } = item
-            currentFileInfo = {}
-            currentFileInfo.id = (Math.random() + 1) * 10
-            currentFileInfo.server_filename = name
-            currentFileInfo.size = SizeConvert(size)
-            currentFileInfo.parent = path.basename(this.path)
-            currentFileInfo.parentsPath = this.path
-            currentFileInfo.path = `${this.path}/${name}`
-            currentFileInfo.isdir = Number(isDirectory)
-            currentFileInfo.local_mtime = date
-            currentFileInfo.permission = permissions
-              ? OwnerConvert(permissions)
-              : ''
-            currentFileInfo.Owner = user
-            fileData.unshift(currentFileInfo)
-          }
-          this.tableData = fileData
-        })
-        ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
-        ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
-          console.log(arg)
-        })
-        this.centerDialogVisible = false
-      } catch (error) {
-        console.log(error)
-        this.centerDialogVisible = false
-        client.close()
+      if (this.$route.params.id == 'ftp') {
+        //ftp服务
+        let currentFileInfo = {},
+          fileData = []
+        try {
+          await client.access({
+            host: '10.10.12.8',
+            user: 'scitc',
+            password: 'scitc',
+            secure: false,
+          })
+          await client.ensureDir(`${this.path}/${this.ruleForm.name}`)
+          await client.list(this.path).then((res) => {
+            for (let [index, item] of res.entries()) {
+              console.log(index)
+              const { name, size, isDirectory, permissions, date, user } = item
+              currentFileInfo = {}
+              currentFileInfo.id = (Math.random() + 1) * 10
+              currentFileInfo.server_filename = name
+              currentFileInfo.size = SizeConvert(size)
+              currentFileInfo.parent = path.basename(this.path)
+              currentFileInfo.parentsPath = this.path
+              currentFileInfo.path = `${this.path}/${name}`
+              currentFileInfo.isdir = Number(isDirectory)
+              currentFileInfo.local_mtime = date
+              currentFileInfo.permission = permissions
+                ? OwnerConvert(permissions)
+                : ''
+              currentFileInfo.Owner = user
+              fileData.unshift(currentFileInfo)
+            }
+            this.tableData = fileData
+          })
+          ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
+          ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
+            console.log(arg)
+          })
+          this.centerDialogVisible = false
+        } catch (error) {
+          console.log(error)
+          this.centerDialogVisible = false
+          client.close()
+        }
+      } else if (this.$route.params.id == 'smb') {
+        try {
+          const smbclient = new SMB({
+            share: '\\\\172.17.6.5\\share',
+            domain: 'WORKGROUP',
+            username: 'smb',
+            password: '175623',
+          })
+          smbclient.mkdir(``, function(err) {
+            if (err) throw err
+            console.log('Directory created!')
+          })
+        } catch (error) {
+          console.log(error)
+        }
       }
     },
     //重命名-目录更该
@@ -680,18 +697,30 @@ export default {
           break
       }
     },
-    //smb服务文件列表获取
+    //smb服务文件列表获取console.log(this.$route.params.id)
     async smbClient() {
+      let smbData = [] //存放smb数据
       try {
         const smbclient = new SMB({
-          share: '\\\\172.20.35.16\\share',
+          share: '\\\\172.17.6.5\\share',
           domain: 'WORKGROUP',
           username: 'smb',
           password: '175623',
         })
-        smbclient.readdir('', function(err, files) {
+        smbclient.readdir('', (err, files) => {
           if (err) throw err
           console.log(files)
+          let smbFile = {}
+          for (const file of files) {
+            smbFile = {}
+            smbFile.id = Math.random()
+            smbFile.parentsPath = ''
+            smbFile.path = `${smbFile.parentsPath}\\\\${file}`
+            smbFile.server_filename = file
+            smbData.push(smbFile)
+          }
+          this.tableData = smbData
+          console.log(smbData)
         })
       } catch (error) {
         console.log(error)
