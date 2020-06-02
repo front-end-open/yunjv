@@ -225,13 +225,10 @@ import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
-
-// const SMB = require('samba-client')
 const ftp = require('basic-ftp')
-// const path = require('path')
+const SMB = require('@marsaud/smb2')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
-// client.ftp.verbose = true
 export default {
   name: 'fileList',
   data() {
@@ -629,7 +626,6 @@ export default {
           break
       }
     },
-<<<<<<< HEAD
     //smb服务文件列表获取console.log(this.$route.params.id)
     async smbClient() {
       let smbData = [] //存放smb数据
@@ -659,10 +655,6 @@ export default {
         console.log(error)
       }
     },
-=======
-    //smb服务文件列表获取
-    async smbClient() {},
->>>>>>> docs: ftp服务代码合并封装
     //面包屑切换文件列表加载
     async getFile(path, parent) {
       //ftp
