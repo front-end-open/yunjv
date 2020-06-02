@@ -1,8 +1,8 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-import Main from '@/layout/main'
-import MainLibrary from '../views/main/library'
+import Main from '@/layout/main' //主页
+import MainLibrary from '../views/main/library' //
 import MainTransmission from '../views/main/transmission'
 import MainBackup from '../views/main/backup'
 import MainSetting from '../views/main/setting'
@@ -14,10 +14,10 @@ import libraryFileList from '../views/main/library/components/fileList.vue'
 import Server from '../views/main/library/components/Server.vue'
 
 Vue.use(VueRouter)
-const originalPush = VueRouter.prototype.push
-VueRouter.prototype.push = function push(location) {
-  return originalPush.call(this, location).catch((err) => err)
-}
+// const originalPush = VueRouter.prototype.push
+// VueRouter.prototype.push = function push(location) {
+//   return originalPush.call(this, location).catch((err) => err)
+// }
 const routes = [
   {
     path: '/',
@@ -40,7 +40,7 @@ const routes = [
             component: Server,
           },
           {
-            path: 'filelist/:id',
+            path: 'filelist/:serverType/:index',
             name: 'filelist',
             component: libraryFileList,
             props: true,

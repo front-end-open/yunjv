@@ -10,10 +10,11 @@
       </el-col>
     </el-row>
 
+    <!-- 添加服务面板 -->
     <el-dialog
       title="服务添加"
       :visible.sync="dialogVisible"
-      :before-close="handleClose"
+      :before-close="closeAddServerdialog"
     >
       <el-form
         :model="ruleForm"
@@ -30,7 +31,7 @@
         </el-form-item>
         <el-form-item label="服务类型" prop="option">
           <el-select
-            @change="optionCheck(ruleForm.option)"
+            @change="isOpenPanel(ruleForm.option)"
             v-model="ruleForm.option"
             placeholder="选择服务类型"
           >
@@ -43,11 +44,11 @@
             </el-option>
           </el-select>
         </el-form-item>
-        <div v-if="tag">
-          <el-form-item label="服务URL" prop="IP">
+        <div v-if="serverPanelVisible">
+          <el-form-item label="服务IP" prop="IP">
             <el-input
               v-model="ruleForm.IP"
-              placeholder="必须"
+              placeholder="如：0.0.0.0"
               clearable
             ></el-input>
           </el-form-item>
@@ -72,30 +73,30 @@
       </el-form>
       <span slot="footer" class="dialog-footer">
         <el-button @click="resetForm('ruleForm')">重置</el-button>
-        <el-button type="primary" @click="submitForm('ruleForm')"
+        <el-button type="primary" @click="addServer('ruleForm')"
           >立即添加</el-button
         >
       </span>
     </el-dialog>
-
+    <!-- 服务列表 -->
     <div class="server-list">
       <el-row :gutter="12">
         <el-col :span="8" v-for="(list, index) in server" :key="index">
-          <div class="cardBox">
+          <div class="ServerCard">
             <el-card shadow="hover">
               <div class="drop" style="text-align: right">
-                <el-dropdown trigger="click" @command="configServer">
+                <el-dropdown trigger="click" @command="singleServerSelec">
                   <span class="el-dropdown-link">
                     <i class="el-icon-arrow-down el-icon--right"></i>
                   </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item
-                      :command="`change${index}`"
+                      :command="{ opration: 'changeConfig', index }"
                       icon="el-icon-s-tools"
                       >修改配置</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="'dele' + index"
+                      :command="{ opration: 'dele', index }"
                       icon="el-icon-delete-solid"
                       >删除服务</el-dropdown-item
                     >
@@ -107,12 +108,12 @@
                   </el-dropdown-menu>
                 </el-dropdown>
               </div>
-              <div class="serDialog">
+              <div class="configDialog">
                 <el-dialog
-                  title="配置修改"
+                  title="修改配置"
                   :visible.sync="dialogVisible2"
                   width="30%"
-                  :before-close="handleClose"
+                  :before-close="closeAddServerdialog"
                 >
                   <el-form
                     :model="sapServerConfig"
@@ -154,13 +155,13 @@
                   </el-form>
                   <span slot="footer" class="dialog-footer">
                     <el-button @click="dialogVisible2 = false">取 消</el-button>
-                    <el-button type="primary" @click="submitConfigFrom()"
+                    <el-button type="primary" @click="changeServerConfig()"
                       >确 定</el-button
                     >
                   </span>
                 </el-dialog>
               </div>
-              <div @click="configServer(server[index].type + index)">
+              <div>
                 <v-icon name="server"></v-icon>
                 <h2
                   style="display:inline-block; vertical-align: 2px; padding-left: 12px;"
@@ -177,10 +178,6 @@
                   {{ list.host ? list.host : '' }}
                 </h4>
               </div>
-              <el-progress
-                :percentage="list.range"
-                :color="customColors"
-              ></el-progress>
             </el-card>
           </div>
         </el-col>
@@ -194,6 +191,7 @@ const ipcRenderer = require('electron').ipcRenderer
 export default {
   name: 'Server',
   data() {
+    // IP验证
     var validateHost = (rule, value, callback) => {
       // IP匹配正则
       const regexp = new RegExp(
@@ -206,6 +204,7 @@ export default {
         callback()
       }
     }
+    // 端口验证
     var validatePort = (rule, value, callback) => {
       if (value < 0 || value > 65535) {
         console.log(value)
@@ -213,8 +212,6 @@ export default {
       }
     }
     return {
-      tag: false,
-      dialogVisible: false,
       ruleForm: {
         name: '',
         option: '',
@@ -316,9 +313,11 @@ export default {
         { color: '#1989fa', percentage: 80 },
         { color: '#6f7ad3', percentage: 100 },
       ],
+      serverPanelVisible: false,
       server: [], //添加服务暂存配置
       sapServerConfig: {},
       dialogVisible2: false,
+      dialogVisible: false,
     }
   },
   created() {
@@ -327,7 +326,7 @@ export default {
     }
   },
   methods: {
-    handleClose(done) {
+    closeAddServerdialog(done) {
       this.$confirm('确认关闭？')
         .then(() => {
           done()
@@ -336,7 +335,7 @@ export default {
           console.log(error)
         })
     },
-    submitForm(formName) {
+    addServer(formName) {
       const list = {},
         config = localStorage.getItem('config')
           ? JSON.parse(localStorage.getItem('config'))
@@ -421,17 +420,15 @@ export default {
         }
       })
     },
-    resetForm(formName) {
-      this.$refs[formName].resetFields()
-    },
-    optionCheck(value) {
+    // 设置添加服务下拉取面板展开收缩
+    isOpenPanel(value) {
       if (value && tstring(this.ruleForm.option) !== 0) {
-        this.tag = true
+        this.serverPanelVisible = true
       } else {
-        this.tag = false
+        this.serverPanelVisible = false
       }
     },
-    configServer(commtag) {
+    singleServerSelec(commtag) {
       const opreation = commtag.slice(0, -1),
         index = tstring(commtag)
       let config = JSON.parse(localStorage.getItem('config'))
@@ -458,29 +455,29 @@ export default {
           alert('暂不提供修改')
         }
       } else {
-        const index = commtag.slice(-1),
-          tag = commtag.slice(-2, -1)
+        const index = commtag.slice(-1), //索引
+          tag = commtag.slice(-2, -1) // 服务
         if (tag == 1) {
           this.$router.push({
             name: 'filelist',
-            params: { id: 'ftp', index },
+            params: { serverType: 'ftp', index },
           })
         } else if (tag == 0) {
           this.$router.push({
             name: 'filelist',
-            params: { id: 'baid', index },
+            params: { serverType: 'baid', index },
           })
         } else if (tag == 2) {
           this.$router.push({
             name: 'filelist',
-            params: { id: 'smb', index },
+            params: { serverType: 'smb', index },
           })
         } else {
           ipcRenderer.send('async-webdav', 'open-webdav')
         }
       }
     },
-    submitConfigFrom() {
+    changeServerConfig() {
       //这里暂为提供修改配置表单验证， 表单获取出现bug.
       // 先模拟修改，由于没发拿到当前该条数据的tag表识，因此没发准确插入数据库修改。
       // 后期存储数据库，统一为每条数据进行唯一标识。
@@ -498,8 +495,8 @@ export default {
       })
       this.dialogVisible2 = false
     },
-    openFile() {
-      this.$router.push('/main/library/filelist')
+    resetForm(formName) {
+      this.$refs[formName].resetFields()
     },
   },
 }

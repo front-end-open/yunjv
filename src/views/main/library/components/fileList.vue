@@ -19,42 +19,6 @@
                     @click="moveDialogFormVisible = true"
                     >复制</el-button
                   >
-
-                  <!-- <el-dialog
-                    title="移动到"
-                    :visible.sync="moveDialogFormVisible"
-                    append-to-body
-                    class="fixedWH"
-                    width="550px"
-                  >
-                    <div class="border">
-                      <el-tree
-                        :data="moveData"
-                        node-key="id"
-                        default-expand-all
-                        @node-drag-start="handleDragStart"
-                        @node-drag-enter="handleDragEnter"
-                        @node-drag-leave="handleDragLeave"
-                        @node-drag-over="handleDragOver"
-                        @node-drag-end="handleDragEnd"
-                        draggable
-                        :allow-drop="allowDrop"
-                        :allow-drag="allowDrag"
-                      >
-                      </el-tree>
-                    </div>
-
-                    <div slot="footer" class="dialog-footer">
-                      <el-button @click="moveDialogFormVisible = false"
-                        >取 消</el-button
-                      >
-                      <el-button
-                        type="primary"
-                        @click="moveDialogFormVisible = false"
-                        >确 定</el-button
-                      >
-                    </div>
-                  </el-dialog> -->
                 </el-dropdown-item>
                 <el-dropdown-item class="moveFile_btn_dad">
                   <el-button
@@ -259,7 +223,7 @@ export default {
       },
       rowfileID: '',
       path: '/',
-      query: this.$route.params.id,
+      query: this.$route.params.serverType,
       singleFile: {},
       pathbread: [],
       parents: [],
@@ -293,13 +257,13 @@ export default {
     //服务索引
     this.servertypeIndex = this.$route.params.index
     //服务类型
-    this.parents.push(this.$route.params.id)
+    this.parents.push(this.$route.params.serverType)
 
-    if (this.$route.params.id == 'ftp') {
+    if (this.$route.params.serverType == 'ftp') {
       this.pathbread = [
         {
-          name: `${this.$route.params.id}:`,
-          path: `/main/Library/filelist/${this.$route.params.id}`,
+          name: `${this.$route.params.serverType}:`,
+          path: `/main/Library/filelist/${this.$route.params.serverType}`,
           filePath: '/',
         },
       ]
@@ -322,11 +286,11 @@ export default {
           this.tableData.push(this.singleFile)
         }
       })
-    } else if (this.$route.params.id == 'baid') {
+    } else if (this.$route.params.serverType == 'baid') {
       this.pathbread = [
         {
-          name: `${this.$route.params.id}:`,
-          path: `/main/Library/filelist/${this.$route.params.id}`,
+          name: `${this.$route.params.serverType}:`,
+          path: `/main/Library/filelist/${this.$route.params.serverType}`,
           filePath: '/',
         },
       ]
@@ -357,7 +321,7 @@ export default {
         .catch((error) => {
           console.log(error)
         })
-    } else if (this.$route.params.id == 'smb') {
+    } else if (this.$route.params.serverType == 'smb') {
       this.smbClient()
     }
   },
@@ -385,7 +349,6 @@ export default {
               ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
                 console.log(arg)
               })
-
               this.tableData = res
               this.centerDialogVisible = false
             },
@@ -395,6 +358,15 @@ export default {
           )
           break
         case 'smb':
+          var smbclient = new SMB({
+            share: '\\\\172.17.6.8\\share',
+            domain: 'WORKGROUP',
+            username: 'smb',
+            password: '175623',
+          })
+          smbclient.mkdir('newFle', (res) => {
+            console.log(res)
+          })
           break
         case 'baid':
           break
@@ -402,45 +374,51 @@ export default {
     },
     //重命名-目录更该
     async changeDirName() {
-      try {
-        await client.access({
-          host: '10.10.12.8',
-          user: 'scitc',
-          password: 'scitc',
-          secure: false,
-        })
-        await client.rename(
-          this.rowDate[1].path, //设置要更改的文件/文件夹路径
-          `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
-        )
-
-        await client.list(this.rowDate[1].parentsPath).then((res) => {
-          this.tableDatas = []
-          for (let [index, item] of res.entries()) {
-            const { name, size, isDirectory, modifiedAt } = item
-            this.singleFile = {}
-            this.singleFile.parent = res.server_filename //行目录名
-            //子目录请求内容
-            this.singleFile.id = index + Math.random()
-            this.singleFile.server_filename = name
-            this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = this.rowDate[1].parentsPath
-            this.singleFile.path =
-              this.rowDate[1].parentsPath == '/'
-                ? `${this.rowDate[1].parentsPath}${name}`
-                : `${this.rowDate[1].parentsPath}/${name}`
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = modifiedAt
-            this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
-          }
-        })
-        this.tableData = this.tableDatas //将新的列表赋给原列表
-
-        this.centerDialogVisible2 = false //关闭模态框
-      } catch (error) {
-        console.log(error)
-        client.close()
-      }
+      // try {
+      //   await client.access({
+      //     host: '10.10.12.8',
+      //     user: 'scitc',
+      //     password: 'scitc',
+      //     secure: false,
+      //   })
+      //   await client.rename(
+      //     this.rowDate[1].path, //设置要更改的文件/文件夹路径
+      //     `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
+      //   )
+      //   await client.list(this.rowDate[1].parentsPath).then((res) => {
+      //     this.tableDatas = []
+      //     for (let [index, item] of res.entries()) {
+      //       const { name, size, isDirectory, modifiedAt } = item
+      //       this.singleFile = {}
+      //       this.singleFile.parent = res.server_filename //行目录名
+      //       //子目录请求内容
+      //       this.singleFile.id = index + Math.random()
+      //       this.singleFile.server_filename = name
+      //       this.singleFile.size = SizeConvert(size)
+      //       this.singleFile.parentsPath = this.rowDate[1].parentsPath
+      //       this.singleFile.path =
+      //         this.rowDate[1].parentsPath == '/'
+      //           ? `${this.rowDate[1].parentsPath}${name}`
+      //           : `${this.rowDate[1].parentsPath}/${name}`
+      //       this.singleFile.isdir = Number(isDirectory)
+      //       this.singleFile.local_mtime = modifiedAt
+      //       this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
+      //     }
+      //   })
+      //   this.tableData = this.tableDatas //将新的列表赋给原列表
+      //   this.centerDialogVisible2 = false //关闭模态框
+      // } catch (error) {
+      //   console.log(error)
+      //   client.close()
+      // }
+      // var createD = new Server( //实列话类
+      //   'FTP',
+      //   this.servertypeIndex,
+      //   JSON.parse(localStorage.getItem('config')),
+      //   '',
+      //   this.path,
+      //   '',
+      // )
     },
     //重置表单
     resetForm(formName) {
@@ -626,12 +604,12 @@ export default {
           break
       }
     },
-    //smb服务文件列表获取console.log(this.$route.params.id)
+    //smb服务文件列表获取
     async smbClient() {
       let smbData = [] //存放smb数据
       try {
         const smbclient = new SMB({
-          share: '\\\\172.17.6.5\\share',
+          share: '\\\\172.17.6.8\\share',
           domain: 'WORKGROUP',
           username: 'smb',
           password: '175623',

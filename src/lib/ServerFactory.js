@@ -11,9 +11,9 @@ export default function ServerFactory(
   type,
   serverindx,
   config,
-  localpath,
-  remotepath,
-  rowfileinfo,
+  localpath = '',
+  remotepath = '',
+  rowfileinfo = '',
 ) {
   if (this instanceof ServerFactory) {
     return new this[type](
@@ -37,13 +37,7 @@ ServerFactory.prototype = {
   SMB: function() {
     console.log('smb')
   },
-  FTP: function(
-    serverindx,
-    config,
-    localpath = '',
-    remotepath = '',
-    rowfileinfo = '',
-  ) {
+  FTP: function(serverindx, config, localpath, remotepath, rowfileinfo) {
     //连接ftp
     const ftp = new client.Client()
     // 服务连接
@@ -151,13 +145,14 @@ ServerFactory.prototype = {
     }
     // 创建目录
     this.createDir = async function(creatName) {
+      const { host, user, pwd } = config[serverindx]
       let currentFileInfo = {},
         fileData = []
       try {
         await ftp.access({
-          host: '172.17.6.5',
-          user: 'username',
-          password: '175623',
+          host,
+          user,
+          password: pwd,
           secure: false,
         })
         await ftp.ensureDir(`${remotepath}/${creatName}`)
@@ -181,11 +176,6 @@ ServerFactory.prototype = {
           }
         })
         return fileData
-        // return fileList
-        // ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
-        // ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
-        //   console.log(arg)
-        // })
       } catch (error) {
         console.log(error)
 
@@ -201,8 +191,47 @@ ServerFactory.prototype = {
     //   this.client.remove()
     // }
     //重命名
-    this.rename = async function() {
-      this.client.rename(config.remote, 'config.remote')
+    this.rename = async function(currentName, newName) {
+      const { host, user, pwd } = config[serverindx]
+      try {
+        await client.access({
+          host,
+          user,
+          password: pwd,
+          secure: false,
+        })
+        await client.rename(
+          currentName, //设置要更改的文件/文件夹路径
+          `${currentName}/${newName}`, //设置更改后的路径---祖先路径+当前文件名
+        )
+
+        await client.list(this.rowDate[1].parentsPath).then((res) => {
+          this.tableDatas = []
+          for (let [index, item] of res.entries()) {
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.parent = res.server_filename //行目录名
+            //子目录请求内容
+            this.singleFile.id = index + Math.random()
+            this.singleFile.server_filename = name
+            this.singleFile.size = SizeConvert(size)
+            this.singleFile.parentsPath = this.rowDate[1].parentsPath
+            this.singleFile.path =
+              this.rowDate[1].parentsPath == '/'
+                ? `${this.rowDate[1].parentsPath}${name}`
+                : `${this.rowDate[1].parentsPath}/${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
+          }
+        })
+        this.tableData = this.tableDatas //将新的列表赋给原列表
+
+        this.centerDialogVisible2 = false //关闭模态框
+      } catch (error) {
+        console.log(error)
+        client.close()
+      }
     }
   },
   SEAFILE: function() {
