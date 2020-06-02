@@ -9,6 +9,7 @@
             icon="el-icon-plus"
             circle
           ></el-button>
+          <!-- 添加服务 -->
           <el-dialog
             title="服务添加"
             :visible.sync="dialogVisible"
@@ -79,15 +80,13 @@
         </div></el-col
       >
     </el-row>
-    <!-- 添加服务面板 -->
-
     <!-- 服务列表 -->
     <div class="server-list">
       <el-row :gutter="12">
         <el-col :span="8" v-for="(list, index) in server" :key="index">
           <div class="ServerCard">
             <el-card shadow="hover">
-              <div class="drop" style="text-align: right">
+              <div class="cardSelec" style="text-align: right">
                 <el-dropdown trigger="click" @command="singleServerSelec">
                   <span class="el-dropdown-link">
                     <i class="el-icon-arrow-down el-icon--right"></i>
@@ -104,67 +103,66 @@
                       >删除服务</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="{ opration: 'retrieveFile', index }"
+                      :command="{ opration: list.type, index }"
                       icon="el-icon-delete-solid"
                       >查看文件</el-dropdown-item
                     >
                   </el-dropdown-menu>
                 </el-dropdown>
               </div>
-              <div class="configDialog">
-                <el-dialog
-                  title="修改配置"
-                  :visible.sync="dialogVisible2"
-                  width="30%"
-                  :before-close="closeAddServerdialog"
+
+              <el-dialog
+                title="修改配置"
+                :visible.sync="dialogVisible2"
+                width="50%"
+                :before-close="closeAddServerdialog"
+              >
+                <el-form
+                  :model="sapServerConfig"
+                  :rules="rulesinG"
+                  ref="sapServerConfig"
                 >
-                  <el-form
-                    :model="sapServerConfig"
-                    :rules="rulesinG"
-                    ref="sapServerConfig"
+                  <el-form-item label="标签" prop="serverName">
+                    <el-input
+                      v-model="sapServerConfig.serverName"
+                      clearable
+                    ></el-input>
+                  </el-form-item>
+                  <el-form-item label="服务类型">
+                    <span>{{ sapServerConfig.type }}</span>
+                  </el-form-item>
+                  <el-form-item label="URL" prop="host">
+                    <el-input
+                      v-model="sapServerConfig.host"
+                      clearable
+                    ></el-input>
+                  </el-form-item>
+                  <el-form-item label="Port" prop="port">
+                    <el-input
+                      v-model.number="sapServerConfig.port"
+                      clearable
+                    ></el-input>
+                  </el-form-item>
+                  <el-form-item label="账户" prop="user">
+                    <el-input
+                      v-model="sapServerConfig.user"
+                      clearable
+                    ></el-input>
+                  </el-form-item>
+                  <el-form-item label="密码" prop="password" clearable>
+                    <el-input
+                      v-model.number="sapServerConfig.password"
+                    ></el-input>
+                  </el-form-item>
+                </el-form>
+                <span slot="footer" class="dialog-footer">
+                  <el-button @click="dialogVisible2 = false">取 消</el-button>
+                  <el-button type="primary" @click="changeServerConfig()"
+                    >确 定</el-button
                   >
-                    <el-form-item label="标签" prop="serverName">
-                      <el-input
-                        v-model="sapServerConfig.serverName"
-                        clearable
-                      ></el-input>
-                    </el-form-item>
-                    <el-form-item label="服务类型">
-                      <span>{{ sapServerConfig.type }}</span>
-                    </el-form-item>
-                    <el-form-item label="URL" prop="host">
-                      <el-input
-                        v-model="sapServerConfig.host"
-                        clearable
-                      ></el-input>
-                    </el-form-item>
-                    <el-form-item label="Port" prop="port">
-                      <el-input
-                        v-model.number="sapServerConfig.port"
-                        clearable
-                      ></el-input>
-                    </el-form-item>
-                    <el-form-item label="账户" prop="user">
-                      <el-input
-                        v-model="sapServerConfig.user"
-                        clearable
-                      ></el-input>
-                    </el-form-item>
-                    <el-form-item label="密码" prop="password" clearable>
-                      <el-input
-                        v-model.number="sapServerConfig.password"
-                      ></el-input>
-                    </el-form-item>
-                  </el-form>
-                  <span slot="footer" class="dialog-footer">
-                    <el-button @click="dialogVisible2 = false">取 消</el-button>
-                    <el-button type="primary" @click="changeServerConfig()"
-                      >确 定</el-button
-                    >
-                  </span>
-                </el-dialog>
-              </div>
-              <div>
+                </span>
+              </el-dialog>
+              <div class="serverPanel">
                 <v-icon name="server"></v-icon>
                 <h2
                   style="display:inline-block; vertical-align: 2px; padding-left: 12px;"
@@ -435,11 +433,11 @@ export default {
       }
     },
     singleServerSelec(commtag) {
-      const opreation = commtag.slice(0, -1),
-        index = tstring(commtag)
+      console.log(commtag)
+      const { opration, index } = commtag
       let config = JSON.parse(localStorage.getItem('config'))
 
-      if (opreation == 'dele') {
+      if (opration == 'dele') {
         //[].length
         if (this.server) {
           this.server.splice(index, 1)
@@ -450,7 +448,7 @@ export default {
             type: 'success',
           })
         }
-      } else if (opreation == 'change') {
+      } else if (opration == 'changeConfig') {
         config = JSON.parse(localStorage.getItem('config'))[index]
         // 后续情况，需要在打开对话框的时候，就请求当前服务配置
         if (config.type && tstring(config.type) !== 0) {
@@ -461,8 +459,8 @@ export default {
           alert('暂不提供修改')
         }
       } else {
-        const index = commtag.slice(-1), //索引
-          tag = commtag.slice(-2, -1) // 服务
+        const { opration, index } = commtag, //索引
+          tag = Number(opration.slice(-1)) // 服务
         if (tag == 1) {
           this.$router.push({
             name: 'filelist',
@@ -510,6 +508,6 @@ export default {
 </script>
 <style lang="less" scoped>
 .server-list {
-  margin: 20px;
+  margin: 12px;
 }
 </style>
