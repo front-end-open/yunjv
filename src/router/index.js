@@ -40,7 +40,7 @@ const routes = [
             component: Server,
           },
           {
-            path: 'filelist/:serverType/:index',
+            path: 'filelist/:serverType',
             name: 'filelist',
             component: libraryFileList,
             props: true,

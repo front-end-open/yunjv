@@ -534,8 +534,8 @@ export default {
                 this.$router.push({
                   name: 'filelist',
                   params: {
-                    id: `${row.server_filename}`,
-                    title: `${row.path}`,
+                    serverType: `${row.server_filename}`,
+                    currentdirpath: `${row.path}`,
                   },
                 })
               })
@@ -827,49 +827,58 @@ export default {
 
       for (let val of this.parents) {
         //面包屑路由切换
-        if (newVal.params.id === val) {
+        if (newVal.params.serverType === val) {
           this.cliDirTag = 0
         }
       }
       // cliDirTag 表示路由的前进后退
       if (this.cliDirTag === 1) {
         //目录切换，添加面包屑路径
-        Path.name = newVal.params.id
-        Path.filePath = newVal.params.title
+        Path.name = newVal.params.serverType
+        Path.filePath = newVal.params.currentdirpath
         Path.path = newVal.path
-        this.parents.push(newVal.params.id)
+        this.parents.push(newVal.params.serverType)
         this.pathbread.push(Path)
       } else {
         //面包屑切换
 
         for (let [index, item] of this.parents.entries()) {
-          if (newVal.params.id === item) {
+          if (newVal.params.serverType === item) {
             this.isSame = index //
           }
         }
 
         if (this.parents[0] == 'ftp') {
-          this.getFile(newVal.query.path, newVal.params.id).then((res) => {
-            this.tableData = []
-            for (let item of res) {
-              const { name, size, isDirectory, permissions, date, user } = item
-              this.singleFile = {}
-              this.singleFile.id = (Math.random() + 1) * 10
-              this.singleFile.server_filename = name
-              this.singleFile.size = SizeConvert(size)
-              this.singleFile.parentsPath = newVal.query.path
-              this.singleFile.path = `${newVal.query.path}${name}`
-              this.singleFile.isdir = Number(isDirectory)
-              this.singleFile.local_mtime = date
-              this.singleFile.permission = permissions
-                ? OwnerConvert(permissions)
-                : ''
-              this.singleFile.Owner = user
-              this.tableData.push(this.singleFile)
-            }
-            this.pathbread.splice(this.isSame + 1)
-            this.parents.splice(this.isSame + 1)
-          })
+          this.getFile(newVal.query.path, newVal.params.serverType).then(
+            (res) => {
+              this.tableData = []
+              for (let item of res) {
+                const {
+                  name,
+                  size,
+                  isDirectory,
+                  permissions,
+                  date,
+                  user,
+                } = item
+                this.singleFile = {}
+                this.singleFile.id = (Math.random() + 1) * 10
+                this.singleFile.server_filename = name
+                this.singleFile.size = SizeConvert(size)
+                this.singleFile.parentsPath = newVal.query.path
+                this.singleFile.path = `${newVal.query.path}${name}`
+                this.singleFile.isdir = Number(isDirectory)
+                this.singleFile.local_mtime = date
+                this.singleFile.permission = permissions
+                  ? OwnerConvert(permissions)
+                  : ''
+                this.singleFile.Owner = user
+                this.tableData.push(this.singleFile)
+              }
+              this.pathbread.splice(this.isSame + 1)
+              this.parents.splice(this.isSame + 1)
+            },
+          )
         } else if (this.parents[0] == 'baid') {
           this.tableData = []
           this.getFile(newVal.query.path)
@@ -923,5 +932,8 @@ export default {
   padding: 0 !important;
   height: 331px;
   overflow-y: scroll;
+}
+.el-main {
+  height: calc(100vh - 50px);
 }
 </style>
