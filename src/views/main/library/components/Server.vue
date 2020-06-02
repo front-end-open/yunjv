@@ -1,83 +1,86 @@
 <template>
   <div class="server">
-    <el-row>
-      <el-col :span="24">
-        <div class="toolbar">
-          <el-button type="primary" @click="dialogVisible = true" round
-            >添加服务</el-button
+    <el-row type="flex" class="row-bg" justify="end">
+      <el-col :span="2">
+        <div class="grid-content bg-purple">
+          <el-button
+            type="primary"
+            @click="dialogVisible = true"
+            icon="el-icon-plus"
+            circle
+          ></el-button>
+          <el-dialog
+            title="服务添加"
+            :visible.sync="dialogVisible"
+            :before-close="closeAddServerdialog"
           >
-        </div>
-      </el-col>
-    </el-row>
-
-    <!-- 添加服务面板 -->
-    <el-dialog
-      title="服务添加"
-      :visible.sync="dialogVisible"
-      :before-close="closeAddServerdialog"
-    >
-      <el-form
-        :model="ruleForm"
-        :rules="rules"
-        ref="ruleForm"
-        label-width="100px"
-      >
-        <el-form-item label="服务名称" prop="name">
-          <el-input
-            v-model="ruleForm.name"
-            placeholder="必须"
-            clearable
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="服务类型" prop="option">
-          <el-select
-            @change="isOpenPanel(ruleForm.option)"
-            v-model="ruleForm.option"
-            placeholder="选择服务类型"
-          >
-            <el-option
-              v-for="(item, index) in options"
-              :key="index"
-              :label="item.label"
-              :value="item.value"
+            <el-form
+              :model="ruleForm"
+              :rules="rules"
+              ref="ruleForm"
+              label-width="100px"
             >
-            </el-option>
-          </el-select>
-        </el-form-item>
-        <div v-if="serverPanelVisible">
-          <el-form-item label="服务IP" prop="IP">
-            <el-input
-              v-model="ruleForm.IP"
-              placeholder="如：0.0.0.0"
-              clearable
-            ></el-input>
-          </el-form-item>
-          <el-form-item label="端口" prop="port">
-            <el-input v-model.number="ruleForm.port" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="账号" prop="usr">
-            <el-input placeholder="可选" v-model="ruleForm.usr" clearable>
-            </el-input>
-          </el-form-item>
-          <el-form-item label="密码" prop="pwd">
-            <el-input
-              type="password"
-              placeholder="可选"
-              v-model="ruleForm.pwd"
-              autocomplete="off"
-              show-password
-              clearable
-            ></el-input>
-          </el-form-item>
-        </div>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-        <el-button @click="resetForm('ruleForm')">重置</el-button>
-        <el-button type="primary" @click="addServer('ruleForm')"
-          >立即添加</el-button
-        >
-      </span>
-    </el-dialog>
+              <el-form-item label="服务名称" prop="name">
+                <el-input
+                  v-model="ruleForm.name"
+                  placeholder="必须"
+                  clearable
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="服务类型" prop="option">
+                <el-select
+                  @change="isOpenPanel(ruleForm.option)"
+                  v-model="ruleForm.option"
+                  placeholder="选择服务类型"
+                >
+                  <el-option
+                    v-for="(item, index) in options"
+                    :key="index"
+                    :label="item.label"
+                    :value="item.value"
+                  >
+                  </el-option>
+                </el-select>
+              </el-form-item>
+              <div v-if="serverPanelVisible">
+                <el-form-item label="服务IP" prop="IP">
+                  <el-input
+                    v-model="ruleForm.IP"
+                    placeholder="如：0.0.0.0"
+                    clearable
+                  ></el-input>
+                </el-form-item>
+                <el-form-item label="端口" prop="port">
+                  <el-input v-model.number="ruleForm.port" clearable></el-input>
+                </el-form-item>
+                <el-form-item label="账号" prop="usr">
+                  <el-input placeholder="可选" v-model="ruleForm.usr" clearable>
+                  </el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="pwd">
+                  <el-input
+                    type="password"
+                    placeholder="可选"
+                    v-model="ruleForm.pwd"
+                    autocomplete="off"
+                    show-password
+                    clearable
+                  ></el-input>
+                </el-form-item>
+              </div>
+            </el-form>
+            <span slot="footer" class="dialog-footer">
+              <el-button @click="cancelAddServer('ruleForm')">取消</el-button>
+              <el-button type="primary" @click="addServer('ruleForm')"
+                >立即添加</el-button
+              >
+            </span>
+          </el-dialog>
+        </div></el-col
+      >
+    </el-row>
+    <!-- 添加服务面板 -->
+
     <!-- 服务列表 -->
     <div class="server-list">
       <el-row :gutter="12">
@@ -101,7 +104,7 @@
                       >删除服务</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="server[index].type + index"
+                      :command="{ opration: 'retrieveFile', index }"
                       icon="el-icon-delete-solid"
                       >查看文件</el-dropdown-item
                     >
@@ -366,6 +369,8 @@ export default {
                 this.server.push(list)
                 config.push(list) //添加服务配置到数据库
                 window.localStorage.setItem(`config`, JSON.stringify(config)) //存储配置
+
+                this.$refs[formName].resetFields()
               }
             })
           } else {
@@ -373,7 +378,6 @@ export default {
             const isADD = config.some((val) => {
               return val.host === this.ruleForm.IP
             })
-            console.log(isADD)
             if (config.length > 0) {
               if (isADD) {
                 alert('服务已经添加')
@@ -393,6 +397,7 @@ export default {
 
                 config.push(list)
                 window.localStorage.setItem(`config`, JSON.stringify(config))
+                this.$refs[formName].resetFields()
               }
             } else {
               console.log('添加新服务')
@@ -412,6 +417,7 @@ export default {
 
               config.push(list)
               window.localStorage.setItem(`config`, JSON.stringify(config))
+              this.$refs[formName].resetFields()
             }
           }
           this.dialogVisible = false // 关闭dialog的时机
@@ -495,7 +501,8 @@ export default {
       })
       this.dialogVisible2 = false
     },
-    resetForm(formName) {
+    cancelAddServer(formName) {
+      this.dialogVisible = false
       this.$refs[formName].resetFields()
     },
   },
