@@ -212,7 +212,7 @@
         </el-form>
         <span slot="footer" class="dialog-footer">
           <el-button @click="centerDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="submitChange">确 定</el-button>
+          <el-button type="primary" @click="changeDirName">确 定</el-button>
         </span>
       </el-dialog>
     </el-main>
@@ -225,10 +225,10 @@ import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
-const SMB = require('@marsaud/smb2')
+
 // const SMB = require('samba-client')
 const ftp = require('basic-ftp')
-const path = require('path')
+// const path = require('path')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
 // client.ftp.verbose = true
@@ -365,114 +365,46 @@ export default {
     }
   },
   methods: {
-    //百度tree懒加载， 该api已废弃
-    load(tree, treeNode, resolve) {
-      let childFileList = {}
-      let children = []
-      const config = JSON.parse(localStorage.getItem('config'))[0]
-      const { token } = config
-      if (tree.isdir === 1) {
-        this.$http
-          .get(
-            `/rest/2.0/xpan/multimedia?method=listall&start=0&path=${tree.path}&access_token=${token}&recursion=0&limit=100`,
-          )
-          .then((res) => {
-            const { list } = res.data
-            for (let val of list) {
-              childFileList = {}
-              if (val.isdir == 1) {
-                childFileList.hasChildren = true
-              }
-              childFileList.isdir = val.isdir
-              childFileList.fs_id = val.fs_id
-              childFileList.path = val.path
-              childFileList.id = Math.random() * 1000
-              childFileList.server_filename = val.server_filename
-              childFileList.local_ctime = Dateformate(val.local_ctime)
-              childFileList.local_mtime = Dateformate(val.local_mtime)
-              childFileList.size = SizeConvert(val.size)
-              children.push(childFileList)
-            }
-            console.log(res.data, treeNode)
-            resolve(children)
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      } else {
-        return false
-      }
-
-      console.log(tree)
-    },
     //创建目录-开启模态
     createDiretory() {
       this.centerDialogVisible = true
     },
     //创建目录
     async submitForm() {
-      if (this.$route.params.id == 'ftp') {
-        //ftp服务
-        let currentFileInfo = {},
-          fileData = []
-        try {
-          await client.access({
-            host: '10.10.12.8',
-            user: 'scitc',
-            password: 'scitc',
-            secure: false,
-          })
-          await client.ensureDir(`${this.path}/${this.ruleForm.name}`)
-          await client.list(this.path).then((res) => {
-            for (let [index, item] of res.entries()) {
-              console.log(index)
-              const { name, size, isDirectory, permissions, date, user } = item
-              currentFileInfo = {}
-              currentFileInfo.id = (Math.random() + 1) * 10
-              currentFileInfo.server_filename = name
-              currentFileInfo.size = SizeConvert(size)
-              currentFileInfo.parent = path.basename(this.path)
-              currentFileInfo.parentsPath = this.path
-              currentFileInfo.path = `${this.path}/${name}`
-              currentFileInfo.isdir = Number(isDirectory)
-              currentFileInfo.local_mtime = date
-              currentFileInfo.permission = permissions
-                ? OwnerConvert(permissions)
-                : ''
-              currentFileInfo.Owner = user
-              fileData.unshift(currentFileInfo)
-            }
-            this.tableData = fileData
-          })
-          ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
-          ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
-            console.log(arg)
-          })
-          this.centerDialogVisible = false
-        } catch (error) {
-          console.log(error)
-          this.centerDialogVisible = false
-          client.close()
-        }
-      } else if (this.$route.params.id == 'smb') {
-        try {
-          const smbclient = new SMB({
-            share: '\\\\172.17.6.5\\share',
-            domain: 'WORKGROUP',
-            username: 'smb',
-            password: '175623',
-          })
-          smbclient.mkdir(``, function(err) {
-            if (err) throw err
-            console.log('Directory created!')
-          })
-        } catch (error) {
-          console.log(error)
-        }
+      switch (this.parents[0]) {
+        case 'ftp':
+          var createD = new Server( //实列话类
+            'FTP',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            '',
+            this.path,
+            '',
+          )
+          createD.createDir(this.ruleForm.name).then(
+            //创建目录
+            (res) => {
+              ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
+              ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
+                console.log(arg)
+              })
+
+              this.tableData = res
+              this.centerDialogVisible = false
+            },
+            () => {
+              this.centerDialogVisible = false
+            },
+          )
+          break
+        case 'smb':
+          break
+        case 'baid':
+          break
       }
     },
     //重命名-目录更该
-    async submitChange() {
+    async changeDirName() {
       try {
         await client.access({
           host: '10.10.12.8',
@@ -697,6 +629,7 @@ export default {
           break
       }
     },
+<<<<<<< HEAD
     //smb服务文件列表获取console.log(this.$route.params.id)
     async smbClient() {
       let smbData = [] //存放smb数据
@@ -726,6 +659,10 @@ export default {
         console.log(error)
       }
     },
+=======
+    //smb服务文件列表获取
+    async smbClient() {},
+>>>>>>> docs: ftp服务代码合并封装
     //面包屑切换文件列表加载
     async getFile(path, parent) {
       //ftp
@@ -818,7 +755,6 @@ export default {
       }
     },
     //复制、移动__模态框
-
     async copeDialogFormVisibles() {
       this.copeDialogFormVisible = true //打开模态框
       try {
@@ -875,6 +811,7 @@ export default {
         client.close()
       }
     },
+    //移动提交
     async copeOk() {
       try {
         await client.access({

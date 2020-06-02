@@ -1,7 +1,12 @@
+'use strict'
+
 const client = require('basic-ftp')
 const path = require('path')
+// const SMB = require('@marsaud/smb2')
+import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
 import OwnerConvert from './PERMISSIONCONVERT.js'
+
 export default function ServerFactory(
   type,
   serverindx,
@@ -30,9 +35,15 @@ ServerFactory.prototype = {
     console.log('baidu')
   },
   SMB: function() {
-    console.log('Smb')
+    console.log('smb')
   },
-  FTP: function(serverindx, config, localpath, remotepath, rowfileinfo) {
+  FTP: function(
+    serverindx,
+    config,
+    localpath = '',
+    remotepath = '',
+    rowfileinfo = '',
+  ) {
     //连接ftp
     const ftp = new client.Client()
     // 服务连接
@@ -138,10 +149,49 @@ ServerFactory.prototype = {
         ftp.close()
       }
     }
-    // //文件移动
-    // this.remove = async function() {
-    //   this.client.ftp.verbose = true
-    // }
+    // 创建目录
+    this.createDir = async function(creatName) {
+      let currentFileInfo = {},
+        fileData = []
+      try {
+        await ftp.access({
+          host: '172.17.6.5',
+          user: 'username',
+          password: '175623',
+          secure: false,
+        })
+        await ftp.ensureDir(`${remotepath}/${creatName}`)
+        await ftp.list(remotepath).then((res) => {
+          for (let item of res) {
+            const { name, size, isDirectory, permissions, date, user } = item
+            currentFileInfo = {}
+            currentFileInfo.id = (Math.random() + 1) * 10
+            currentFileInfo.server_filename = name
+            currentFileInfo.size = SizeConvert(size)
+            currentFileInfo.parent = path.basename(remotepath)
+            currentFileInfo.parentsPath = this.path
+            currentFileInfo.path = `${remotepath}/${name}`
+            currentFileInfo.isdir = Number(isDirectory)
+            currentFileInfo.local_mtime = date
+            currentFileInfo.permission = permissions
+              ? OwnerConvert(permissions)
+              : ''
+            currentFileInfo.Owner = user
+            fileData.unshift(currentFileInfo)
+          }
+        })
+        return fileData
+        // return fileList
+        // ipcRenderer.send('async-openNotiton', 'notion') // 发送消息
+        // ipcRenderer.on('async-openNotiton-reply', (event, arg) => {
+        //   console.log(arg)
+        // })
+      } catch (error) {
+        console.log(error)
+
+        ftp.close()
+      }
+    }
     // //删除
     // this.delete = async function() {
     //   this.client.ftp.verbose = true
@@ -150,10 +200,10 @@ ServerFactory.prototype = {
     //   //文件删除
     //   this.client.remove()
     // }
-    // //重命名
-    // this.rename = async function() {
-    //   this.client.rename(config.remote, 'config.remote')
-    // }
+    //重命名
+    this.rename = async function() {
+      this.client.rename(config.remote, 'config.remote')
+    }
   },
   SEAFILE: function() {
     console.log('seafile')
