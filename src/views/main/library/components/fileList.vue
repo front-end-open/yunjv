@@ -1,7 +1,7 @@
 <template>
   <el-container>
     <el-header>
-      <el-row type="flex" class="row-bg">
+      <el-row class="row-bg">
         <el-col :span="15">
           <div class="control">
             <el-button type="primary" @click="createDiretory"
@@ -74,21 +74,21 @@
         </el-col>
       </el-row>
     </el-header>
+    <el-row class="breadbox">
+      <el-col :span="24">
+        <div class="bread" style="margin: 12px">
+          <el-breadcrumb separator-class="el-icon-arrow-right">
+            <el-breadcrumb-item
+              v-for="(item, index) in pathbread"
+              :key="index"
+              :to="{ path: item.path, query: { path: item.filePath } }"
+              >{{ item.name }}</el-breadcrumb-item
+            >
+          </el-breadcrumb>
+        </div>
+      </el-col>
+    </el-row>
     <el-main>
-      <el-row type="flex" :gutter="12">
-        <el-col :span="24">
-          <div class="bread" style="margin: 12px">
-            <el-breadcrumb separator="/">
-              <el-breadcrumb-item
-                v-for="(item, index) in pathbread"
-                :key="index"
-                :to="{ path: item.path, query: { path: item.filePath } }"
-                >{{ item.name }}</el-breadcrumb-item
-              >
-            </el-breadcrumb>
-          </div>
-        </el-col>
-      </el-row>
       <el-table
         :data="tableData"
         style="width: 100%;margin-bottom: 20px;"
@@ -898,6 +898,7 @@ export default {
   background-color: #fff;
   color: #333;
   text-align: center;
+  height: 60px;
   line-height: 60px;
 }
 .el-main {
@@ -934,6 +935,9 @@ export default {
   overflow-y: scroll;
 }
 .el-main {
-  height: calc(100vh - 50px);
+  height: calc(100vh - 110px);
+}
+.breadbox {
+  background: rgb(220, 230, 246);
 }
 </style>
