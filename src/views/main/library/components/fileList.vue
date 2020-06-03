@@ -1,19 +1,42 @@
 <template>
   <el-container>
     <el-header>
-      <el-row class="row-bg">
-        <el-col :span="15">
+      <el-row class="row-bg" :gutter="20">
+        <el-col :span="5">
+          <div class="switch">
+            <!-- <i class="el-icon-menu cos"></i> -->
+            <el-button-group>
+              <el-button
+                size="mini"
+                type="primary"
+                icon="el-icon-edit"
+              ></el-button>
+              <el-button
+                size="mini"
+                type="primary"
+                icon="el-icon-share"
+              ></el-button>
+              <el-button
+                size="mini"
+                type="primary"
+                icon="el-icon-delete"
+              ></el-button>
+            </el-button-group>
+          </div>
+        </el-col>
+        <el-col :span="10">
           <div class="control">
-            <el-button type="primary" @click="createDiretory"
+            <el-button size="mini" type="primary" @click="createDiretory"
               >新建文件夹</el-button
             >
             <el-dropdown trigger="click" style="margin: 0 12px">
-              <el-button type="primary">
+              <el-button size="mini" type="primary">
                 文件操作<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
               <el-dropdown-menu slot="dropdown">
                 <el-dropdown-item class="moveFile_btn_dad">
                   <el-button
+                    size="mini"
                     class="moveFile_btn"
                     type="text"
                     @click="moveDialogFormVisible = true"
@@ -22,6 +45,7 @@
                 </el-dropdown-item>
                 <el-dropdown-item class="moveFile_btn_dad">
                   <el-button
+                    size="mini"
                     class="moveFile_btn"
                     type="text"
                     @click="copeDialogFormVisibles"
@@ -59,21 +83,26 @@
               </el-dropdown-menu>
             </el-dropdown>
 
-            <el-button type="primary" @click="upLoadFile"
+            <el-button size="mini" type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
-            <el-button type="primary" :disabled="downtag" @click="downLoadFile"
+            <el-button
+              size="mini"
+              type="primary"
+              :disabled="downtag"
+              @click="downLoadFile"
               >下载<i class="el-icon-download el-icon--right"></i
             ></el-button>
           </div>
         </el-col>
-        <el-col :span="4" :offset="5">
-          <div class="switch">
-            <i class="el-icon-menu cos"></i>
-          </div>
+        <el-col :span="5" :offset="4">
+          <el-input placeholder="请输入内容">
+            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          </el-input>
         </el-col>
       </el-row>
     </el-header>
+
     <el-row class="breadbox">
       <el-col :span="24">
         <div class="bread" style="margin: 12px">
@@ -88,6 +117,7 @@
         </div>
       </el-col>
     </el-row>
+
     <el-main>
       <el-table
         :data="tableData"
@@ -95,7 +125,7 @@
         row-key="id"
         @select="selec"
         :default-expand-all="false"
-        @row-dblclick="loadFile"
+        @row-dblclick="switchDir"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
       >
         <el-table-column type="selection" width="50"> </el-table-column>
@@ -372,6 +402,13 @@ export default {
           break
       }
     },
+    //重命名-开启模态框
+    async editFileName(index, row) {
+      this.rowDate = []
+      this.centerDialogVisible2 = true //打开模态框
+      this.rowDate.push(index, row)
+      this.formDate.name = row.server_filename
+    },
     //重命名-目录更该
     async changeDirName() {
       // try {
@@ -420,46 +457,25 @@ export default {
       //   '',
       // )
     },
-    //重置表单
-    resetForm(formName) {
-      this.$refs[formName].resetFields()
-    },
-    // 选中行，获取行数据
-    selec(selection, row) {
-      this.rowDate = row
-      // this.rowfileID = row.fs_id
-      if (selection.length) {
-        this.downtag = false
-        // this.showtag = true
-      } else {
-        this.downtag = true
-      }
-    },
     //文件下载
     downLoadFile() {
-      // const filepath = dialog.showOpenDialog({
-      //   properties: ['openDirectory'],
-      // })
-      // const server = new Server(
-      //   'FTP',
-      //   this.servertypeIndex,
-      //   JSON.parse(localStorage.getItem('config')),
-      //   filepath[0],
-      //   this.path,
-      //   this.rowDate,
-      // )
-      // server.download().then((res) => {
-      //   console.log(res)
-      // })
+      // ftp-目录出创建
+      const filepath = dialog.showOpenDialog({
+        properties: ['openDirectory'],
+      })
+      const server = new Server(
+        'FTP',
+        this.servertypeIndex,
+        JSON.parse(localStorage.getItem('config')),
+        filepath[0],
+        this.path,
+        this.rowDate,
+      )
+      server.download().then((res) => {
+        console.log(res)
+      })
     },
-    //重命名-开启模态框
-    async editFileName(index, row) {
-      this.rowDate = []
-      this.centerDialogVisible2 = true //打开模态框
-      this.rowDate.push(index, row)
-      this.formDate.name = row.server_filename
-    },
-    //待开发
+    //TODO: 文件删除
     deleteFile(index, row) {
       console.log(index, row)
     },
@@ -483,7 +499,8 @@ export default {
       }
     },
     //目录切换
-    async loadFile(row) {
+    async switchDir(row) {
+      console.log(row)
       //ftp
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
@@ -493,7 +510,8 @@ export default {
         case 'ftp':
           if (row.isdir == 1) {
             //处理目录
-            this.cliDirTag = 1
+            // let currentDirflag = Math.ceil(Math.random() + 10)
+            this.switchDirTag = 1
             this.tableData = [] //目录清空
 
             try {
@@ -804,6 +822,21 @@ export default {
         client.close()
       }
     },
+    //重置表单
+    resetForm(formName) {
+      this.$refs[formName].resetFields()
+    },
+    // 选中行，获取行数据
+    selec(selection, row) {
+      this.rowDate = row
+      // this.rowfileID = row.fs_id
+      if (selection.length) {
+        this.downtag = false
+        // this.showtag = true
+      } else {
+        this.downtag = true
+      }
+    },
   },
 
   computed: {
@@ -822,17 +855,15 @@ export default {
     //New.params.title 当前目录路径
     //面包屑功能-路由列表加载
     '$route': function(newVal) {
-      console.log(newVal)
       const Path = {} //存入当前面包屑路径
-
       for (let val of this.parents) {
         //面包屑路由切换
         if (newVal.params.serverType === val) {
-          this.cliDirTag = 0
+          this.switchDirTag = 0
         }
       }
       // cliDirTag 表示路由的前进后退
-      if (this.cliDirTag === 1) {
+      if (this.switchDirTag === 1) {
         //目录切换，添加面包屑路径
         Path.name = newVal.params.serverType
         Path.filePath = newVal.params.currentdirpath
@@ -841,13 +872,12 @@ export default {
         this.pathbread.push(Path)
       } else {
         //面包屑切换
-
+        this.path = newVal.query.path
         for (let [index, item] of this.parents.entries()) {
           if (newVal.params.serverType === item) {
             this.isSame = index //
           }
         }
-
         if (this.parents[0] == 'ftp') {
           this.getFile(newVal.query.path, newVal.params.serverType).then(
             (res) => {
@@ -909,13 +939,6 @@ export default {
 .cos {
   color: rgba(78, 70, 70, 0.932);
   font-size: 20px;
-}
-.control {
-  min-width: 600px;
-}
-.switch {
-  min-height: 100px;
-  margin-left: 50px;
 }
 .form {
   max-width: 400px;

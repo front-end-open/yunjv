@@ -1,4 +1,12 @@
-'use strict'
+/**
+ * 多服务类型类接口封装
+ * @param {string} type - 服务类型
+ * @param {number} serverindx - 服务索引
+ * @param {config} config - 服务配置
+ * @param {string} localpath - 本地路径
+ * @param {string} remotepath - 服务远程路径
+ * @param {object} rowfileinfo - other
+ */
 
 const client = require('basic-ftp')
 const path = require('path')
@@ -43,13 +51,14 @@ ServerFactory.prototype = {
     // 服务连接
     // 文件上传
     this.upload = async function() {
+      const { host, user, pwd } = config[serverindx]
       let currentFileInfo = {},
         fileData = []
       try {
         await ftp.access({
-          host: 'localhost',
-          user: 'username',
-          password: '175623',
+          host,
+          user,
+          password: pwd,
         })
         ftp.trackProgress((info) => {
           console.log('File', info.name)
@@ -155,7 +164,8 @@ ServerFactory.prototype = {
           password: pwd,
           secure: false,
         })
-        await ftp.ensureDir(`${remotepath}/${creatName}`)
+        await ftp.ensureDir(`${remotepath}/${creatName}-${Math.random()}`)
+
         await ftp.list(remotepath).then((res) => {
           for (let item of res) {
             const { name, size, isDirectory, permissions, date, user } = item
