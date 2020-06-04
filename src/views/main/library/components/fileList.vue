@@ -424,7 +424,8 @@ export default {
     },
     // 重命名-目录更该
     async changeDirName() {
-      const config = JSON.parse(localStorage.getItem('config'))[
+      if(this.parents[0] == 'ftp'){
+              const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
       const { host, user, pwd } = config
@@ -476,6 +477,40 @@ export default {
         console.log(error)
         client.close()
       }
+      }else if(this.parents[0] == 'smb'){
+          try {
+          const smbclient = new SMB({
+            share: '\\\\172.17.6.3\\share',
+            domain: 'WORKGROUP',
+            username: 'smb',
+            password: '175623',
+          })
+          if (this.rowDate[0].parentsPath === '') {
+            smbclient.rename(
+              this.rowDate[0].path, //设置要更改的文件/文件夹路径
+              `${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
+              function(err) {
+                if (err) throw err
+                console.log('file has been renamed')
+              },
+            )
+          } else {
+            smbclient.rename(
+              this.rowDate[0].path, //设置要更改的文件/文件夹路径
+              `${this.rowDate[0].parentsPath}\\\\${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
+              function(err) {
+                if (err) throw err
+                console.log('file has been renamed')
+              },
+            )
+          }
+        } catch (error) {
+          console.log(error)
+        }
+    }
+  
+          
+      this.centerDialogVisible2 = false //关闭模态框
       //  var createD = new Server( // 实列话类
       //    'FTP',
       //    this.servertypeIndex,
@@ -484,7 +519,8 @@ export default {
       //    this.path,
       //    '',
       //  )
-    },
+    } 
+
     // TODO: 文件删除
     async deleteFile(index, row) {
       const config = JSON.parse(localStorage.getItem('config'))[
@@ -569,9 +605,43 @@ export default {
           //    if (err) throw alert('此目录下存在其他文件')
           //    console.log('Directory deleted!')
           //  })
-        } catch (error) {
-          console.log(error)
-        }
+            this.$confirm('确认删除, 是否继续?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning',
+            })
+              .then(() => {
+                this.$message({
+                  type: 'success',
+                  message: '删除成功!',
+                })
+                const smbclient = new SMB({
+                  share: '\\\\172.17.6.3\\share',
+                  domain: 'WORKGROUP',
+                  username: 'smb',
+                  password: '175623',
+                })
+                //删除文件
+                row.isDirectory === 'true'
+                  ? smbclient.unlink(row.path, function(err) {
+                      if (err) throw alert('此文件夹不可删')
+                      console.log('file has been deleted')
+                    })
+                  : // 删除空目录
+                    smbclient.rmdir(row.path, function(err) {
+                      if (err) throw alert('此目录不为空')
+                      console.log('Directory deleted!')
+                    })
+              })
+              .catch(() => {
+                this.$message({
+                  type: 'info',
+                  message: '已取消删除',
+                })
+              })
+          } catch (error) {
+            console.log(error)
+          }
       }
     },
     //  ftp--文件列表获取
@@ -793,7 +863,7 @@ export default {
           break
       }
     },
-    //  面包屑切换文件列表加载
+    //面包屑切换文件列表加载
     async getFile(path, parent) {
       // ftp
       const config = JSON.parse(localStorage.getItem('config'))[
@@ -944,11 +1014,13 @@ export default {
           console.log(error)
           client.close()
         }
+        this.moveDatas = moveData //moveDatas:文件模态框里的数据
+        this.moveDialog = true //打开模态框
       } else if (this.parents[0] == 'smb') {
         // smb--首次加载目录
         try {
           const smbclient = new SMB({
-            share: '\\\\172.17.6.8\\share',
+            share: '\\\\172.17.6.3\\share',
             domain: 'WORKGROUP',
             username: 'smb',
             password: '175623',
@@ -1055,10 +1127,85 @@ export default {
               console.log(res)
             })
           this.moveDialog = false
+          let moveData = []
+          let moveFile = {}
+          await client.list(node.data.path).then((res) => {
+            for (let [index, item] of res.entries()) {
+              moveFile = {}
+              const { name, isDirectory } = item
+              if (isDirectory) {
+                moveFile.id = index
+                moveFile.parentsPath = node.data.path
+                moveFile.path = `${node.data.path}/${name}`
+                moveFile.isLeaf = true
+                moveFile.label = name //行目录名
+                moveData.push(moveFile)
+              }
+            }
+            resolve(moveData)
+          })
         } catch (error) {
           console.log(error)
           client.close()
         }
+      } else if (this.parents[0] == 'smb') {
+        //smb--加载点击后的目录
+        try {
+          const smbclient = new SMB({
+            share: '\\\\172.17.6.3\\share',
+            domain: 'WORKGROUP',
+            username: 'smb',
+            password: '175623',
+          })
+          let moveDataEs = []
+          let smbFile = {}
+          for (const file of this.tableData) {
+            smbFile = {}
+            if (file.isDirectory) {
+              smbFile.id = Math.random()
+              smbFile.parentsPath = file.parentsPath
+              smbFile.path =
+                smbFile.parentsPath == ''
+                  ? file.server_filename
+                  : `${file.parentsPath}\\\\${file.server_filename}`
+              smbFile.label = file.server_filename
+              moveDataEs.push(smbFile)
+            }
+          }
+          resolve(moveDataEs)
+          this.movePath = `${node.data.path}`
+          console.log(this.movePath)
+          smbclient.readdir(this.movePath, (err) => {
+            if (err) throw err
+          })
+        } catch (error) {
+          console.log(error)
+        }
+      }
+    },
+    //确定提交
+    async copeOk() {
+      if (this.parents[0] == 'ftp') {
+        // try {
+        //   await client.access({
+        //     host: '10.10.12.8',
+        //     user: 'scitc',
+        //     password: 'scitc',
+        //     secure: false,
+        //   })
+        //   await client
+        //     .rename(
+        //       this.rowDate.path,
+        //       `${this.movePath}${this.rowDate.server_filename}`,
+        //     )
+        //     .then((res) => {
+        //       console.log(res)
+        //     })
+        //   this.moveDialog = false
+        // } catch (error) {
+        //   console.log(error)
+        //   client.close()
+        // }
         this.moveDialog = false
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
