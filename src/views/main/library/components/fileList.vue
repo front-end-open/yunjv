@@ -224,9 +224,9 @@ import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
+const path = require('path')
 const ftp = require('basic-ftp')
 const SMB = require('@marsaud/smb2')
-const path = require('path')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
 export default {
@@ -292,7 +292,7 @@ export default {
         {
           name: `${this.$route.params.serverType}:`,
           path: `/main/Library/filelist/${this.$route.params.serverType}`,
-          filePath: '/',
+          filePath: '',
         },
       ]
       this.ftpclient().then((res) => {
@@ -350,6 +350,13 @@ export default {
           console.log(error)
         })
     } else if (this.$route.params.serverType == 'smb') {
+      this.pathbread = [
+        {
+          name: `${this.$route.params.serverType}:`,
+          path: `/main/Library/filelist/${this.$route.params.serverType}`,
+          filePath: '',
+        },
+      ]
       this.smbClient()
     }
   },
@@ -571,6 +578,25 @@ export default {
         client.close()
       }
     },
+    //smb服务文件列表获取
+    async smbClient() {
+      switch (this.parents[0]) {
+        case 'ftp':
+          break
+        case 'smb':
+          var files = new Server(
+            'SMB',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            '',
+            '',
+            '',
+          )
+          // 获取文件
+          this.tableData = files.loadFile()
+          break
+      }
+    },
     //目录切换
     async switchDir(row) {
       //ftp
@@ -589,8 +615,8 @@ export default {
             try {
               //异步错误捕获
               await client.access({
-                host: host,
-                user: user,
+                host,
+                user,
                 password: pwd,
                 secure: false,
               })
@@ -692,8 +718,63 @@ export default {
               })
           }
           break
+        case 'smb':
+          if (row.isdir == 1) {
+            //处理目录
+            // let currentDirflag = Math.ceil(Math.random() + 10)
+            this.switchDirTag = 1
+            this.tableData = [] //目录清空
+
+            try {
+              //异步错误捕获
+              const smbclient = new SMB({
+                share: `\\\\${host}\\share`,
+                domain: 'WORKGROUP',
+                username: user,
+                password: pwd,
+                autoCloseTimeout: 30000,
+              })
+              await smbclient.readdir(row.path).then((res) => {
+                console.log(res)
+                for (let item of res) {
+                  this.singleFile = {}
+                  this.singleFile.parent = row.server_filename //行目录名
+                  //子目录请求内容
+                  this.singleFile.id = Math.random()
+                  this.singleFile.server_filename = item
+                  this.singleFile.parentsPath = `${row.path}`
+                  this.singleFile.path = `${row.path}${item}` // 作为子目录，请求remote-path
+                  this.singleFile.isdir = path.extname(item) ? 0 : 1
+                  this.singleFile.local_mtime = ''
+                  this.singleFile.permission = ''
+                  this.singleFile.Owner = 'owner'
+                  this.tableData.push(this.singleFile) //把行请求内容加入到表格数据
+                }
+                this.path = row.path
+                this.$router.push({
+                  name: 'filelist',
+                  params: {
+                    serverType: `${row.server_filename}`,
+                    currentdirpath: `${row.path}`,
+                  },
+                })
+              })
+            } catch (error) {
+              this.$router.push({
+                name: 'filelist',
+                params: {
+                  id: `${row.server_filename}`,
+                  title: `${row.path}`,
+                },
+              })
+              alert('目录无内容')
+              console.log(error)
+            }
+          }
+          break
       }
     },
+<<<<<<< HEAD
     //smb服务文件列表获取
     async smbClient() {
       let file = new Server(
@@ -707,6 +788,8 @@ export default {
       // 获取文件
       console.log(file.loadFile())
     },
+=======
+>>>>>>> feat(smb): 目录切换
     //面包屑切换文件列表加载
     async getFile(path, parent) {
       //ftp
@@ -773,6 +856,15 @@ export default {
           .catch((error) => {
             console.log(error)
           })
+      } else if (this.parents[0] == 'smb') {
+        const smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+          autoCloseTimeout: 30000,
+        })
+        return await smbclient.readdir(path)
       }
     },
     //文件上传
@@ -1077,6 +1169,26 @@ export default {
           this.getFile(newVal.query.path)
           this.pathbread.splice(this.isSame + 1)
           this.parents.splice(this.isSame + 1)
+        } else if (this.parents[0] == 'smb') {
+          console.log(newVal)
+          this.tableData = []
+          this.getFile(newVal.query.path).then((res) => {
+            for (let item of res) {
+              this.singleFile = {}
+              this.singleFile.id = (Math.random() + 1) * 10
+              this.singleFile.server_filename = item
+              this.singleFile.size = ''
+              this.singleFile.parentsPath = newVal.query.path
+              this.singleFile.path = `${newVal.query.path}${name}`
+              this.singleFile.isdir = path.extname(item) ? 0 : 1
+              this.singleFile.local_mtime = ''
+              this.singleFile.permission = ''
+              this.singleFile.Owner = 'Ower'
+              this.tableData.push(this.singleFile)
+            }
+            this.pathbread.splice(this.isSame + 1)
+            this.parents.splice(this.isSame + 1)
+          })
         }
       }
     },

@@ -60,8 +60,9 @@ ServerFactory.prototype = {
             smbFile = {}
             smbFile.id = Math.random()
             smbFile.parentsPath = ''
-            smbFile.path = `${smbFile.parentsPath}\\\\${file}`
+            smbFile.path = path.extname(file) ? `${file}` : `${file}\\\\`
             smbFile.server_filename = file
+            smbFile.isdir = path.extname(file) ? 0 : 1
             smbData.push(smbFile)
           }
         })
@@ -75,6 +76,26 @@ ServerFactory.prototype = {
     //连接ftp
     const ftp = new client.Client()
     // 服务连接
+    this.loadFile = async function() {
+      const config = JSON.parse(localStorage.getItem('config'))[serverindx]
+      const { host, user, pwd } = config
+      try {
+        await client
+          .access({
+            host,
+            user,
+            password: pwd,
+            secure: false,
+          })
+          .then((res) => {
+            console.log(res)
+          })
+        return await client.list('')
+      } catch (err) {
+        console.log(err)
+        client.close()
+      }
+    }
     // 文件上传
     this.upload = async function() {
       const formatLocalPath = localpath.split('/')
