@@ -48,35 +48,38 @@
                     size="mini"
                     class="moveFile_btn"
                     type="text"
-                    @click="copeDialogFormVisibles"
+                    @click="openDialog_move"
                     >移动</el-button
                   >
 
                   <el-dialog
                     title="移动到"
-                    :visible.sync="copeDialogFormVisible"
+                    :visible.sync="moveDialog"
                     append-to-body
                     class="fixedWH"
                     width="550px"
-                    ><el-input
-                      v-model="this.movePath"
-                      placeholder="请输入内容"
-                    ></el-input>
+                  >
                     <div class="border">
+                      <el-input
+                        placeholder="输入关键字进行过滤"
+                        v-model="filterText"
+                      >
+                      </el-input>
                       <el-tree
-                        :data="moveData"
+                        class="filter-tree"
+                        :data="moveDatas"
                         :props="defaultProps"
+                        :filter-node-method="filterNode"
+                        highlight-current
                         lazy
-                        :load="handclik"
-                        :icon-class="icon"
+                        :load="handclick"
+                        ref="tree"
                       >
                       </el-tree>
                     </div>
 
                     <div slot="footer" class="dialog-footer">
-                      <el-button @click="copeDialogFormVisible = false"
-                        >取 消</el-button
-                      >
+                      <el-button @click="moveDialog = false">取 消</el-button>
                       <el-button type="primary" @click="copeOk"
                         >确 定</el-button
                       >
@@ -208,7 +211,7 @@
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
-          <el-button @click="centerDialogVisible = false">取 消</el-button>
+          <el-button @click="centerDialogVisible2 = false">取 消</el-button>
           <el-button type="primary" @click="changeDirName">确 定</el-button>
         </span>
       </el-dialog>
@@ -269,25 +272,13 @@ export default {
       downtag: true,
       showtag: false,
       //目录移动数据
-      moveDialogFormVisible: false,
-      copeDialogFormVisible: false,
-      copeDate: {},
-      copeFDate: {
-        name: '',
-      },
-      moveData: [],
-      children: [],
-      moveDataEs: [],
-      movePath: '',
+      filterText: '',
+      moveDialog: false, //关闭dialog
       defaultProps: {
         children: 'children',
         label: 'label',
       },
-      icon: 'el-icon-folder',
-      //搜索框
-      restaurants: [],
-      state: '',
-      timeout: null,
+      moveDatas: [],
     }
   },
   created() {
@@ -414,23 +405,24 @@ export default {
     async editFileName(index, row) {
       this.rowDate = []
       this.centerDialogVisible2 = true //打开模态框
-      this.rowDate.push(index, row)
+      this.rowDate.push(row)
       this.formDate.name = row.server_filename
     },
     //重命名-目录更该
     async changeDirName() {
       try {
         await client.access({
-          host: '10.10.12.8',
-          user: 'scitc',
-          password: 'scitc',
+          host: '172.17.6.3',
+          user: 'username',
+          password: '175623',
           secure: false,
         })
+        console.log(this.rowDate[0])
         await client.rename(
-          this.rowDate[1].path, //设置要更改的文件/文件夹路径
-          `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
+          this.rowDate[0].path, //设置要更改的文件/文件夹路径
+          `${this.rowDate[0].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
         )
-        await client.list(this.rowDate[1].parentsPath).then((res) => {
+        await client.list(this.path).then((res) => {
           this.tableDatas = []
           for (let [index, item] of res.entries()) {
             const { name, size, isDirectory, modifiedAt } = item
@@ -440,11 +432,11 @@ export default {
             this.singleFile.id = index + Math.random()
             this.singleFile.server_filename = name
             this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = this.rowDate[1].parentsPath
+            this.singleFile.parentsPath = this.rowDate[0].parentsPath
             this.singleFile.path =
-              this.rowDate[1].parentsPath == '/'
-                ? `${this.rowDate[1].parentsPath}${name}`
-                : `${this.rowDate[1].parentsPath}/${name}`
+              this.rowDate[0].parentsPath == '/'
+                ? `${this.rowDate[0].parentsPath}${name}`
+                : `${this.rowDate[0].parentsPath}/${name}`
             this.singleFile.isdir = Number(isDirectory)
             this.singleFile.local_mtime = modifiedAt
             this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
@@ -456,15 +448,14 @@ export default {
         console.log(error)
         client.close()
       }
-      var createD = new Server( //实列话类
-        'FTP',
-        this.servertypeIndex,
-        JSON.parse(localStorage.getItem('config')),
-        '',
-        this.path,
-        '',
-      )
-      console.log(createD)
+      // var createD = new Server( //实列话类
+      //   'FTP',
+      //   this.servertypeIndex,
+      //   JSON.parse(localStorage.getItem('config')),
+      //   '',
+      //   this.path,
+      //   '',
+      // )
     },
     //文件下载
     downLoadFile() {
@@ -489,14 +480,6 @@ export default {
       if (this.parents[0] == 'ftp') {
         //ftp__删除文件/夹路径
         try {
-          await client.access({
-            host: '172.17.6.3',
-            user: 'username',
-            password: '175623',
-            secure: false,
-          })
-          console.log(row.path)
-          console.log(row.isdir)
           this.$confirm('确认删除, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
@@ -507,12 +490,43 @@ export default {
                 type: 'success',
                 message: '删除成功!',
               })
-              //     switch (row.isdir) {
-              //     case 1: await client.removeDir(row.path)
-              //       break
-              //     case 0: await client.remove(row.path)
-              //       break
-              // }
+              ;(async () => {
+                await client.access({
+                  host: '172.17.6.3',
+                  user: 'username',
+                  password: '175623',
+                  secure: false,
+                })
+                switch (row.isdir) {
+                  case 1:
+                    await client.removeDir(row.path)
+                    break
+                  case 0:
+                    await client.remove(row.path)
+                    break
+                }
+                await client.list(row.parentsPath).then((res) => {
+                  this.tableDatas = []
+                  for (let [index, item] of res.entries()) {
+                    const { name, size, isDirectory, modifiedAt } = item
+                    this.singleFile = {}
+                    this.singleFile.parent = res.server_filename //行目录名
+                    //子目录请求内容
+                    this.singleFile.id = index + Math.random()
+                    this.singleFile.server_filename = name
+                    this.singleFile.size = SizeConvert(size)
+                    this.singleFile.parentsPath = row.parentsPath
+                    this.singleFile.path =
+                      row.parentsPath == '/'
+                        ? `${row.parentsPath}${name}`
+                        : `${row.parentsPath}/${name}`
+                    this.singleFile.isdir = Number(isDirectory)
+                    this.singleFile.local_mtime = modifiedAt
+                    this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
+                  }
+                })
+                this.tableData = this.tableDatas //将新的列表赋给原列表
+              })()
             })
             .catch(() => {
               this.$message({
@@ -567,7 +581,6 @@ export default {
     },
     //目录切换
     async switchDir(row) {
-      console.log(row)
       //ftp
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
@@ -809,27 +822,30 @@ export default {
       }
     },
     //复制、移动__模态框
-    async copeDialogFormVisibles() {
-      this.copeDialogFormVisible = true //打开模态框
+    async openDialog_move() {
+      let moveData = []
+      let moveFile = {}
       if (this.parents[0] == 'ftp') {
-        //ftp--首次加载目录
+        // ftp--首次加载目录
         try {
-          this.moveDataEs = []
           await this.ftpclient().then((res) => {
+            console.log(res)
+
             for (let [index, item] of res.entries()) {
               const { name: label, isDirectory } = item
-              this.singleFile = {}
+              moveFile = {}
               //子目录请求内容
               if (isDirectory) {
-                this.singleFile.isLeaf = true
-                this.singleFile.id = index + Math.random(1)
-                this.singleFile.label = label //行目录名
-                this.singleFile.parentsPath = `/`
-                this.singleFile.path = `/${label}`
-                this.moveDataEs.push(this.singleFile) //把行请求内容加入到表格数
+                moveFile.isLeaf = true
+                moveFile.id = index + Math.random(1)
+                moveFile.label = label //行目录名
+                moveFile.parentsPath = `/`
+                moveFile.path = `/${label}`
+                moveData.push(moveFile)
               }
             }
-            this.moveData = this.moveDataEs
+            this.moveDatas = moveData //moveDatas:文件模态框里的数据
+            this.moveDialog = true //打开模态框
           })
         } catch (error) {
           console.log(error)
@@ -866,34 +882,43 @@ export default {
         }
       }
     },
-    //文件移动/复制--加载点击后的目录
-    async handclik(node, resolve) {
+
+    //文件移动--搜索展示
+    filterNode(value, data) {
+      if (!value) return true
+      return data.label.indexOf(value) !== -1
+    },
+    //文件移动--点击列表
+    async handclick(node, resolve) {
       if (this.parents[0] == 'ftp') {
-        //ftp--加载点击后的目录
+        // ftp--加载点击后的目录
+        const client = new ftp.Client()
         try {
           await client.access({
-            host: '10.10.12.8',
-            user: 'scitc',
-            password: 'scitc',
+            host: '172.17.6.3',
+            user: 'username',
+            password: '175623',
             secure: false,
           })
-          const moveDataEs = []
+          let moveData = []
+          let moveFile = {}
           await client.list(node.data.path).then((res) => {
+            console.log(res)
             for (let [index, item] of res.entries()) {
-              this.singleFile = {}
+              moveFile = {}
               const { name, isDirectory } = item
               if (isDirectory) {
-                this.singleFile.id = index + Math.random()
-                this.singleFile.label = name
-                this.singleFile.isLeaf = true
-                this.singleFile.parentsPath = node.data.path
-                this.singleFile.path = `${node.data.path}/${name}`
-                moveDataEs.push(this.singleFile)
+                moveFile.id = index
+                moveFile.parentsPath = node.data.path
+                moveFile.path = `${node.data.path}/${name}`
+                moveFile.isLeaf = true
+                moveFile.label = name //行目录名
+                moveData.push(moveFile)
               }
             }
-            resolve(moveDataEs)
+            resolve(moveData)
           })
-          this.movePath = `${node.data.path}/`
+          client.close()
         } catch (error) {
           console.log(error)
           client.close()
@@ -924,9 +949,7 @@ export default {
           }
           resolve(moveDataEs)
           this.movePath = `${node.data.path}`
-
           console.log(this.movePath)
-
           smbclient.readdir(this.movePath, (err) => {
             if (err) throw err
           })
@@ -935,29 +958,30 @@ export default {
         }
       }
     },
-    //移动提交
+    //确定提交
     async copeOk() {
       if (this.parents[0] == 'ftp') {
-        try {
-          await client.access({
-            host: '10.10.12.8',
-            user: 'scitc',
-            password: 'scitc',
-            secure: false,
-          })
-          await client
-            .rename(
-              this.rowDate.path,
-              `${this.movePath}${this.rowDate.server_filename}`,
-            )
-            .then((res) => {
-              console.log(res)
-            })
-          this.copeDialogFormVisible = false
-        } catch (error) {
-          console.log(error)
-          client.close()
-        }
+        // try {
+        //   await client.access({
+        //     host: '10.10.12.8',
+        //     user: 'scitc',
+        //     password: 'scitc',
+        //     secure: false,
+        //   })
+        //   await client
+        //     .rename(
+        //       this.rowDate.path,
+        //       `${this.movePath}${this.rowDate.server_filename}`,
+        //     )
+        //     .then((res) => {
+        //       console.log(res)
+        //     })
+        //   this.moveDialog = false
+        // } catch (error) {
+        //   console.log(error)
+        //   client.close()
+        // }
+        this.moveDialog = false
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
       }
@@ -969,13 +993,12 @@ export default {
     // 选中行，获取行数据
     selec(selection, row) {
       this.rowDate = row
-      // this.rowfileID = row.fs_id
       if (selection.length) {
         this.downtag = false
-        // this.showtag = true
       } else {
         this.downtag = true
       }
+      console.log(this.rowDate)
     },
   },
 
@@ -991,6 +1014,10 @@ export default {
   },
   mounted() {},
   watch: {
+    //搜索内容
+    filterText(val) {
+      this.$refs.tree.filter(val)
+    },
     //New.params.id 切换目录，当前目录
     //New.params.title 当前目录路径
     //面包屑功能-路由列表加载
