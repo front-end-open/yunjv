@@ -219,7 +219,6 @@
   </el-container>
 </template>
 <script>
-// import Vue from 'vue'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
@@ -245,7 +244,7 @@ export default {
         type: '',
       },
       ruleForm: {
-        name: '新建文件夹',
+        name: 'NEW',
         path: '',
       },
       rules: {
@@ -410,14 +409,17 @@ export default {
     },
     //重命名-目录更该
     async changeDirName() {
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       try {
         await client.access({
-          host: '172.17.6.3',
-          user: 'username',
-          password: '175623',
+          host,
+          user,
+          password: pwd,
           secure: false,
         })
-        console.log(this.rowDate[0])
         await client.rename(
           this.rowDate[0].path, //设置要更改的文件/文件夹路径
           `${this.rowDate[0].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
@@ -457,26 +459,12 @@ export default {
       //   '',
       // )
     },
-    //文件下载
-    downLoadFile() {
-      // ftp-目录出创建
-      const filepath = dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      })
-      const server = new Server(
-        'FTP',
-        this.servertypeIndex,
-        JSON.parse(localStorage.getItem('config')),
-        filepath[0],
-        this.path,
-        this.rowDate,
-      )
-      server.download().then((res) => {
-        console.log(res)
-      })
-    },
     //TODO: 文件删除
     async deleteFile(index, row) {
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       if (this.parents[0] == 'ftp') {
         //ftp__删除文件/夹路径
         try {
@@ -492,9 +480,9 @@ export default {
               })
               ;(async () => {
                 await client.access({
-                  host: '172.17.6.3',
-                  user: 'username',
-                  password: '175623',
+                  host,
+                  user,
+                  password: pwd,
                   secure: false,
                 })
                 switch (row.isdir) {
@@ -567,12 +555,16 @@ export default {
       ]
       const { host, user, pwd } = config
       try {
-        await client.access({
-          host: host,
-          user: user,
-          password: pwd,
-          secure: false,
-        })
+        await client
+          .access({
+            host,
+            user,
+            password: pwd,
+            secure: false,
+          })
+          .then((res) => {
+            console.log(res)
+          })
         return await client.list('')
       } catch (err) {
         console.log(err)
@@ -704,31 +696,16 @@ export default {
     },
     //smb服务文件列表获取
     async smbClient() {
-      let smbData = [] //存放smb数据
-      try {
-        const smbclient = new SMB({
-          share: '\\\\172.17.6.8\\share',
-          domain: 'WORKGROUP',
-          username: 'smb',
-          password: '175623',
-        })
-        smbclient.readdir('', (err, files) => {
-          if (err) throw err
-          let smbFile = {}
-          for (const file of files) {
-            smbFile = {}
-            smbFile.id = Math.random()
-            smbFile.parentsPath = ''
-            smbFile.path = `${file}`
-            smbFile.server_filename = file
-            smbFile.isDirectory = path.extname(file) ? true : false
-            smbData.push(smbFile)
-          }
-          this.tableData = smbData
-        })
-      } catch (error) {
-        console.log(error)
-      }
+      let file = new Server(
+        'SMB',
+        this.servertypeIndex,
+        JSON.parse(localStorage.getItem('config')),
+        '',
+        '',
+        '',
+      )
+      // 获取文件
+      console.log(file.loadFile())
     },
     //面包屑切换文件列表加载
     async getFile(path, parent) {
@@ -799,27 +776,46 @@ export default {
       }
     },
     //文件上传
+    // TODO: 文件上传
+
     upLoadFile() {
       if (this.parents[0] == 'ftp') {
         const filepath = dialog.showOpenDialog({
           properties: ['openDirectory'],
         })
-        const server = new Server(
-          'FTP',
-          this.servertypeIndex,
-          JSON.parse(localStorage.getItem('config')),
-          filepath[0],
-          this.path,
-          this.rowDate,
-        )
-        server.upload().then((res) => {
-          if (res) {
-            for (let val of res) {
-              this.tableData.push(val)
-            }
-          }
-        })
+        if (filepath) {
+          const server = new Server(
+            'FTP',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            filepath[0],
+            this.path,
+            this.rowDate,
+          )
+          server.upload().then((res) => {
+            this.tableData = res
+            console.log(res)
+          })
+        }
       }
+    },
+    //文件下载
+    downLoadFile() {
+      // ftp-目录出创建
+      const filepath = dialog.showOpenDialog({
+        properties: ['openDirectory'],
+      })
+      const server = new Server(
+        'FTP',
+        this.servertypeIndex,
+        JSON.parse(localStorage.getItem('config')),
+        filepath[0],
+        this.path,
+        this.rowDate,
+      )
+      server.download().then((res) => {
+        console.log(res)
+      })
     },
     //复制、移动__模态框
     async openDialog_move() {

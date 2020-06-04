@@ -10,7 +10,7 @@
 
 const client = require('basic-ftp')
 const path = require('path')
-// const SMB = require('@marsaud/smb2')
+const SMB = require('@marsaud/smb2')
 import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
 import OwnerConvert from './PERMISSIONCONVERT.js'
@@ -42,8 +42,34 @@ ServerFactory.prototype = {
   BaiDu: function() {
     console.log('baidu')
   },
-  SMB: function() {
-    console.log('smb')
+  SMB: function(serverindx, config) {
+    this.loadFile = function() {
+      let smbData = [] //存放smb数据
+      const { host, user, pwd } = config[serverindx]
+      try {
+        const smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+        })
+        smbclient.readdir('', (err, files) => {
+          if (err) throw err
+          let smbFile = {}
+          for (const file of files) {
+            smbFile = {}
+            smbFile.id = Math.random()
+            smbFile.parentsPath = ''
+            smbFile.path = `${smbFile.parentsPath}\\\\${file}`
+            smbFile.server_filename = file
+            smbData.push(smbFile)
+          }
+        })
+        return smbData
+      } catch (error) {
+        console.log(error)
+      }
+    }
   },
   FTP: function(serverindx, config, localpath, remotepath, rowfileinfo) {
     //连接ftp
@@ -51,9 +77,11 @@ ServerFactory.prototype = {
     // 服务连接
     // 文件上传
     this.upload = async function() {
+      const formatLocalPath = localpath.split('/')
       const { host, user, pwd } = config[serverindx]
       let currentFileInfo = {},
         fileData = []
+
       try {
         await ftp.access({
           host,
@@ -66,11 +94,14 @@ ServerFactory.prototype = {
           console.log('Transferred', info.bytes)
           console.log('Transferred Overall', info.bytesOverall)
         })
-        // if (isdir) {
-        await ftp.uploadFromDir(localpath, remotepath)
-        // } else {
-        //   await ftp.appendFrom(localpath, parentsPath)
-        // }
+        await ftp
+          .uploadFromDir(
+            localpath,
+            `${remotepath}/${formatLocalPath[formatLocalPath.length - 1]}`,
+          )
+          .then((res) => {
+            console.log(res)
+          })
         await ftp
           .list(remotepath)
           .then((res) => {
@@ -92,11 +123,11 @@ ServerFactory.prototype = {
               currentFileInfo.Owner = user
               fileData.push(currentFileInfo)
             }
-            return fileData
           })
           .catch((error) => {
             console.log(error)
           })
+<<<<<<< HEAD
         const filelist = await ftp.list(remotepath)
         for (let [index, item] of filelist.entries()) {
           console.log(index)
@@ -117,6 +148,8 @@ ServerFactory.prototype = {
           currentFileInfo.Owner = user
           fileData.push(currentFileInfo)
         }
+=======
+>>>>>>> fix(filelist): 目录创建，更改路径参数
         return fileData
       } catch (error) {
         ftp.close()
@@ -125,12 +158,13 @@ ServerFactory.prototype = {
     }
     //文件下载
     this.download = async function() {
+      const { host, user, pwd } = config[serverindx]
       const { server_filename, path, isdir } = rowfileinfo
       try {
         await ftp.access({
-          host: '10.10.12.8',
-          user: 'scitc',
-          password: 'scitc',
+          host,
+          user,
+          password: pwd,
         })
         if (isdir) {
           ftp.trackProgress((info) => {
