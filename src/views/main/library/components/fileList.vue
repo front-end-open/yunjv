@@ -369,6 +369,10 @@ export default {
     },
     // 创建目录
     async submitForm() {
+      var config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { host, user, pwd } = config
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
@@ -395,15 +399,20 @@ export default {
           )
           break
         case 'smb':
-          // var smbclient = new SMB({
-          //   share: '\\\\172.17.6.8\\share',
-          //   domain: 'WORKGROUP',
-          //   username: 'smb',
-          //   password: '175623',
-          // })
-          // smbclient.mkdir('newFle', (res) => {
-          //   console.log(res)
-          // })
+          var smbclient = new SMB({
+            share: `\\\\${host}\\share`,
+            domain: 'WORKGROUP',
+            username: user,
+            password: pwd,
+          })
+          smbclient.mkdir(this.ruleForm.name, (error, res) => {
+            if (error) {
+              this.centerDialogVisible = false
+              throw error
+            }
+            console.log(res)
+            this.centerDialogVisible = false
+          })
           this.smbClient()
           break
         case 'baid':
