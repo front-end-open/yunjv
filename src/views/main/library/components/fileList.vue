@@ -224,6 +224,7 @@ import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
 const ftp = require('basic-ftp')
 const SMB = require('@marsaud/smb2')
+const path = require('path')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
 export default {
@@ -418,51 +419,52 @@ export default {
     },
     //重命名-目录更该
     async changeDirName() {
-      // try {
-      //   await client.access({
-      //     host: '10.10.12.8',
-      //     user: 'scitc',
-      //     password: 'scitc',
-      //     secure: false,
-      //   })
-      //   await client.rename(
-      //     this.rowDate[1].path, //设置要更改的文件/文件夹路径
-      //     `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
-      //   )
-      //   await client.list(this.rowDate[1].parentsPath).then((res) => {
-      //     this.tableDatas = []
-      //     for (let [index, item] of res.entries()) {
-      //       const { name, size, isDirectory, modifiedAt } = item
-      //       this.singleFile = {}
-      //       this.singleFile.parent = res.server_filename //行目录名
-      //       //子目录请求内容
-      //       this.singleFile.id = index + Math.random()
-      //       this.singleFile.server_filename = name
-      //       this.singleFile.size = SizeConvert(size)
-      //       this.singleFile.parentsPath = this.rowDate[1].parentsPath
-      //       this.singleFile.path =
-      //         this.rowDate[1].parentsPath == '/'
-      //           ? `${this.rowDate[1].parentsPath}${name}`
-      //           : `${this.rowDate[1].parentsPath}/${name}`
-      //       this.singleFile.isdir = Number(isDirectory)
-      //       this.singleFile.local_mtime = modifiedAt
-      //       this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
-      //     }
-      //   })
-      //   this.tableData = this.tableDatas //将新的列表赋给原列表
-      //   this.centerDialogVisible2 = false //关闭模态框
-      // } catch (error) {
-      //   console.log(error)
-      //   client.close()
-      // }
-      // var createD = new Server( //实列话类
-      //   'FTP',
-      //   this.servertypeIndex,
-      //   JSON.parse(localStorage.getItem('config')),
-      //   '',
-      //   this.path,
-      //   '',
-      // )
+      try {
+        await client.access({
+          host: '10.10.12.8',
+          user: 'scitc',
+          password: 'scitc',
+          secure: false,
+        })
+        await client.rename(
+          this.rowDate[1].path, //设置要更改的文件/文件夹路径
+          `${this.rowDate[1].parentsPath}/${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
+        )
+        await client.list(this.rowDate[1].parentsPath).then((res) => {
+          this.tableDatas = []
+          for (let [index, item] of res.entries()) {
+            const { name, size, isDirectory, modifiedAt } = item
+            this.singleFile = {}
+            this.singleFile.parent = res.server_filename //行目录名
+            //子目录请求内容
+            this.singleFile.id = index + Math.random()
+            this.singleFile.server_filename = name
+            this.singleFile.size = SizeConvert(size)
+            this.singleFile.parentsPath = this.rowDate[1].parentsPath
+            this.singleFile.path =
+              this.rowDate[1].parentsPath == '/'
+                ? `${this.rowDate[1].parentsPath}${name}`
+                : `${this.rowDate[1].parentsPath}/${name}`
+            this.singleFile.isdir = Number(isDirectory)
+            this.singleFile.local_mtime = modifiedAt
+            this.tableDatas.push(this.singleFile) //把行请求内容加入到表格数据
+          }
+        })
+        this.tableData = this.tableDatas //将新的列表赋给原列表
+        this.centerDialogVisible2 = false //关闭模态框
+      } catch (error) {
+        console.log(error)
+        client.close()
+      }
+      var createD = new Server( //实列话类
+        'FTP',
+        this.servertypeIndex,
+        JSON.parse(localStorage.getItem('config')),
+        '',
+        this.path,
+        '',
+      )
+      console.log(createD)
     },
     //文件下载
     downLoadFile() {
@@ -483,13 +485,45 @@ export default {
       })
     },
     //TODO: 文件删除
-    deleteFile(index, row) {
+    async deleteFile(index, row) {
       if (this.parents[0] == 'ftp') {
         //ftp__删除文件/夹路径
-        client.remove(row.path).then((res) => {
-          console.log(res)
-        })
-        console.log(row.path)
+        try {
+          await client.access({
+            host: '172.17.6.3',
+            user: 'username',
+            password: '175623',
+            secure: false,
+          })
+          console.log(row.path)
+          console.log(row.isdir)
+          this.$confirm('确认删除, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+          })
+            .then((row) => {
+              this.$message({
+                type: 'success',
+                message: '删除成功!',
+              })
+              switch (row.isdir) {
+              case 1: await client.removeDir(row.path)
+                break
+              case 0: await client.remove(row.path)
+                break
+          }
+            })
+            .catch(() => {
+              this.$message({
+                type: 'info',
+                message: '已取消删除',
+              })
+            })
+       
+        } catch (error) {
+          console.log(error)
+        }
       } else if (this.parents[0] == 'smb') {
         //smb__删除文件/夹路径
         try {
@@ -956,9 +990,7 @@ export default {
       return inFiltered
     },
   },
-  mounted() {
-    this.restaurants = this.loadAll() //搜索框
-  },
+  mounted() {},
   watch: {
     //New.params.id 切换目录，当前目录
     //New.params.title 当前目录路径
