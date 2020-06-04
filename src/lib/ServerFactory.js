@@ -148,7 +148,6 @@ ServerFactory.prototype = {
           .catch((error) => {
             console.log(error)
           })
-<<<<<<< HEAD
         const filelist = await ftp.list(remotepath)
         for (let [index, item] of filelist.entries()) {
           console.log(index)
@@ -169,8 +168,6 @@ ServerFactory.prototype = {
           currentFileInfo.Owner = user
           fileData.push(currentFileInfo)
         }
-=======
->>>>>>> fix(filelist): 目录创建，更改路径参数
         return fileData
       } catch (error) {
         ftp.close()
@@ -231,7 +228,10 @@ ServerFactory.prototype = {
             currentFileInfo.size = SizeConvert(size)
             currentFileInfo.parent = path.basename(remotepath)
             currentFileInfo.parentsPath = remotepath
-            currentFileInfo.path = `${remotepath}/${name}`
+            currentFileInfo.path =
+              remotepath == '/'
+                ? `${remotepath}${name}`
+                : `${remotepath}/${name}`
             currentFileInfo.isdir = Number(isDirectory)
             currentFileInfo.local_mtime = date
             currentFileInfo.permission = permissions
@@ -241,6 +241,7 @@ ServerFactory.prototype = {
             fileData.unshift(currentFileInfo)
           }
         })
+        ftp.close()
         return fileData
       } catch (error) {
         console.log(error)
