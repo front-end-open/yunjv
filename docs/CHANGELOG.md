@@ -2,6 +2,57 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.3.0](https://github.com/PachVerb/yunjv/compare/v1.2.0...v1.3.0) (2020-06-04)
+
+
+### 修复
+
+* 文件移动 ([35e25f1](https://github.com/PachVerb/yunjv/commit/35e25f1b90f7d389e6ec3149514446a55f824616))
+* **filelist:** 目录创建，更改路径参数 ([be13df9](https://github.com/PachVerb/yunjv/commit/be13df98dadf77ca2055d399d64180f2e92a4eb1))
+* **filelist.vue:** ftp重命名/删除bug修复 ([7ab4c10](https://github.com/PachVerb/yunjv/commit/7ab4c102befef984f923499079e638a5c9deeff7))
+
+
+### 其他
+
+* Merge branch 'master' into dev ([4d9377e](https://github.com/PachVerb/yunjv/commit/4d9377e98ed89ef455a020d7ad40a968ecddb920))
+
+
+### 功能
+
+* **filelist.vue:** ftp--删除 ([8961947](https://github.com/PachVerb/yunjv/commit/8961947e2e8d4c277ffb83165eb7be9ae3c4aee4))
+* **filelist.vue:** ftp-删除 ([b42ded2](https://github.com/PachVerb/yunjv/commit/b42ded2d11b01c2476886cdce30aa0f35e27793e))
+* **smb:** 文件创建 ([6dc2870](https://github.com/PachVerb/yunjv/commit/6dc287037110017c14eae551dea0295e22d99848))
+* **smb:** 目录切换 ([18b2fd2](https://github.com/PachVerb/yunjv/commit/18b2fd2b93aec81fad8ec7a1527c6d664e73feb8))
+
+
+### 文档
+
+* ftp服务代码合并封装 ([f5b2674](https://github.com/PachVerb/yunjv/commit/f5b2674be4e6e1b4a638e6bdfeb73e7adb843728))
+
+
+### 杂务
+
+* 添加 vscode 可识别的配置 ([3656164](https://github.com/PachVerb/yunjv/commit/36561647fa33959fb97d5ced8d61a2bb509c44c4))
+
+
+### 格式
+
+* fileList.vue ([5efa9bd](https://github.com/PachVerb/yunjv/commit/5efa9bd3b3700da357b5080a157eabe46a14905f))
+* **filelist.vue:** 文件列表滚动调整 ([3f8e741](https://github.com/PachVerb/yunjv/commit/3f8e74157071cda6f231dec7bebc55c6eebcd821))
+* 代码格式调整 ([978f03c](https://github.com/PachVerb/yunjv/commit/978f03c9c5cb89d019636490f51f0b2af50c1076))
+
+
+### 重构
+
+* **filelist:** 修复创建文件功能，以及路由切换 ([8d5b59e](https://github.com/PachVerb/yunjv/commit/8d5b59eaf1f4f0a41575c778aa0661f013ec072a))
+* **filelist:** 文件列表详情页，面包屑切换ui布局优化 ([6235994](https://github.com/PachVerb/yunjv/commit/6235994ccb19462c2d1f155a3bd13afaff5c7aec))
+* **server.vue:** 服务列表下拉菜单切换功能修复。 ([8b15af6](https://github.com/PachVerb/yunjv/commit/8b15af69637d0b7ca9b199ff1ac5939f6388b746))
+* **server.vue:** 服务添加表单提交 ([8385f32](https://github.com/PachVerb/yunjv/commit/8385f32c60188de1519610fb9a111cddea60d83c))
+* **server.vue:** 服务配置表单优化 ([3c09dc8](https://github.com/PachVerb/yunjv/commit/3c09dc8b6a03d553970b79a2fa3bcb30806eb6f5))
+* **server.vue:** 重构服务列表跳转文件列表路由 ([08a18b0](https://github.com/PachVerb/yunjv/commit/08a18b02ab686d3ec014a2d0931d1c09f8a683b4))
+* 清理冗余代码 ([d853c3c](https://github.com/PachVerb/yunjv/commit/d853c3c2fcf6659b37e4670618986c0494c78ad3))
+* 移动布局视图到 layout 文件夹 ([3319b24](https://github.com/PachVerb/yunjv/commit/3319b2454304d9cd9d19a1a795f3a60bc2408c63))
+
 # [1.2.0](https://github.com/PachVerb/yunjv/compare/v1.1.0...v1.2.0) (2020-06-01)
 
 
