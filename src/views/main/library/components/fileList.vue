@@ -502,17 +502,17 @@ export default {
             cancelButtonText: '取消',
             type: 'warning',
           })
-            .then((row) => {
+            .then(() => {
               this.$message({
                 type: 'success',
                 message: '删除成功!',
               })
-              switch (row.isdir) {
-              case 1: await client.removeDir(row.path)
-                break
-              case 0: await client.remove(row.path)
-                break
-          }
+              //     switch (row.isdir) {
+              //     case 1: await client.removeDir(row.path)
+              //       break
+              //     case 0: await client.remove(row.path)
+              //       break
+              // }
             })
             .catch(() => {
               this.$message({
@@ -520,7 +520,6 @@ export default {
                 message: '已取消删除',
               })
             })
-       
         } catch (error) {
           console.log(error)
         }
