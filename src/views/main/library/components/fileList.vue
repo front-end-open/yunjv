@@ -275,10 +275,6 @@ export default {
       // 目录移动数据
       selecPath: '',
       moveDialog: false, // 关闭dialog
-      defaultProps: {
-        children: 'children',
-        label: 'label',
-      },
       moveDatas: [],
     }
   },
@@ -749,12 +745,12 @@ export default {
 
             try {
               // 异步错误捕获
-              const smbclient = new SMB({
+              var smbclient = new SMB({
                 share: `\\\\${host}\\share`,
                 domain: 'WORKGROUP',
                 username: user,
                 password: pwd,
-                autoCloseTimeout: 30000,
+                autoCloseTimeout: 0,
               })
               await smbclient.readdir(row.path).then((res) => {
                 console.log(res)
@@ -765,31 +761,32 @@ export default {
                   this.singleFile.id = Math.random()
                   this.singleFile.server_filename = item
                   this.singleFile.parentsPath = `${row.path}`
-                  this.singleFile.path = `${row.path}${item}` //  作为子目录，请求remote-path
+                  this.singleFile.path = `${row.path}${item}\\\\` //  作为子目录，请求remote-path
                   this.singleFile.isdir = path.extname(item) ? 0 : 1
                   this.singleFile.local_mtime = ''
                   this.singleFile.permission = ''
                   this.singleFile.Owner = 'owner'
                   this.tableData.push(this.singleFile) // 把行请求内容加入到表格数据
                 }
-                this.path = row.path
-                this.$router.push({
-                  name: 'filelist',
-                  params: {
-                    serverType: `${row.server_filename}`,
-                    currentdirpath: `${row.path}`,
-                  },
-                })
+              })
+              this.path = row.path
+              this.$router.push({
+                name: 'filelist',
+                params: {
+                  serverType: `${row.server_filename}`,
+                  currentdirpath: `${row.path}`,
+                },
               })
             } catch (error) {
               this.$router.push({
                 name: 'filelist',
                 params: {
-                  id: `${row.server_filename}`,
-                  title: `${row.path}`,
+                  serverType: `${row.server_filename}`,
+                  currentdirpath: `${row.path}`,
                 },
               })
-              alert('目录无内容')
+              // alert('目录无内容')
+              smbclient.disconnect()
               console.log(error)
             }
           }
@@ -1108,6 +1105,7 @@ export default {
     // New.params.title 当前目录路径
     // 面包屑功能-路由列表加载
     '$route': function(newVal) {
+      console.log(newVal)
       const Path = {} // 存入当前面包屑路径
       for (let val of this.parents) {
         // 面包屑路由切换
@@ -1177,7 +1175,7 @@ export default {
               this.singleFile.server_filename = item
               this.singleFile.size = ''
               this.singleFile.parentsPath = newVal.query.path
-              this.singleFile.path = `${newVal.query.path}${name}`
+              this.singleFile.path = `${newVal.query.path}${item}`
               this.singleFile.isdir = path.extname(item) ? 0 : 1
               this.singleFile.local_mtime = ''
               this.singleFile.permission = ''
@@ -1208,6 +1206,7 @@ export default {
   background-color: #e9eef3;
   color: #333;
   text-align: center;
+  user-select: none;
 }
 .cos {
   color: rgba(78, 70, 70, 0.932);
