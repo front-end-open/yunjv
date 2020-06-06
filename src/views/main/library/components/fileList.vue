@@ -159,12 +159,18 @@
               @click="editFileName(scope.$index, scope.row)"
               >重命名</el-button
             >
-            <el-button
-              size="mini"
-              type="text"
-              @click="deleteFile(scope.$index, scope.row)"
-              >删除</el-button
+            <el-popconfirm
+              confirmButtonText="好的"
+              cancelButtonText="不用了"
+              icon="el-icon-info"
+              iconColor="red"
+              title="确认删除？"
+              @onConfirm="deleteFile(scope.$index, scope.row)"
             >
+              <el-button size="mini" type="text" slot="reference" :plain="true"
+                >删除
+              </el-button>
+            </el-popconfirm>
           </template>
         </el-table-column>
       </el-table>
@@ -401,15 +407,60 @@ export default {
             username: user,
             password: pwd,
           })
-          smbclient.mkdir(this.ruleForm.name, (error, res) => {
-            if (error) {
-              this.centerDialogVisible = false
-              throw error
-            }
-            console.log(res)
-            this.centerDialogVisible = false
-          })
-          this.smbClient()
+          this.path == '/'
+            ? smbclient.mkdir(
+                `${this.ruleForm.name}` + Math.random(),
+                (err) => {
+                  if (err) throw err
+                  console.log('Directory created!')
+                  let tableDatas = []
+                  smbclient.readdir('').then((res) => {
+                    for (let item of res) {
+                      this.singleFile = {}
+                      this.singleFile.parent = res.server_filename // 行目录名
+                      // 子目录请求内容
+                      this.singleFile.id = Math.random()
+                      this.singleFile.server_filename = item
+                      this.singleFile.parentsPath = ``
+                      this.singleFile.path = `${item}` //  作为子目录，请求remote-path
+                      this.singleFile.isdir = path.extname(item) ? 0 : 1
+                      this.singleFile.local_mtime = ''
+                      this.singleFile.permission = ''
+                      this.singleFile.Owner = 'owner'
+                      tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+                    }
+                    this.tableData = tableDatas
+                  })
+                },
+              )
+            : smbclient.mkdir(
+                `${this.path}${this.ruleForm.name}` + Math.random(),
+                (err) => {
+                  if (err) throw err
+                  console.log('Directory created!')
+
+                  let tableDatas = []
+                  smbclient.readdir(this.path).then((res) => {
+                    for (let item of res) {
+                      this.singleFile = {}
+                      this.singleFile.parent = res.server_filename // 行目录名
+                      // 子目录请求内容
+                      this.singleFile.id = Math.random()
+                      this.singleFile.server_filename = item
+                      this.singleFile.parentsPath = `${this.path}`
+                      this.singleFile.path = `${this.path}${item}\\\\` //  作为子目录，请求remote-path
+                      this.singleFile.isdir = path.extname(item) ? 0 : 1
+                      this.singleFile.local_mtime = ''
+                      this.singleFile.permission = ''
+                      this.singleFile.Owner = 'owner'
+                      tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+                    }
+
+                    this.tableData = tableDatas
+                  })
+                },
+              )
+          this.centerDialogVisible = false
           break
         case 'baid':
           break
@@ -424,103 +475,94 @@ export default {
     },
     // 重命名-目录更该
     async changeDirName() {
-      if(this.parents[0] == 'ftp'){
-              const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
-      const { host, user, pwd } = config
-      const client = new ftp.Client()
-      client.ftp.verbose = true
-      try {
-        await client.access({
-          host,
-          user,
-          password: pwd,
-          secure: false,
-        })
-        //  let isExitDir = await client.ensureDir(
-        //    `${this.rowDate[0].parentsPath}/${this.formDate.name}`,
-        //  )
-        //  console.log(isExitDir)
-        //  重命名时，目录存在确定
-        //  if (isExitDir) {
-        await client.rename(
-          this.rowDate[0].path, // 设置要更改的文件/文件夹路径
-          `${this.rowDate[0].parentsPath}/${this.formDate.name}`, // 设置更改后的路径---祖先路径+当前文件名
-        )
-        await client.list(this.path).then((res) => {
-          this.tableDatas = []
-          for (let [index, item] of res.entries()) {
-            const { name, size, isDirectory, modifiedAt } = item
-            this.singleFile = {}
-            this.singleFile.parent = res.server_filename // 行目录名
-            // 子目录请求内容
-            this.singleFile.id = index + Math.random()
-            this.singleFile.server_filename = name
-            this.singleFile.size = SizeConvert(size)
-            this.singleFile.parentsPath = this.rowDate[0].parentsPath
-            this.singleFile.path =
-              this.rowDate[0].parentsPath == '/'
-                ? `${this.rowDate[0].parentsPath}${name}`
-                : `${this.rowDate[0].parentsPath}/${name}`
-            this.singleFile.isdir = Number(isDirectory)
-            this.singleFile.local_mtime = modifiedAt
-            this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
-          }
-        })
-        this.tableData = this.tableDatas // 将新的列表赋给原列表
-        this.centerDialogVisible2 = false
-        //  }
-        client.close()
-      } catch (error) {
-        this.centerDialogVisible2 = false // 关闭模态框
-        console.log(error)
-        client.close()
-      }
-      }else if(this.parents[0] == 'smb'){
-          try {
-          const smbclient = new SMB({
-            share: '\\\\172.17.6.3\\share',
-            domain: 'WORKGROUP',
-            username: 'smb',
-            password: '175623',
+      if (this.parents[0] == 'ftp') {
+        const config = JSON.parse(localStorage.getItem('config'))[
+          Number(this.servertypeIndex)
+        ]
+        const { host, user, pwd } = config
+        const client = new ftp.Client()
+        client.ftp.verbose = true
+        try {
+          await client.access({
+            host,
+            user,
+            password: pwd,
+            secure: false,
           })
-          if (this.rowDate[0].parentsPath === '') {
-            smbclient.rename(
-              this.rowDate[0].path, //设置要更改的文件/文件夹路径
-              `${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
-              function(err) {
-                if (err) throw err
-                console.log('file has been renamed')
-              },
-            )
-          } else {
-            smbclient.rename(
-              this.rowDate[0].path, //设置要更改的文件/文件夹路径
-              `${this.rowDate[0].parentsPath}\\\\${this.formDate.name}`, //设置更改后的路径---祖先路径+当前文件名
-              function(err) {
-                if (err) throw err
-                console.log('file has been renamed')
-              },
-            )
-          }
+          await client.rename(
+            this.rowDate[0].path, // 设置要更改的文件/文件夹路径
+            `${this.rowDate[0].parentsPath}/${this.formDate.name}`, // 设置更改后的路径---祖先路径+当前文件名
+          )
+          await client.list(this.path).then((res) => {
+            this.tableDatas = []
+            for (let [index, item] of res.entries()) {
+              const { name, size, isDirectory, modifiedAt } = item
+              this.singleFile = {}
+              this.singleFile.parent = res.server_filename // 行目录名
+              // 子目录请求内容
+              this.singleFile.id = index + Math.random()
+              this.singleFile.server_filename = name
+              this.singleFile.size = SizeConvert(size)
+              this.singleFile.parentsPath = this.rowDate[0].parentsPath
+              this.singleFile.path =
+                this.rowDate[0].parentsPath == '/'
+                  ? `${this.rowDate[0].parentsPath}${name}`
+                  : `${this.rowDate[0].parentsPath}/${name}`
+              this.singleFile.isdir = Number(isDirectory)
+              this.singleFile.local_mtime = modifiedAt
+              this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+            }
+          })
+          this.tableData = this.tableDatas // 将新的列表赋给原列表
+          this.centerDialogVisible2 = false
+          //  }
+          client.close()
         } catch (error) {
+          this.centerDialogVisible2 = false // 关闭模态框
           console.log(error)
+          client.close()
         }
-    }
-  
-          
-      this.centerDialogVisible2 = false //关闭模态框
-      //  var createD = new Server( // 实列话类
-      //    'FTP',
-      //    this.servertypeIndex,
-      //    JSON.parse(localStorage.getItem('config')),
-      //    '',
-      //    this.path,
-      //    '',
-      //  )
-    } 
+      } else if (this.parents[0] == 'smb') {
+        const config = JSON.parse(localStorage.getItem('config'))[
+          Number(this.servertypeIndex)
+        ]
+        const { host, user, pwd } = config
+        var smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+        })
 
+        console.log(
+          `${this.rowDate[0].parentsPath}${this.rowDate[0].server_filename}`,
+        )
+        console.log(`${this.rowDate[0].parentsPath}${this.formDate.name}`)
+
+        if (this.rowDate[0].parentsPath == '') {
+          //根目录下重命名
+          smbclient.rename(
+            this.rowDate[0].path.slice(0, -2),
+            `${this.formDate.name}`,
+            function(err) {
+              if (err) throw err
+              console.log('file has been renamed')
+            },
+          )
+        }
+      } else {
+        //子目录下更名
+        smbclient.rename(
+          `${this.rowDate[0].parentsPath}${this.rowDate[0].server_filename}`,
+          `${this.rowDate[0].parentsPath}${this.formDate.name}`,
+          function(err) {
+            if (err) throw err
+            console.log('file has been renamed')
+          },
+        )
+        this.centerDialogVisible2 = false //关闭模态框
+      }
+    },
     // TODO: 文件删除
     async deleteFile(index, row) {
       const config = JSON.parse(localStorage.getItem('config'))[
@@ -530,117 +572,71 @@ export default {
       if (this.parents[0] == 'ftp') {
         // ftp__删除文件/夹路径
         try {
-          this.$confirm('确认删除, 是否继续?', '提示', {
-            confirmButtonText: '确定',
-            cancelButtonText: '取消',
-            type: 'warning',
+          await client.access({
+            host,
+            user,
+            password: pwd,
+            secure: false,
           })
-            .then(() => {
-              this.$message({
-                type: 'success',
-                message: '删除成功!',
-              })
-              ;(async () => {
-                await client.access({
-                  host,
-                  user,
-                  password: pwd,
-                  secure: false,
-                })
-                switch (row.isdir) {
-                  case 1:
-                    await client.removeDir(row.path)
-                    break
-                  case 0:
-                    await client.remove(row.path)
-                    break
-                }
-                await client.list(row.parentsPath).then((res) => {
-                  this.tableDatas = []
-                  for (let [index, item] of res.entries()) {
-                    const { name, size, isDirectory, modifiedAt } = item
-                    this.singleFile = {}
-                    this.singleFile.parent = res.server_filename // 行目录名
-                    // 子目录请求内容
-                    this.singleFile.id = index + Math.random()
-                    this.singleFile.server_filename = name
-                    this.singleFile.size = SizeConvert(size)
-                    this.singleFile.parentsPath = row.parentsPath
-                    this.singleFile.path =
-                      row.parentsPath == '/'
-                        ? `${row.parentsPath}${name}`
-                        : `${row.parentsPath}/${name}`
-                    this.singleFile.isdir = Number(isDirectory)
-                    this.singleFile.local_mtime = modifiedAt
-                    this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
-                  }
-                })
-                this.tableData = this.tableDatas // 将新的列表赋给原列表
-              })()
-            })
-            .catch(() => {
-              this.$message({
-                type: 'info',
-                message: '已取消删除',
-              })
-            })
+          switch (row.isdir) {
+            case 1:
+              await client.removeDir(row.path)
+              break
+            case 0:
+              await client.remove(row.path)
+              break
+          }
+          await client.list(row.parentsPath).then((res) => {
+            this.tableDatas = []
+            for (let [index, item] of res.entries()) {
+              const { name, size, isDirectory, modifiedAt } = item
+              this.singleFile = {}
+              this.singleFile.parent = res.server_filename // 行目录名
+              // 子目录请求内容
+              this.singleFile.id = index + Math.random()
+              this.singleFile.server_filename = name
+              this.singleFile.size = SizeConvert(size)
+              this.singleFile.parentsPath = row.parentsPath
+              this.singleFile.path =
+                row.parentsPath == '/'
+                  ? `${row.parentsPath}${name}`
+                  : `${row.parentsPath}/${name}`
+              this.singleFile.isdir = Number(isDirectory)
+              this.singleFile.local_mtime = modifiedAt
+              this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+            }
+          })
+          this.tableData = this.tableDatas // 将新的列表赋给原列表
         } catch (error) {
           console.log(error)
         }
       } else if (this.parents[0] == 'smb') {
         // smb__删除文件/夹路径
         try {
-          const smbclient = new SMB({
-            share: '\\\\172.17.6.8\\share',
+          const config = JSON.parse(localStorage.getItem('config'))[
+            Number(this.servertypeIndex)
+          ]
+          const { host, user, pwd } = config
+          var smbclient = new SMB({
+            share: `\\\\${host}\\share`,
             domain: 'WORKGROUP',
-            username: 'smb',
-            password: '175623',
+            username: user,
+            password: pwd,
           })
-          smbclient.unlink(row.path, function(err) {
-            if (err) throw err
-            console.log('file has been deleted')
-          })
-          //  删除空目录
-          //  smbclient.rmdir(row.path, function(err) {
-          //    if (err) throw alert('此目录下存在其他文件')
-          //    console.log('Directory deleted!')
-          //  })
-            this.$confirm('确认删除, 是否继续?', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning',
+          if (row.isdir === 1) {
+            await smbclient.rmdir(`${row.server_filename}`, function(err) {
+              if (err) throw err
+              console.log('dirctory has been deleted')
             })
-              .then(() => {
-                this.$message({
-                  type: 'success',
-                  message: '删除成功!',
-                })
-                const smbclient = new SMB({
-                  share: '\\\\172.17.6.3\\share',
-                  domain: 'WORKGROUP',
-                  username: 'smb',
-                  password: '175623',
-                })
-                //  Determines whether the delete target is an empty directory or a file
-                row.isDirectory === 'true'
-                  ? smbclient.unlink(row.path, function(err) {
-                      if (err) throw err
-                      console.log('file has been deleted')
-                    })
-                  : smbclient.rmdir(row.path, function(err) {
-                      if (err) throw err
-                      console.log('Directory deleted!')
-                    })
-              })
-              .catch(() => {
-                this.$message({
-                  type: 'info',
-                  message: '已取消删除',
-                })
-              })
-          } catch (error) {
-            console.log(error)
+          } else {
+            await smbclient.unlink(`${row.server_filename}`, function(err) {
+              if (err) throw err
+              console.log('file has been deleted')
+            })
           }
+        } catch (error) {
+          console.log(error)
+        }
       }
     },
     //  ftp--文件列表获取
@@ -822,7 +818,6 @@ export default {
                 autoCloseTimeout: 0,
               })
               await smbclient.readdir(row.path).then((res) => {
-                console.log(res)
                 for (let item of res) {
                   this.singleFile = {}
                   this.singleFile.parent = row.server_filename // 行目录名
@@ -982,75 +977,15 @@ export default {
         console.log(res)
       })
     },
-    // TODO: 复制， 移动目录列表
-    //  复制、移动__模态框
     openDialog_move() {
-      let moveData = []
-      let moveFile = {}
       if (this.parents[0] == 'ftp') {
-        //  ftp--首次加载目录
-        try {
-          this.ftpclient().then((res) => {
-            // console.log(res)
-
-            for (let [index, item] of res.entries()) {
-              const { name: label, isDirectory } = item
-              moveFile = {}
-              // 子目录请求内容
-              if (isDirectory) {
-                moveFile.isLeaf = true
-                moveFile.id = index + Math.random(1)
-                moveFile.label = label // 行目录名
-                moveFile.parentsPath = `/`
-                moveFile.path = `/${label}`
-                moveData.push(moveFile)
-              }
-            }
-            this.moveDatas = moveData // moveDatas:文件模态框里的数据
-            this.moveDialog = true // 打开模态框
-          })
-        } catch (error) {
-          console.log(error)
-          client.close()
-        }
-        this.moveDatas = moveData //moveDatas:文件模态框里的数据
+        this.moveDialog = true // 打开模态框
       } else if (this.parents[0] == 'smb') {
-        // smb--首次加载目录
-        try {
-          const smbclient = new SMB({
-            share: '\\\\172.17.6.3\\share',
-            domain: 'WORKGROUP',
-            username: 'smb',
-            password: '175623',
-          })
-          let moveData = []
-          smbclient.readdir('', (err) => {
-            if (err) throw err
-            let smbFile = {}
-            for (let [index, item] of this.tableData.entries()) {
-              const { server_filename: label, isdir } = item
-              smbFile = {}
-              if (isdir == '1') {
-                smbFile.id = index + Math.random()
-                smbFile.isLeaf = true
-                smbFile.label = label
-                smbFile.parentsPath = ''
-                smbFile.path = `${label}`
-                moveData.push(smbFile) //把行请求内容加入到表格数
-              }
-            }
-            this.moveDatas = moveData
-          })
-
-          this.moveDialog = true //打开模态框
-        } catch (error) {
-          console.log(error)
-        }
+        this.moveDialog = true //打开模态框
       }
     },
     //  文件移动--点击列表
     async lazyLoadTreeDir(node, resolve) {
-      console.log(node)
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
@@ -1061,48 +996,85 @@ export default {
       if (node.level === 0) {
         for (let item of this.tableData) {
           const { server_filename, isdir } = item
-          console.log(item)
           moveFile = {}
           //   // 子目录请求内容
           if (isdir) {
             moveFile.id = Math.random()
             moveFile.name = server_filename // 行目录名
-            moveFile.parentsPath = `/`
-
-            moveFile.path = `/${server_filename}`
+            if (this.parents[0] == 'ftp') {
+              moveFile.parentsPath = `/`
+              moveFile.path = `/${server_filename}`
+            } else if (this.parents[0] == 'smb') {
+              moveFile.parentsPath = ``
+              moveFile.path = `${server_filename}`
+              moveFile.isdir = path.extname(server_filename) ? 0 : 1
+            }
             moveData.push(moveFile)
           }
         }
         return resolve(moveData)
       }
-      try {
-        const client = new ftp.Client()
-        await client.access({
-          host,
-          user,
-          password: pwd,
-          secure: false,
-        })
-        await client.list(node.data.path).then((res) => {
-          console.log(res)
-          for (let [index, item] of res.entries()) {
-            moveFile = {}
-            const { name, isDirectory } = item
-            if (isDirectory) {
-              moveFile.id = index + Math.random()
-              moveFile.parentsPath = node.data.path
-              moveFile.path = `${node.data.path}/${name}`
-              moveFile.name = name // 行目录名
-              moveData.push(moveFile)
+      if (this.parents[0] == 'ftp') {
+        try {
+          const client = new ftp.Client()
+          await client.access({
+            host,
+            user,
+            password: pwd,
+            secure: false,
+          })
+          await client.list(node.data.path).then((res) => {
+            for (let [index, item] of res.entries()) {
+              moveFile = {}
+              const { name, isDirectory } = item
+              if (isDirectory) {
+                moveFile.id = index + Math.random()
+                moveFile.parentsPath = node.data.path
+                moveFile.path = `${node.data.path}/${name}`
+                moveFile.name = name // 行目录名
+                moveData.push(moveFile)
+              }
             }
-          }
-          this.selecPath = node.data.path
-          resolve(moveData)
-        })
-        client.close()
-      } catch (error) {
-        console.log(error)
-        client.close()
+
+            this.selecPath = node.data.path
+            resolve(moveData)
+          })
+          client.close()
+        } catch (error) {
+          console.log(error)
+          client.close()
+        }
+      } else if (this.parents[0] == 'smb') {
+        try {
+          const config = JSON.parse(localStorage.getItem('config'))[
+            Number(this.servertypeIndex)
+          ]
+          const { host, user, pwd } = config
+          var smbclient = new SMB({
+            share: `\\\\${host}\\share`,
+            domain: 'WORKGROUP',
+            username: user,
+            password: pwd,
+          })
+          smbclient.readdir(node.data.path).then((res) => {
+            for (let item of res.entries()) {
+              moveFile = {}
+              if (node.data.isdir) {
+                moveFile.id = Math.random()
+                moveFile.name = item[1]
+                moveFile.isdir = path.extname(node.data.path) ? 0 : 1
+                moveFile.path = `${node.data.path}\\\\${item[1]}` //  作为子目录，请求remote-path
+                moveData.push(moveFile) // 把行请求内容加入到表格数据
+              }
+            }
+            this.selecPath = node.data.path
+
+            resolve(moveData)
+          })
+        } catch (error) {
+          console.log(error)
+          client.close()
+        }
       }
     },
     // 确定提交
@@ -1128,91 +1100,16 @@ export default {
               console.log(res)
             })
           this.moveDialog = false
-          let moveData = []
-          let moveFile = {}
-          await client.list(node.data.path).then((res) => {
-            for (let [index, item] of res.entries()) {
-              moveFile = {}
-              const { name, isDirectory } = item
-              if (isDirectory) {
-                moveFile.id = index
-                moveFile.parentsPath = node.data.path
-                moveFile.path = `${node.data.path}/${name}`
-                moveFile.isLeaf = true
-                moveFile.label = name //行目录名
-                moveData.push(moveFile)
-              }
-            }
-            resolve(moveData)
-          })
         } catch (error) {
           console.log(error)
           client.close()
         }
-      } else if (this.parents[0] == 'smb') {
-        //smb--加载点击后的目录
-        try {
-          const smbclient = new SMB({
-            share: '\\\\172.17.6.3\\share',
-            domain: 'WORKGROUP',
-            username: 'smb',
-            password: '175623',
-          })
-          smbclient.readdir(node.data.path, (err) => {
-            if (err) throw err
-            console.log()
-          })
-          let moveData = []
-          let smbFile = {}
-          for (let [index, item] of this.tableData.entries()) {
-            const { isdir, server_filename, path, parentsPath } = item
-            smbFile = {}
-            if (isdir === '1') {
-              smbFile.id = index + Math.random()
-              smbFile.label = server_filename
-              smbFile.isLeaf = true
-              smbFile.parentsPath = path
-              smbFile.path =
-                smbFile.parentsPath == ''
-                  ? server_filename
-                  : `${parentsPath}\\\\${server_filename}`
-              moveData.push(smbFile)
-            }
-          }
-          resolve(moveData)
-        } catch (error) {
-          console.log(error)
-        }
-      }
-    },
-    //确定提交
-    async copeOk() {
-      if (this.parents[0] == 'ftp') {
-        // try {
-        //   await client.access({
-        //     host: '10.10.12.8',
-        //     user: 'scitc',
-        //     password: 'scitc',
-        //     secure: false,
-        //   })
-        //   await client
-        //     .rename(
-        //       this.rowDate.path,
-        //       `${this.movePath}${this.rowDate.server_filename}`,
-        //     )
-        //     .then((res) => {
-        //       console.log(res)
-        //     })
-        //   this.moveDialog = false
-        // } catch (error) {
-        //   console.log(error)
-        //   client.close()
-        // }
         this.moveDialog = false
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
       }
     },
+
     // 重置表单
     resetForm(formName) {
       this.$refs[formName].resetFields()
