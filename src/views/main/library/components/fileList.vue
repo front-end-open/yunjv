@@ -621,15 +621,14 @@ export default {
                   username: 'smb',
                   password: '175623',
                 })
-                //删除文件
+                //  Determines whether the delete target is an empty directory or a file
                 row.isDirectory === 'true'
                   ? smbclient.unlink(row.path, function(err) {
-                      if (err) throw alert('此文件夹不可删')
+                      if (err) throw err
                       console.log('file has been deleted')
                     })
-                  : // 删除空目录
-                    smbclient.rmdir(row.path, function(err) {
-                      if (err) throw alert('此目录不为空')
+                  : smbclient.rmdir(row.path, function(err) {
+                      if (err) throw err
                       console.log('Directory deleted!')
                     })
               })
@@ -1015,7 +1014,6 @@ export default {
           client.close()
         }
         this.moveDatas = moveData //moveDatas:文件模态框里的数据
-        this.moveDialog = true //打开模态框
       } else if (this.parents[0] == 'smb') {
         // smb--首次加载目录
         try {
@@ -1025,23 +1023,26 @@ export default {
             username: 'smb',
             password: '175623',
           })
-          this.moveDataEs = []
+          let moveData = []
           smbclient.readdir('', (err) => {
             if (err) throw err
             let smbFile = {}
-            for (const file of this.tableData) {
+            for (let [index, item] of this.tableData.entries()) {
+              const { server_filename: label, isdir } = item
               smbFile = {}
-              if (file.isDirectory) {
-                smbFile.id = Math.random()
+              if (isdir == '1') {
+                smbFile.id = index + Math.random()
                 smbFile.isLeaf = true
-                smbFile.label = file.server_filename
-                smbFile.parentsPath = file.parentsPath
-                smbFile.path = file.server_filename
-                this.moveDataEs.push(smbFile) // 把行请求内容加入到表格数
+                smbFile.label = label
+                smbFile.parentsPath = ''
+                smbFile.path = `${label}`
+                moveData.push(smbFile) //把行请求内容加入到表格数
               }
             }
-            this.moveData = this.moveDataEs
+            this.moveDatas = moveData
           })
+
+          this.moveDialog = true //打开模态框
         } catch (error) {
           console.log(error)
         }
@@ -1157,27 +1158,28 @@ export default {
             username: 'smb',
             password: '175623',
           })
-          let moveDataEs = []
+          smbclient.readdir(node.data.path, (err) => {
+            if (err) throw err
+            console.log()
+          })
+          let moveData = []
           let smbFile = {}
-          for (const file of this.tableData) {
+          for (let [index, item] of this.tableData.entries()) {
+            const { isdir, server_filename, path, parentsPath } = item
             smbFile = {}
-            if (file.isDirectory) {
-              smbFile.id = Math.random()
-              smbFile.parentsPath = file.parentsPath
+            if (isdir === '1') {
+              smbFile.id = index + Math.random()
+              smbFile.label = server_filename
+              smbFile.isLeaf = true
+              smbFile.parentsPath = path
               smbFile.path =
                 smbFile.parentsPath == ''
-                  ? file.server_filename
-                  : `${file.parentsPath}\\\\${file.server_filename}`
-              smbFile.label = file.server_filename
-              moveDataEs.push(smbFile)
+                  ? server_filename
+                  : `${parentsPath}\\\\${server_filename}`
+              moveData.push(smbFile)
             }
           }
-          resolve(moveDataEs)
-          this.movePath = `${node.data.path}`
-          console.log(this.movePath)
-          smbclient.readdir(this.movePath, (err) => {
-            if (err) throw err
-          })
+          resolve(moveData)
         } catch (error) {
           console.log(error)
         }
