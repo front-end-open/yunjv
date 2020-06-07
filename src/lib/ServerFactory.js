@@ -11,6 +11,7 @@
 const client = require('basic-ftp')
 const path = require('path')
 const SMB = require('@marsaud/smb2')
+const fs = require('fs')
 import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
 import OwnerConvert from './PERMISSIONCONVERT.js'
@@ -43,6 +44,7 @@ ServerFactory.prototype = {
     console.log('baidu')
   },
   SMB: function(serverindx, config) {
+    // 首页文件目录加载
     this.loadFile = function() {
       let smbData = [] //存放smb数据
       const { host, user, pwd } = config[serverindx]
@@ -68,6 +70,61 @@ ServerFactory.prototype = {
         })
         return smbData
       } catch (error) {
+        console.log(error)
+      }
+    }
+    // 目录创建
+
+    // 文件上传
+    this.upload = function(path, destination, parent) {
+      const { host, pwd, user } = config[serverindx]
+      let fileList = null
+      try {
+        var smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+          autocloseTimeout: 0,
+        })
+        smbclient.createWriteStream(path, function(err, writeStream) {
+          if (err) throw err
+          var readStream = fs.createReadStream(destination)
+          readStream.pipe(writeStream)
+          // TODO: 列表更新
+          smbclient.readdir(parent, (error, files) => {
+            if (error) throw error
+            console.log(files)
+            fileList = files
+          })
+        })
+        return fileList
+      } catch (error) {
+        smbclient.disconnect()
+
+        console.log(error)
+      }
+    }
+    // 文件下载
+    this.download = function(path, destination) {
+      const { host, pwd, user } = config[serverindx]
+
+      try {
+        var smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+          autocloseTimeout: 0,
+        })
+        smbclient.createReadStream(path, function(err, readStream) {
+          if (err) throw err
+          var writeStream = fs.createWriteStream(destination)
+          readStream.pipe(writeStream)
+        })
+        smbclient.disconnect()
+      } catch (error) {
+        smbclient.disconnect()
         console.log(error)
       }
     }

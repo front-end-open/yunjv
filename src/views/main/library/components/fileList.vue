@@ -129,6 +129,7 @@
         style="width: 100%;margin-bottom: 20px;"
         row-key="id"
         @select="selec"
+        @selection-change="seleChange"
         :default-expand-all="false"
         @row-dblclick="switchDir"
       >
@@ -231,6 +232,7 @@ const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
 const ftp = require('basic-ftp')
 const SMB = require('@marsaud/smb2')
+// const fs = require('fs')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
 export default {
@@ -362,6 +364,20 @@ export default {
         },
       ]
       this.smbClient()
+      // const smbclient = new SMB({
+      //   share: `\\\\127.0.0.1\\share`,
+      //   domain: 'WORKGROUP',
+      //   username: 'smb',
+      //   password: '175623',
+      // })
+      // smbclient.readdir('', (error, files) => {
+      //   if (error) throw error
+      //   console.log(files)
+      //   let a = files.map((val) => {
+      //     return decoder.write(val.LastAccessTime)
+      //   }, files)
+      //   console.log(a)
+      // })
     }
   },
   methods: {
@@ -757,6 +773,14 @@ export default {
           console.log(row)
           if (row.isdir) {
             this.tableData = []
+            this.path = row.path
+            this.$router.push({
+              name: 'filelist',
+              params: {
+                serverType: `${row.server_filename}`,
+                currentdirpath: `${row.path}`,
+              },
+            })
             this.$http
               .get('/rest/2.0/xpan/multimedia', {
                 params: {
@@ -787,16 +811,16 @@ export default {
                   this.tableData.push(fileDate)
                   ++id
                 }
+              })
+              .catch((error) => {
                 this.path = row.path
                 this.$router.push({
                   name: 'filelist',
                   params: {
-                    id: `${row.server_filename}`,
-                    title: `${row.path}`,
+                    serverType: `${row.server_filename}`,
+                    currentdirpath: `${row.path}`,
                   },
                 })
-              })
-              .catch((error) => {
                 console.log(error.toJSON())
               })
           }
@@ -817,6 +841,9 @@ export default {
                 password: pwd,
                 autoCloseTimeout: 0,
               })
+              // smbclient.exists(row.path).then((res) => {
+              //   console.log(res)
+              // })
               await smbclient.readdir(row.path).then((res) => {
                 for (let item of res) {
                   this.singleFile = {}
@@ -841,6 +868,7 @@ export default {
                   currentdirpath: `${row.path}`,
                 },
               })
+              smbclient.disconnect()
             } catch (error) {
               this.$router.push({
                 name: 'filelist',
@@ -897,7 +925,7 @@ export default {
         this.$http
           .get(`/rest/2.0/xpan/multimedia`, {
             params: {
-              path: path,
+              path,
               method: 'listall',
               access_token: token,
             },
@@ -929,7 +957,7 @@ export default {
           domain: 'WORKGROUP',
           username: user,
           password: pwd,
-          autoCloseTimeout: 30000,
+          autoCloseTimeout: 0,
         })
         return await smbclient.readdir(path)
       }
@@ -956,26 +984,85 @@ export default {
             console.log(res)
           })
         }
+      } else if (this.parents[0] == 'smb') {
+        const selecfilepath = dialog.showOpenDialog({
+          properties: ['openFile', 'promptToCreate'],
+          message: '选择文件',
+        })
+        let filename = path.basename(selecfilepath[0])
+        let smbServer = new Server(
+          'SMB',
+          this.servertypeIndex,
+          JSON.parse(localStorage.getItem('config')),
+          '',
+          '',
+          '',
+        )
+        let file = smbServer.upload(`${filename}`, selecfilepath[0], parent)
+        if (file) {
+          this.tableData = []
+          for (let item of file) {
+            this.singleFile = {}
+            this.singleFile.parent = path.basename(this.path)
+            this.singleFile.id = Math.random()
+            this.singleFile.parentsPath = this.path
+            this.singleFile.path = this.path ? `${this.path}\\\\${item}` : item
+            this.singleFile.isdir = path.extname(item) ? 0 : 1
+            this.singleFile.local_mtime = ''
+            this.singleFile.permissions = ''
+            this.singleFile.Owner = 'owner'
+            this.tableData.push(this.singleFile)
+          }
+        }
       }
     },
     //  文件下载
     // TODO: 下载优化
     downLoadFile() {
       //  ftp-目录出创建
-      const filepath = dialog.showOpenDialog({
-        properties: ['openDirectory'],
-      })
-      const server = new Server(
-        'FTP',
-        this.servertypeIndex,
-        JSON.parse(localStorage.getItem('config')),
-        filepath[0],
-        this.path,
-        this.rowDate,
-      )
-      server.download().then((res) => {
-        console.log(res)
-      })
+
+      switch (this.parents[0]) {
+        case 'ftp':
+          var filepath = dialog.showOpenDialog({
+            properties: ['openDirectory'],
+          })
+          var server = new Server(
+            'FTP',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            filepath[0],
+            this.path,
+            this.rowDate,
+          )
+          server.download().then((res) => {
+            console.log(res)
+          })
+          break
+        case 'baid':
+          break
+        case 'smb':
+          var selecfilepath = dialog.showOpenDialog({
+            properties: ['openDirectory', 'createDirectory', 'promptToCreate'],
+            message: '选择文件',
+          })
+          var smb = new Server(
+            'SMB',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            '',
+            '',
+            '',
+          )
+          smb
+            .download(
+              this.rowDate.path,
+              `${selecfilepath[0]}//${this.rowDate.server_filename}`,
+            )
+            .then((res) => {
+              console.log(res)
+            })
+          break
+      }
     },
     openDialog_move() {
       if (this.parents[0] == 'ftp') {
@@ -1118,16 +1205,23 @@ export default {
     selec(selection, row) {
       if (selection.length) {
         this.rowDate = row
-        this.downtag = false
+        // this.downtag = false
       } else {
         this.rowDate = []
-        this.downtag = true
+        // this.downtag = true
       }
     },
     // 文件移动--搜索展示
     filterNode(value, data) {
       if (!value) return true
       return data.label.indexOf(value) !== -1
+    },
+    seleChange(selection) {
+      if (selection.length) {
+        this.downtag = false
+      } else {
+        this.downtag = true
+      }
     },
   },
 
@@ -1212,7 +1306,6 @@ export default {
           this.pathbread.splice(this.isSame + 1)
           this.parents.splice(this.isSame + 1)
         } else if (this.parents[0] == 'smb') {
-          console.log(newVal)
           this.tableData = []
           this.getFile(newVal.query.path).then((res) => {
             for (let item of res) {

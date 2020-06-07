@@ -43,6 +43,16 @@ const routes = [
             path: 'filelist/:serverType',
             name: 'filelist',
             component: libraryFileList,
+            beforeEnter: (to, from, next) => {
+              const { serverType, index } = to.params
+              switch (serverType) {
+                case 'baid':
+                  if (JSON.parse(localStorage.getItem('config'))[index]) {
+                    next()
+                  }
+                  break
+              }
+            },
             props: true,
           },
         ],
