@@ -302,25 +302,6 @@ export default {
         },
       ]
       this.tableData = this.$store.state.indexFileDate
-      // this.ftpclient().then((res) => {
-      //   for (let [index, item] of res.entries()) {
-      //     const { name, size, isDirectory, permissions, date, user } = item
-      //     this.singleFile = {}
-      //     this.singleFile.id = index
-      //     this.singleFile.server_filename = name
-      //     this.singleFile.size = size
-      //     this.singleFile.parent = '/'
-      //     this.singleFile.parentsPath = '/'
-      //     this.singleFile.path = `/${name}`
-      //     this.singleFile.isdir = Number(isDirectory)
-      //     this.singleFile.local_mtime = date
-      //     this.singleFile.permission = permissions
-      //       ? OwnerConvert(permissions)
-      //       : ''
-      //     this.singleFile.Owner = user
-      //     this.tableData.push(this.singleFile)
-      //   }
-      // })
     } else if (this.$route.params.serverType == 'baid') {
       this.tableData = this.$store.state.indexFileDate
       this.pathbread = [
@@ -441,6 +422,18 @@ export default {
           this.centerDialogVisible = false
           break
         case 'baid':
+          this.$http
+            .post(
+              `/rest/2.0/xpan/file?method=create&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA`,
+              {
+                path: '/w2',
+                size: '0',
+                isdir: '1',
+              },
+            )
+            .then((res) => {
+              console.log(res)
+            })
           break
       }
     },
@@ -544,7 +537,7 @@ export default {
     // TODO: 文件删除
     async deleteFile(index, row) {
       const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
+        this.servertypeIndex
       ]
       const { host, user, pwd } = config
       if (this.parents[0] == 'ftp') {
@@ -615,6 +608,18 @@ export default {
         } catch (error) {
           console.log(error)
         }
+      } else if (this.parents[0] == 'baid') {
+        this.$http
+          .post(
+            `/rest/2.0/xpan/file?method=filemanager&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&opera=delete`,
+            {
+              filelist: [row.path],
+              async: 1,
+            },
+          )
+          .then((res) => {
+            console.log(res)
+          })
       }
     },
     //  ftp--文件列表获取
@@ -926,7 +931,6 @@ export default {
     },
     //  文件上传
     //  TODO: 文件上传
-
     upLoadFile() {
       if (this.parents[0] == 'ftp') {
         const filepath = dialog.showOpenDialog({
@@ -976,6 +980,12 @@ export default {
             this.tableData.push(this.singleFile)
           }
         }
+      } else if (this.parents[0] == 'baid') {
+        const filepath = dialog.showOpenDialog({
+          properties: ['openDirectory'],
+        })
+        filepath[0]
+        this.$http.post('')
       }
     },
     //  文件下载
