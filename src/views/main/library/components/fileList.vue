@@ -134,8 +134,12 @@
           </div>
         </el-col>
         <el-col :span="5" :offset="4">
-          <el-input placeholder="请输入内容">
-            <i slot="prefix" class="el-input__icon el-icon-search"></i>
+          <el-input placeholder="请输入" v-model="searchFile">
+            <i
+              slot="prefix"
+              class="el-input__icon el-icon-search"
+              @click="searchClick"
+            ></i>
           </el-input>
         </el-col>
       </el-row>
@@ -322,8 +326,9 @@ export default {
       selecPath: '',
       moveDialog: false, // 关闭dialog
       copeDialog: false, // 关闭dialog
-
       moveDatas: [],
+      //搜索文件
+      searchFile: '',
     }
   },
   created() {
@@ -364,6 +369,54 @@ export default {
     }
   },
   methods: {
+    //搜索文件
+    searchClick() {
+      var config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
+      const { token } = config
+      switch (this.parents[0]) {
+        case 'ftp':
+          break
+        case 'smb':
+          break
+        case 'baid':
+          this.$http
+            .get(`/rest/2.0/xpan/file?method=search&access_token=${token}`, {
+              params: {
+                dir: `/`,
+                key: `${this.searchFile}`,
+                recursion: '1',
+                web: 1,
+              },
+            })
+            .then((res) => {
+              const { list } = res.data
+              let id = 0
+              let moveFile = {}
+              let moveData = []
+              for (let val of list) {
+                //  由于返回数据没有标识，因此需要加上筛选拼接数据
+                moveFile = {}
+                if (val.isdir) {
+                  moveFile.id = id
+                  moveFile.fs_id = val.fs_id
+                  moveFile.server_filename = val.server_filename
+                  moveFile.isdir = val.isdir
+                  moveFile.path = val.path
+                  moveData.push(moveFile)
+                  ++id
+                }
+              }
+              this.tableData = moveData
+              console.log(this.tableData)
+            })
+            .catch((error) => {
+              console.log(error.toJSON())
+            })
+          break
+      }
+    },
     // 创建目录-开启模态
     createDiretory() {
       this.centerDialogVisible = true
@@ -373,7 +426,7 @@ export default {
       var config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
+      const { host, user, pwd, token } = config
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
@@ -463,19 +516,18 @@ export default {
           break
         case 'baid':
           this.$http
-            .post(
-              `/rest/2.0/xpan/file?method=create&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA`,
-              {
-                path: '/w2',
-                size: '0',
-                isdir: '1',
-              },
-            )
+            .post(`/rest/2.0/xpan/file?method=create&access_token=${token}`, {
+              'path': `${this.path}${this.ruleForm.name}`,
+              'size': '1205',
+              'isdir': '1',
+            })
             .then((res) => {
+              console.log(`${this.path}${this.ruleForm.name}`)
               console.log(res)
             })
           break
       }
+      this.centerDialogVisible = false
     },
     // 重命名-开启模态框
     async editFileName(index, row) {
@@ -568,11 +620,10 @@ export default {
         this.tableData = []
         let id = 1
         this.$http
-          .get(`/rest/2.0/xpan/file`, {
+          .get(`/rest/2.0/xpan/file?access_token=${token}`, {
             params: {
               method: 'filemanager',
               opera: 'rename',
-              access_token: token,
               filelist: [
                 {
                   'path': this.rowDate[0].path,
@@ -685,40 +736,33 @@ export default {
         }
       } else if (this.parents[0] == 'baid') {
         this.tableData = []
-        let id = 1
+        // let id = 1
 
-        const filePath = []
-        console.log(this.rowDate.path)
-        filePath.path = this.rowDate.path
+        // let fileMsg = {}
+        // fileMsg.path = row.path
+        // filePath.push(fileMsg)
+        let u = `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete&async=1&filelist=['/百度test/${row.server_filename}']`
 
         this.$http
-          .get(`/rest/2.0/xpan/file`, {
-            params: {
-              opera: 'delete',
-              filelist: filePath,
-              async: 0,
-              method: 'filemanager',
-              access_token: token,
-            },
-          })
+          .post(u)
           .then((res) => {
-            const { list } = res.data
+            // const { list } = res.data
             console.log(res)
-            let fileDate = {}
-            for (let val of list) {
-              fileDate = {}
-              fileDate.id = id
-              fileDate.fs_id = val.fs_id
-              fileDate.server_filename = val.server_filename
-              fileDate.local_mtime = Dateformate(val.local_mtime)
-              fileDate.local_ctime = Dateformate(val.local_ctime)
-              fileDate.size = SizeConvert(val.size)
-              fileDate.isdir = val.isdir
-              fileDate.path = val.path
-              this.tableData.push(fileDate)
-              ++id
-              console.log(this.tableData)
-            }
+            // let fileDate = {}
+            // for (let val of list) {
+            // fileDate = {}
+            // fileDate.id = id
+            // fileDate.fs_id = val.fs_id
+            // fileDate.server_filename = val.server_filename
+            // fileDate.local_mtime = Dateformate(val.local_mtime)
+            // fileDate.local_ctime = Dateformate(val.local_ctime)
+            // fileDate.size = SizeConvert(val.size)
+            // fileDate.isdir = val.isdir
+            // fileDate.path = val.path
+            // this.tableData.push(fileDate)
+            // ++id
+            // console.log(this.tableData)
+            // }
           })
           .catch((error) => {
             console.log(error)
@@ -852,10 +896,9 @@ export default {
               },
             })
             this.$http
-              .get('/rest/2.0/xpan/multimedia', {
+              .get(`/rest/2.0/xpan/multimedia?&access_token=${token}`, {
                 params: {
                   path: row.path,
-                  access_token: token,
                   order: 'size',
                   method: 'listall',
                   recursion: '0',
@@ -993,11 +1036,10 @@ export default {
         // 待完成
         let id = 1
         this.$http
-          .get(`/rest/2.0/xpan/multimedia`, {
+          .get(`/rest/2.0/xpan/multimedia?&access_token=${token}`, {
             params: {
               path,
               method: 'listall',
-              access_token: token,
             },
           })
           .then((res) => {
@@ -1236,12 +1278,10 @@ export default {
           client.close()
         }
       } else if (this.parents[0] == 'baid') {
-        console.log(node.data.path)
         this.$http
-          .get('/rest/2.0/xpan/file', {
+          .get(`/rest/2.0/xpan/file?&access_token=${token}`, {
             params: {
               dir: node.data.path,
-              access_token: token,
               order: 'size',
               method: 'list',
               recursion: '0',
@@ -1324,40 +1364,43 @@ export default {
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
       } else if (this.parents[0] == 'baid') {
-        if (select == 'move') {
-          this.tableData = []
-          const filePath = []
-          filePath.path = this.rowDate.path
-          filePath.dest = this.selecPath
-          filePath.newname = this.rowDate.server_filename
-          this.$http.get(`/rest/2.0/xpan/file?`, {
-            params: {
-              method: 'filemanager',
+        // if (select == 'move') {
+        this.tableData = []
+        const filePath = []
+        filePath.path = this.rowDate.path
+        filePath.dest = this.selecPath
+        filePath.newname = this.rowDate.server_filename
+        this.$http
+          .post(
+            `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
+            {
               opera: 'move',
-              access_token: token,
               filelist: filePath,
               async: 1,
             },
+          )
+          .then((res) => {
+            console.log(res)
           })
-        } else {
-          this.tableData = []
-          const filePath = []
-          let fileMag = {}
-          fileMag.path = this.rowDate.path
-          fileMag.dest = this.selecPath
-          fileMag.newname = this.rowDate.server_filename
-          filePath.push(fileMag)
-          console.log(filePath)
-          this.$http.get(`/rest/2.0/xpan/file`, {
-            params: {
-              method: 'filemanager',
-              opera: 'copy',
-              access_token: token,
-              filelist: filePath,
-              async: 1,
-            },
-          })
-        }
+        // } else {
+        //   this.tableData = []
+        //   const filePath = []
+        //   let fileMag = {}
+        //   fileMag.path = this.rowDate.path
+        //   fileMag.dest = this.selecPath
+        //   fileMag.newname = this.rowDate.server_filename
+        //   filePath.push(fileMag)
+        //   console.log(filePath)
+        //   this.$http.get(`/rest/2.0/xpan/file`, {
+        //     params: {
+        //       method: 'filemanager',
+        //       opera: 'copy',
+        //       access_token: token,
+        //       filelist: filePath,
+        //       async: 1,
+        //     },
+        //   })
+        // }
       }
 
       this.moveDialog = false //关闭模态框
