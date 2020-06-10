@@ -301,26 +301,28 @@ export default {
           filePath: '/',
         },
       ]
-      this.ftpclient().then((res) => {
-        for (let [index, item] of res.entries()) {
-          const { name, size, isDirectory, permissions, date, user } = item
-          this.singleFile = {}
-          this.singleFile.id = index
-          this.singleFile.server_filename = name
-          this.singleFile.size = size
-          this.singleFile.parent = '/'
-          this.singleFile.parentsPath = '/'
-          this.singleFile.path = `/${name}`
-          this.singleFile.isdir = Number(isDirectory)
-          this.singleFile.local_mtime = date
-          this.singleFile.permission = permissions
-            ? OwnerConvert(permissions)
-            : ''
-          this.singleFile.Owner = user
-          this.tableData.push(this.singleFile)
-        }
-      })
+      this.tableData = this.$store.state.indexFileDate
+      // this.ftpclient().then((res) => {
+      //   for (let [index, item] of res.entries()) {
+      //     const { name, size, isDirectory, permissions, date, user } = item
+      //     this.singleFile = {}
+      //     this.singleFile.id = index
+      //     this.singleFile.server_filename = name
+      //     this.singleFile.size = size
+      //     this.singleFile.parent = '/'
+      //     this.singleFile.parentsPath = '/'
+      //     this.singleFile.path = `/${name}`
+      //     this.singleFile.isdir = Number(isDirectory)
+      //     this.singleFile.local_mtime = date
+      //     this.singleFile.permission = permissions
+      //       ? OwnerConvert(permissions)
+      //       : ''
+      //     this.singleFile.Owner = user
+      //     this.tableData.push(this.singleFile)
+      //   }
+      // })
     } else if (this.$route.params.serverType == 'baid') {
+      this.tableData = this.$store.state.indexFileDate
       this.pathbread = [
         {
           name: `${this.$route.params.serverType}:`,
@@ -328,33 +330,6 @@ export default {
           filePath: '/',
         },
       ]
-      let id = 1
-      const { token } = JSON.parse(localStorage.getItem('config'))[
-        this.servertypeIndex
-      ] // 服务配置
-      this.$http
-        .get(`/rest/2.0/xpan/file?method=list&access_token=${token}`)
-        .then((res) => {
-          const { list } = res.data
-          let fileDate = {}
-          for (let val of list) {
-            //  由于返回数据没有标识，因此需要加上筛选拼接数据
-            fileDate = {}
-            fileDate.id = id
-            fileDate.fs_id = val.fs_id
-            fileDate.server_filename = val.server_filename
-            fileDate.local_mtime = Dateformate(val.local_mtime)
-            fileDate.local_ctime = Dateformate(val.local_ctime)
-            fileDate.size = SizeConvert(val.size)
-            fileDate.isdir = val.isdir
-            fileDate.path = val.path
-            this.tableData.push(fileDate)
-            ++id
-          }
-        })
-        .catch((error) => {
-          console.log(error)
-        })
     } else if (this.$route.params.serverType == 'smb') {
       this.pathbread = [
         {
@@ -363,21 +338,8 @@ export default {
           filePath: '',
         },
       ]
-      this.smbClient()
-      // const smbclient = new SMB({
-      //   share: `\\\\127.0.0.1\\share`,
-      //   domain: 'WORKGROUP',
-      //   username: 'smb',
-      //   password: '175623',
-      // })
-      // smbclient.readdir('', (error, files) => {
-      //   if (error) throw error
-      //   console.log(files)
-      //   let a = files.map((val) => {
-      //     return decoder.write(val.LastAccessTime)
-      //   }, files)
-      //   console.log(a)
-      // })
+      // this.smbClient()
+      this.tableData = this.$store.state.indexFileDate
     }
   },
   methods: {

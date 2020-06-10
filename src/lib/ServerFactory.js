@@ -137,7 +137,7 @@ ServerFactory.prototype = {
       const config = JSON.parse(localStorage.getItem('config'))[serverindx]
       const { host, user, pwd } = config
       try {
-        await client
+        await ftp
           .access({
             host,
             user,
@@ -147,10 +147,9 @@ ServerFactory.prototype = {
           .then((res) => {
             console.log(res)
           })
-        return await client.list('')
+        return await ftp.list('')
       } catch (err) {
-        console.log(err)
-        client.close()
+        ftp.close()
       }
     }
     // 文件上传

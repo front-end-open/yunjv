@@ -52,7 +52,7 @@ ipcMain.on('async-authcode', function(event) {
         state: 1,
         info: access_token,
       })
-      baiduWin.close()
+      // baiduWin.close()
     })
     .catch((err) => {
       console.error(err)

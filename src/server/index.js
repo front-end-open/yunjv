@@ -6,9 +6,9 @@ const config = {
 }
 const instance = axios.create(config)
 
-axios.interceptors.request.use(
+instance.interceptors.request.use(
   function(config) {
-    console.log(config)
+    // console.log(config)
     return config
   },
   function(error) {
@@ -17,7 +17,7 @@ axios.interceptors.request.use(
   },
 )
 
-axios.interceptors.response.use(
+instance.interceptors.response.use(
   function(response) {
     // console.log(response)
     return response

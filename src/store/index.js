@@ -6,10 +6,14 @@ Vue.use(Vuex)
 export default new Vuex.Store({
   state: {
     config: JSON.parse(window.localStorage.getItem('config')),
+    indexFileDate: null,
   },
   mutations: {
     saveconfig(state) {
       state.config.push(JSON.parse(window.localStorage.getItem('config')))
+    },
+    setindexDate(state, filelist) {
+      state.indexFileDate = filelist
     },
   },
   actions: {},
