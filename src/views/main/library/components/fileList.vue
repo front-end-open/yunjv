@@ -517,13 +517,23 @@ export default {
         case 'baid':
           this.$http
             .post(`/rest/2.0/xpan/file?method=create&access_token=${token}`, {
-              'path': `${this.path}${this.ruleForm.name}`,
-              'size': '1205',
+              'path': `${this.path}/${this.ruleForm.name}`,
+              'size': '0',
               'isdir': '1',
+              'rtype': 1,
             })
             .then((res) => {
-              console.log(`${this.path}${this.ruleForm.name}`)
-              console.log(res)
+              const { data } = res
+              let moveFile = {}
+              //  由于返回数据没有标识，因此需要加上筛选拼接数据
+              moveFile = {}
+              moveFile.id = Math.random()
+              moveFile.fs_id = data.fs_id
+              moveFile.server_filename = this.ruleForm.name
+              moveFile.isdir = data.isdir
+              moveFile.path = data.path
+              this.tableData.push(moveFile)
+              console.log(this.tableData)
             })
           break
       }
@@ -618,7 +628,7 @@ export default {
       } else if (this.parents[0] == 'baid') {
         const { token } = config
         this.tableData = []
-        let id = 1
+        // let id = 1
         this.$http
           .get(`/rest/2.0/xpan/file?access_token=${token}`, {
             params: {
@@ -635,23 +645,23 @@ export default {
             },
           })
           .then((res) => {
-            const { list } = res.data
+            // const { list } = res.data
             console.log(res)
-            let fileDate = {}
-            for (let val of list) {
-              //  由于返回数据没有标识，因此需要加上筛选拼接数据
-              fileDate = {}
-              fileDate.id = id
-              fileDate.fs_id = val.fs_id
-              fileDate.server_filename = val.server_filename
-              fileDate.local_mtime = Dateformate(val.local_mtime)
-              fileDate.local_ctime = Dateformate(val.local_ctime)
-              fileDate.size = SizeConvert(val.size)
-              fileDate.isdir = val.isdir
-              fileDate.path = val.path
-              this.tableData.push(fileDate)
-              ++id
-            }
+            // let fileDate = {}
+            // for (let val of list) {
+            //  由于返回数据没有标识，因此需要加上筛选拼接数据
+            //   fileDate = {}
+            //   fileDate.id = id
+            //   fileDate.fs_id = val.fs_id
+            //   fileDate.server_filename = val.server_filename
+            //   fileDate.local_mtime = Dateformate(val.local_mtime)
+            //   fileDate.local_ctime = Dateformate(val.local_ctime)
+            //   fileDate.size = SizeConvert(val.size)
+            //   fileDate.isdir = val.isdir
+            //   fileDate.path = val.path
+            //   this.tableData.push(fileDate)
+            //   ++id
+            // }
           })
           .catch((error) => {
             console.log(error)
@@ -741,7 +751,7 @@ export default {
         // let fileMsg = {}
         // fileMsg.path = row.path
         // filePath.push(fileMsg)
-        let u = `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete&async=1&filelist=['/百度test/${row.server_filename}']`
+        let u = `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete&async=1&filelist=[${row.server_filename}]`
 
         this.$http
           .post(u)
@@ -1364,43 +1374,45 @@ export default {
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
       } else if (this.parents[0] == 'baid') {
-        // if (select == 'move') {
-        this.tableData = []
-        const filePath = []
-        filePath.path = this.rowDate.path
-        filePath.dest = this.selecPath
-        filePath.newname = this.rowDate.server_filename
-        this.$http
-          .post(
-            `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
-            {
-              opera: 'move',
-              filelist: filePath,
-              async: 1,
-            },
-          )
-          .then((res) => {
-            console.log(res)
-          })
-        // } else {
-        //   this.tableData = []
-        //   const filePath = []
-        //   let fileMag = {}
-        //   fileMag.path = this.rowDate.path
-        //   fileMag.dest = this.selecPath
-        //   fileMag.newname = this.rowDate.server_filename
-        //   filePath.push(fileMag)
-        //   console.log(filePath)
-        //   this.$http.get(`/rest/2.0/xpan/file`, {
-        //     params: {
-        //       method: 'filemanager',
-        //       opera: 'copy',
-        //       access_token: token,
-        //       filelist: filePath,
-        //       async: 1,
-        //     },
-        //   })
-        // }
+        if (select == 'move') {
+          this.tableData = []
+          const filePath = []
+          filePath.path = this.rowDate.path
+          filePath.dest = this.selecPath
+          filePath.newname = this.rowDate.server_filename
+          this.$http
+            .post(
+              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
+              {
+                opera: 'move',
+                filelist: filePath,
+                async: 1,
+              },
+            )
+            .then((res) => {
+              console.log(res)
+            })
+        } else {
+          this.tableData = []
+          this.$http
+            .post(
+              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
+              {
+                opera: 'copy',
+                filelist: [
+                  {
+                    'path': this.rowDate.path,
+                    'dest': this.selecPath,
+                    'newname': this.rowDate.server_filename,
+                  },
+                ],
+                async: 2,
+              },
+            )
+            .then((res) => {
+              console.log(res)
+            })
+        }
       }
 
       this.moveDialog = false //关闭模态框
@@ -1455,7 +1467,6 @@ export default {
     // New.params.title 当前目录路径
     // 面包屑功能-路由列表加载
     '$route': function(newVal) {
-      console.log(newVal)
       const Path = {} // 存入当前面包屑路径
       for (let val of this.parents) {
         // 面包屑路由切换
