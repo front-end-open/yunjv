@@ -7,7 +7,13 @@ const config = {
       // post 数据转表单
       let ret = ''
       for (let it in data) {
-        ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+        if (Array.isArray(data[it])) {
+          ret += `${encodeURIComponent(it)}=["${encodeURIComponent(
+            data[it],
+          )}"]&`
+        } else {
+          ret += `${encodeURIComponent(it)}=${encodeURIComponent(data[it])}&`
+        }
       }
       return ret
     },
