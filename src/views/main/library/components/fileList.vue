@@ -480,6 +480,8 @@ export default {
             domain: 'WORKGROUP',
             username: user,
             password: pwd,
+            port: 445,
+            autoCloseTimeout: 0,
           })
           this.path == '/'
             ? smbclient.mkdir(
