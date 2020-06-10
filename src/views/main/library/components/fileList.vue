@@ -39,16 +39,49 @@
                     size="mini"
                     class="moveFile_btn"
                     type="text"
-                    @click="moveDialogFormVisible = true"
+                    @click="openDialog_move('copy')"
                     >复制</el-button
                   >
+
+                  <el-dialog
+                    title="复制到"
+                    :visible.sync="copeDialog"
+                    append-to-body
+                    class="fixedWH"
+                    width="550px"
+                  >
+                    <div class="border">
+                      <el-input
+                        placeholder="输入关键字进行过滤"
+                        v-model="selecPath"
+                      >
+                      </el-input>
+                      <el-tree
+                        class="filter-tree"
+                        :props="props"
+                        :filter-nodeDate-method="filterNode"
+                        highlight-current
+                        lazy
+                        :load="lazyLoadTreeDir"
+                        ref="tree"
+                      >
+                      </el-tree>
+                    </div>
+
+                    <div slot="footer" class="dialog-footer">
+                      <el-button @click="copeDialog = false">取 消</el-button>
+                      <el-button type="primary" @click="moveOk('copy')"
+                        >确 定</el-button
+                      >
+                    </div>
+                  </el-dialog>
                 </el-dropdown-item>
                 <el-dropdown-item class="moveFile_btn_dad">
                   <el-button
                     size="mini"
                     class="moveFile_btn"
                     type="text"
-                    @click="openDialog_move"
+                    @click="openDialog_move('move')"
                     >移动</el-button
                   >
 
@@ -79,7 +112,7 @@
 
                     <div slot="footer" class="dialog-footer">
                       <el-button @click="moveDialog = false">取 消</el-button>
-                      <el-button type="primary" @click="copeOk"
+                      <el-button type="primary" @click="moveOk('move')"
                         >确 定</el-button
                       >
                     </div>
@@ -168,7 +201,12 @@
               title="确认删除？"
               @onConfirm="deleteFile(scope.$index, scope.row)"
             >
-              <el-button size="mini" type="text" slot="reference" :plain="true"
+              <el-button
+                size="mini"
+                slot="reference"
+                type="text"
+                :plain="true"
+                class="delete"
                 >删除
               </el-button>
             </el-popconfirm>
@@ -283,6 +321,8 @@ export default {
       // 目录移动数据
       selecPath: '',
       moveDialog: false, // 关闭dialog
+      copeDialog: false, // 关闭dialog
+
       moveDatas: [],
     }
   },
@@ -446,10 +486,10 @@ export default {
     },
     // 重命名-目录更该
     async changeDirName() {
+      const config = JSON.parse(localStorage.getItem('config'))[
+        Number(this.servertypeIndex)
+      ]
       if (this.parents[0] == 'ftp') {
-        const config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ]
         const { host, user, pwd } = config
         const client = new ftp.Client()
         client.ftp.verbose = true
@@ -494,9 +534,6 @@ export default {
           client.close()
         }
       } else if (this.parents[0] == 'smb') {
-        const config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ]
         const { host, user, pwd } = config
         var smbclient = new SMB({
           share: `\\\\${host}\\share`,
@@ -504,12 +541,6 @@ export default {
           username: user,
           password: pwd,
         })
-
-        console.log(
-          `${this.rowDate[0].parentsPath}${this.rowDate[0].server_filename}`,
-        )
-        console.log(`${this.rowDate[0].parentsPath}${this.formDate.name}`)
-
         if (this.rowDate[0].parentsPath == '') {
           //根目录下重命名
           smbclient.rename(
@@ -520,26 +551,70 @@ export default {
               console.log('file has been renamed')
             },
           )
+        } else {
+          //子目录下更名
+          smbclient.rename(
+            `${this.rowDate[0].parentsPath}${this.rowDate[0].server_filename}`,
+            `${this.rowDate[0].parentsPath}${this.formDate.name}`,
+            function(err) {
+              if (err) throw err
+              console.log('file has been renamed')
+            },
+          )
+          this.centerDialogVisible2 = false //关闭模态框
         }
-      } else {
-        //子目录下更名
-        smbclient.rename(
-          `${this.rowDate[0].parentsPath}${this.rowDate[0].server_filename}`,
-          `${this.rowDate[0].parentsPath}${this.formDate.name}`,
-          function(err) {
-            if (err) throw err
-            console.log('file has been renamed')
-          },
-        )
-        this.centerDialogVisible2 = false //关闭模态框
+      } else if (this.parents[0] == 'baid') {
+        const { token } = config
+        this.tableData = []
+        let id = 1
+        this.$http
+          .get(`/rest/2.0/xpan/file`, {
+            params: {
+              method: 'filemanager',
+              opera: 'rename',
+              access_token: token,
+              filelist: [
+                {
+                  'path': this.rowDate[0].path,
+                  'dest': this.path,
+                  'newname': this.formDate,
+                },
+              ],
+              async: 1,
+            },
+          })
+          .then((res) => {
+            const { list } = res.data
+            console.log(res)
+            let fileDate = {}
+            for (let val of list) {
+              //  由于返回数据没有标识，因此需要加上筛选拼接数据
+              fileDate = {}
+              fileDate.id = id
+              fileDate.fs_id = val.fs_id
+              fileDate.server_filename = val.server_filename
+              fileDate.local_mtime = Dateformate(val.local_mtime)
+              fileDate.local_ctime = Dateformate(val.local_ctime)
+              fileDate.size = SizeConvert(val.size)
+              fileDate.isdir = val.isdir
+              fileDate.path = val.path
+              this.tableData.push(fileDate)
+              ++id
+            }
+          })
+          .catch((error) => {
+            console.log(error)
+          })
       }
+      this.centerDialogVisible2 = false // 关闭模态框
     },
     // TODO: 文件删除
     async deleteFile(index, row) {
       const config = JSON.parse(localStorage.getItem('config'))[
         this.servertypeIndex
       ]
-      const { host, user, pwd } = config
+      const { host, user, pwd, token } = config
+
       if (this.parents[0] == 'ftp') {
         // ftp__删除文件/夹路径
         try {
@@ -609,16 +684,44 @@ export default {
           console.log(error)
         }
       } else if (this.parents[0] == 'baid') {
+        this.tableData = []
+        let id = 1
+
+        const filePath = []
+        console.log(this.rowDate.path)
+        filePath.path = this.rowDate.path
+
         this.$http
-          .post(
-            `/rest/2.0/xpan/file?method=filemanager&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&opera=delete`,
-            {
-              filelist: [row.path],
-              async: 1,
+          .get(`/rest/2.0/xpan/file`, {
+            params: {
+              opera: 'delete',
+              filelist: filePath,
+              async: 0,
+              method: 'filemanager',
+              access_token: token,
             },
-          )
+          })
           .then((res) => {
+            const { list } = res.data
             console.log(res)
+            let fileDate = {}
+            for (let val of list) {
+              fileDate = {}
+              fileDate.id = id
+              fileDate.fs_id = val.fs_id
+              fileDate.server_filename = val.server_filename
+              fileDate.local_mtime = Dateformate(val.local_mtime)
+              fileDate.local_ctime = Dateformate(val.local_ctime)
+              fileDate.size = SizeConvert(val.size)
+              fileDate.isdir = val.isdir
+              fileDate.path = val.path
+              this.tableData.push(fileDate)
+              ++id
+              console.log(this.tableData)
+            }
+          })
+          .catch((error) => {
+            console.log(error)
           })
       }
     },
@@ -1036,19 +1139,15 @@ export default {
           break
       }
     },
-    openDialog_move() {
-      if (this.parents[0] == 'ftp') {
-        this.moveDialog = true // 打开模态框
-      } else if (this.parents[0] == 'smb') {
-        this.moveDialog = true //打开模态框
-      }
+    openDialog_move(select) {
+      select == 'move' ? (this.moveDialog = true) : (this.copeDialog = true) // 打开模态框
     },
-    //  文件移动--点击列表
+    //  文件移动/复制--点击列表
     async lazyLoadTreeDir(node, resolve) {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
+      const { host, user, pwd, token } = config
       let moveFile = {},
         moveData = []
       const client = new ftp.Client()
@@ -1067,6 +1166,8 @@ export default {
               moveFile.parentsPath = ``
               moveFile.path = `${server_filename}`
               moveFile.isdir = path.extname(server_filename) ? 0 : 1
+            } else if (this.parents[0] == 'baid') {
+              moveFile.path = `/${server_filename}`
             }
             moveData.push(moveFile)
           }
@@ -1134,14 +1235,50 @@ export default {
           console.log(error)
           client.close()
         }
+      } else if (this.parents[0] == 'baid') {
+        console.log(node.data.path)
+        this.$http
+          .get('/rest/2.0/xpan/file', {
+            params: {
+              dir: node.data.path,
+              access_token: token,
+              order: 'size',
+              method: 'list',
+              recursion: '0',
+              desc: '1',
+              start: 0,
+            },
+          })
+          .then((res) => {
+            const { list } = res.data
+            let id = 0
+            for (let val of list) {
+              //  由于返回数据没有标识，因此需要加上筛选拼接数据
+              moveFile = {}
+              if (val.isdir) {
+                moveFile.id = id
+                moveFile.fs_id = val.fs_id
+                moveFile.name = val.server_filename
+                moveFile.isdir = val.isdir
+                moveFile.path = val.path
+                moveData.push(moveFile)
+                ++id
+              }
+            }
+            this.selecPath = node.data.path
+            resolve(moveData)
+          })
+          .catch((error) => {
+            console.log(error.toJSON())
+          })
       }
     },
-    // 确定提交
-    async copeOk() {
+    // 移动/复制 提交
+    async moveOk(select) {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
+      const { host, user, pwd, token } = config
       if (this.parents[0] == 'ftp') {
         try {
           await client.access({
@@ -1150,23 +1287,81 @@ export default {
             password: pwd,
             secure: false,
           })
-          await client
-            .rename(
+          if (select == 'move') {
+            await client.rename(
               this.rowDate.path,
               `${this.selecPath}/${this.rowDate.server_filename}`,
             )
-            .then((res) => {
-              console.log(res)
+            await client.list(this.rowDate.parentsPath).then((res) => {
+              this.tableDatas = []
+              for (let [index, item] of res.entries()) {
+                const { name, isDirectory } = item
+                this.singleFile = {}
+                this.singleFile.parent = res.server_filename // 行目录名
+                // 子目录请求内容
+                this.singleFile.id = index + Math.random()
+                this.singleFile.server_filename = name
+                this.singleFile.parentsPath = this.selecPath
+                this.singleFile.path =
+                  this.selecPath == '/'
+                    ? `${this.selecPath}${name}`
+                    : `${this.selecPath}/${name}`
+                this.singleFile.isdir = Number(isDirectory)
+                this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+              }
             })
+            this.tableData = this.tableDatas // 将新的列表赋给原列表
+            await client.lint
+          } else if (select == 'copy') {
+            console.log('复制功能')
+          }
+          this.copeDialog = false
           this.moveDialog = false
         } catch (error) {
           console.log(error)
           client.close()
         }
-        this.moveDialog = false
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
+      } else if (this.parents[0] == 'baid') {
+        if (select == 'move') {
+          this.tableData = []
+          const filePath = []
+          filePath.path = this.rowDate.path
+          filePath.dest = this.selecPath
+          filePath.newname = this.rowDate.server_filename
+          this.$http.get(`/rest/2.0/xpan/file?`, {
+            params: {
+              method: 'filemanager',
+              opera: 'move',
+              access_token: token,
+              filelist: filePath,
+              async: 1,
+            },
+          })
+        } else {
+          this.tableData = []
+          const filePath = []
+          let fileMag = {}
+          fileMag.path = this.rowDate.path
+          fileMag.dest = this.selecPath
+          fileMag.newname = this.rowDate.server_filename
+          filePath.push(fileMag)
+          console.log(filePath)
+          this.$http.get(`/rest/2.0/xpan/file`, {
+            params: {
+              method: 'filemanager',
+              opera: 'copy',
+              access_token: token,
+              filelist: filePath,
+              async: 1,
+            },
+          })
+        }
       }
+
+      this.moveDialog = false //关闭模态框
+      this.copeDialog = false //关闭模态框
     },
 
     // 重置表单
@@ -1345,5 +1540,13 @@ export default {
 }
 .breadbox {
   background: rgb(220, 230, 246);
+}
+.delete:hover {
+  border: none;
+  background: initial !important;
+}
+.delete {
+  border: none;
+  background: initial !important;
 }
 </style>
