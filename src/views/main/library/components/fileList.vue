@@ -269,6 +269,7 @@
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
+// import vue from 'vue'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
@@ -327,6 +328,7 @@ export default {
       moveDialog: false, // 关闭dialog
       copeDialog: false, // 关闭dialog
       moveDatas: [],
+      moveIndex: '', //选中行的索引
       //搜索文件
       searchFile: '',
     }
@@ -426,7 +428,7 @@ export default {
       var config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd, token } = config
+      const { host, user, pwd } = config
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
@@ -515,26 +517,6 @@ export default {
           this.centerDialogVisible = false
           break
         case 'baid':
-          this.$http
-            .post(`/rest/2.0/xpan/file?method=create&access_token=${token}`, {
-              'path': `${this.path}/${this.ruleForm.name}`,
-              'size': '0',
-              'isdir': '1',
-              'rtype': 1,
-            })
-            .then((res) => {
-              const { data } = res
-              let moveFile = {}
-              //  由于返回数据没有标识，因此需要加上筛选拼接数据
-              moveFile = {}
-              moveFile.id = Math.random()
-              moveFile.fs_id = data.fs_id
-              moveFile.server_filename = this.ruleForm.name
-              moveFile.isdir = data.isdir
-              moveFile.path = data.path
-              this.tableData.push(moveFile)
-              console.log(this.tableData)
-            })
           break
       }
       this.centerDialogVisible = false
@@ -545,6 +527,7 @@ export default {
       this.centerDialogVisible2 = true // 打开模态框
       this.rowDate.push(row)
       this.formDate.name = row.server_filename
+      this.formDate.id = index
     },
     // 重命名-目录更该
     async changeDirName() {
@@ -627,44 +610,40 @@ export default {
         }
       } else if (this.parents[0] == 'baid') {
         const { token } = config
-        this.tableData = []
-        // let id = 1
+        let path = `[{"path":"${this.rowDate[0].path}","newname":"${this.formDate.name}"}]`
         this.$http
-          .get(`/rest/2.0/xpan/file?access_token=${token}`, {
-            params: {
-              method: 'filemanager',
-              opera: 'rename',
-              filelist: [
-                {
-                  'path': this.rowDate[0].path,
-                  'dest': this.path,
-                  'newname': this.formDate,
-                },
-              ],
-              async: 1,
+          .post(
+            `/rest/2.0/xpan/file?access_token=${token}&method=filemanager&opera=rename`,
+            {
+              async: 2,
+              filelist: path,
             },
-          })
+          )
           .then((res) => {
-            // const { list } = res.data
             console.log(res)
-            // let fileDate = {}
-            // for (let val of list) {
-            //  由于返回数据没有标识，因此需要加上筛选拼接数据
-            //   fileDate = {}
-            //   fileDate.id = id
-            //   fileDate.fs_id = val.fs_id
-            //   fileDate.server_filename = val.server_filename
-            //   fileDate.local_mtime = Dateformate(val.local_mtime)
-            //   fileDate.local_ctime = Dateformate(val.local_ctime)
-            //   fileDate.size = SizeConvert(val.size)
-            //   fileDate.isdir = val.isdir
-            //   fileDate.path = val.path
-            //   this.tableData.push(fileDate)
-            //   ++id
-            // }
-          })
-          .catch((error) => {
-            console.log(error)
+            if (this.path == '/') {
+              this.$set(this.tableData, this.formDate.id, {
+                'fs_id': this.tableData[this.formDate.id].fs_id,
+                'id': this.tableData[this.formDate.id].id,
+                'isdir': this.tableData[this.formDate.id].isdir,
+                'local_ctime': this.tableData[this.formDate.id].local_ctime,
+                'local_mtime': this.tableData[this.formDate.id].local_mtime,
+                'server_filename': this.formDate.name,
+                'size': this.tableData[this.formDate.id].size,
+                'path': `${this.path}${this.formDate.name}`,
+              })
+            } else {
+              this.$set(this.tableData, this.formDate.id, {
+                'fs_id': this.tableData[this.formDate.id].fs_id,
+                'id': this.tableData[this.formDate.id].id,
+                'isdir': this.tableData[this.formDate.id].isdir,
+                'local_ctime': this.tableData[this.formDate.id].local_ctime,
+                'local_mtime': this.tableData[this.formDate.id].local_mtime,
+                'server_filename': this.formDate.name,
+                'size': this.tableData[this.formDate.id].size,
+                'path': `${this.path}/${this.formDate.name}`,
+              })
+            }
           })
       }
       this.centerDialogVisible2 = false // 关闭模态框
@@ -745,41 +724,25 @@ export default {
           console.log(error)
         }
       } else if (this.parents[0] == 'baid') {
-        this.tableData = []
-        // let id = 1
-
-        // let fileMsg = {}
-        // fileMsg.path = row.path
-        // filePath.push(fileMsg)
-        let u = `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete&async=1&filelist=[${row.server_filename}]`
-
+        this.tableData.splice(index, 1)
+        console.log(this.tableData)
         this.$http
-          .post(u)
+          .post(
+            `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete`,
+            {
+              'async': 1,
+              'filelist': [row.path],
+            },
+          )
           .then((res) => {
-            // const { list } = res.data
             console.log(res)
-            // let fileDate = {}
-            // for (let val of list) {
-            // fileDate = {}
-            // fileDate.id = id
-            // fileDate.fs_id = val.fs_id
-            // fileDate.server_filename = val.server_filename
-            // fileDate.local_mtime = Dateformate(val.local_mtime)
-            // fileDate.local_ctime = Dateformate(val.local_ctime)
-            // fileDate.size = SizeConvert(val.size)
-            // fileDate.isdir = val.isdir
-            // fileDate.path = val.path
-            // this.tableData.push(fileDate)
-            // ++id
-            // console.log(this.tableData)
-            // }
           })
           .catch((error) => {
             console.log(error)
           })
       }
     },
-    //  ftp--文件列表获取
+    //  ftp文件列表获取
     async ftpclient() {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
@@ -906,16 +869,14 @@ export default {
               },
             })
             this.$http
-              .get(`/rest/2.0/xpan/multimedia?&access_token=${token}`, {
-                params: {
-                  path: row.path,
-                  order: 'size',
-                  method: 'listall',
-                  recursion: '0',
-                  desc: '1',
-                  start: 0,
+              .get(
+                `/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
+                {
+                  params: {
+                    path: row.path,
+                  },
                 },
-              })
+              )
               .then((res) => {
                 const { list } = res.data
                 let fileDate = {},
@@ -1046,12 +1007,14 @@ export default {
         // 待完成
         let id = 1
         this.$http
-          .get(`/rest/2.0/xpan/multimedia?&access_token=${token}`, {
-            params: {
-              path,
-              method: 'listall',
+          .get(
+            `/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
+            {
+              params: {
+                path,
+              },
             },
-          })
+          )
           .then((res) => {
             const { list } = res.data
             let fileDate = {}
@@ -1194,6 +1157,26 @@ export default {
     openDialog_move(select) {
       select == 'move' ? (this.moveDialog = true) : (this.copeDialog = true) // 打开模态框
     },
+    //  选中行，获取行数据
+    selec(selection, row) {
+      if (selection.length) {
+        this.rowDate = row
+        // this.downtag = false
+      } else {
+        this.rowDate = []
+        // this.downtag = true
+      }
+      //获取选中行的索引
+      const index = this.tableData
+        .map((e) => e.server_filename)
+        .indexOf(row.server_filename)
+      this.moveIndex = index
+    },
+    // 文件移动--搜索展示
+    filterNode(value, data) {
+      if (!value) return true
+      return data.label.indexOf(value) !== -1
+    },
     //  文件移动/复制--点击列表
     async lazyLoadTreeDir(node, resolve) {
       const config = JSON.parse(localStorage.getItem('config'))[
@@ -1289,14 +1272,9 @@ export default {
         }
       } else if (this.parents[0] == 'baid') {
         this.$http
-          .get(`/rest/2.0/xpan/file?&access_token=${token}`, {
+          .get(`/rest/2.0/xpan/file?&access_token=${token}&method=list`, {
             params: {
               dir: node.data.path,
-              order: 'size',
-              method: 'list',
-              recursion: '0',
-              desc: '1',
-              start: 0,
             },
           })
           .then((res) => {
@@ -1374,18 +1352,15 @@ export default {
       } else if (this.parents[0] == 'smb') {
         console.log('smb文件移动')
       } else if (this.parents[0] == 'baid') {
+        //提交移动
         if (select == 'move') {
-          this.tableData = []
-          const filePath = []
-          filePath.path = this.rowDate.path
-          filePath.dest = this.selecPath
-          filePath.newname = this.rowDate.server_filename
+          this.tableData.splice(this.moveIndex, 1)
+          let movePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}"}]`
           this.$http
             .post(
-              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
+              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=move`,
               {
-                opera: 'move',
-                filelist: filePath,
+                filelist: movePath,
                 async: 1,
               },
             )
@@ -1393,19 +1368,14 @@ export default {
               console.log(res)
             })
         } else {
-          this.tableData = []
+          //提交复制
+          this.tableData.splice(0, 0)
+          let copePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}","newname":"${this.rowDate.server_filename}"}]`
           this.$http
             .post(
-              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}`,
+              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=copy`,
               {
-                opera: 'copy',
-                filelist: [
-                  {
-                    'path': this.rowDate.path,
-                    'dest': this.selecPath,
-                    'newname': this.rowDate.server_filename,
-                  },
-                ],
+                filelist: copePath,
                 async: 2,
               },
             )
@@ -1414,7 +1384,6 @@ export default {
             })
         }
       }
-
       this.moveDialog = false //关闭模态框
       this.copeDialog = false //关闭模态框
     },
@@ -1423,21 +1392,7 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields()
     },
-    //  选中行，获取行数据
-    selec(selection, row) {
-      if (selection.length) {
-        this.rowDate = row
-        // this.downtag = false
-      } else {
-        this.rowDate = []
-        // this.downtag = true
-      }
-    },
-    // 文件移动--搜索展示
-    filterNode(value, data) {
-      if (!value) return true
-      return data.label.indexOf(value) !== -1
-    },
+
     seleChange(selection) {
       if (selection.length) {
         this.downtag = false
