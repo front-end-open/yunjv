@@ -29,115 +29,125 @@
             <el-button size="mini" type="primary" @click="createDiretory"
               >新建文件夹</el-button
             >
-            <el-dropdown trigger="click" style="margin: 0 12px">
-              <el-button size="mini" type="primary">
-                文件操作<i class="el-icon-arrow-down el-icon--right"></i>
-              </el-button>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item class="moveFile_btn_dad">
-                  <el-button
-                    size="mini"
-                    class="moveFile_btn"
-                    type="text"
-                    @click="openDialog_move('copy')"
-                    >复制</el-button
-                  >
-
-                  <el-dialog
-                    title="复制到"
-                    :visible.sync="copeDialog"
-                    append-to-body
-                    class="fixedWH"
-                    width="550px"
-                  >
-                    <div class="border">
-                      <el-input
-                        placeholder="输入关键字进行过滤"
-                        v-model="selecPath"
-                      >
-                      </el-input>
-                      <el-tree
-                        class="filter-tree"
-                        :props="props"
-                        :filter-nodeDate-method="filterNode"
-                        highlight-current
-                        lazy
-                        :load="lazyLoadTreeDir"
-                        ref="tree"
-                      >
-                      </el-tree>
-                    </div>
-
-                    <div slot="footer" class="dialog-footer">
-                      <el-button @click="copeDialog = false">取 消</el-button>
-                      <el-button type="primary" @click="moveOk('copy')"
-                        >确 定</el-button
-                      >
-                    </div>
-                  </el-dialog>
-                </el-dropdown-item>
-                <el-dropdown-item class="moveFile_btn_dad">
-                  <el-button
-                    size="mini"
-                    class="moveFile_btn"
-                    type="text"
-                    @click="openDialog_move('move')"
-                    >移动</el-button
-                  >
-
-                  <el-dialog
-                    title="移动到"
-                    :visible.sync="moveDialog"
-                    append-to-body
-                    class="fixedWH"
-                    width="550px"
-                  >
-                    <div class="border">
-                      <el-input
-                        placeholder="输入关键字进行过滤"
-                        v-model="selecPath"
-                      >
-                      </el-input>
-                      <el-tree
-                        class="filter-tree"
-                        :props="props"
-                        :filter-nodeDate-method="filterNode"
-                        highlight-current
-                        lazy
-                        :load="lazyLoadTreeDir"
-                        ref="tree"
-                      >
-                      </el-tree>
-                    </div>
-
-                    <div slot="footer" class="dialog-footer">
-                      <el-button @click="moveDialog = false">取 消</el-button>
-                      <el-button type="primary" @click="moveOk('move')"
-                        >确 定</el-button
-                      >
-                    </div>
-                  </el-dialog>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-
+            <!-- 上传 -->
             <el-button size="mini" type="primary" @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
-            <el-button
-              size="mini"
-              type="primary"
-              :disabled="downtag"
-              @click="downLoadFile"
-              >下载<i class="el-icon-download el-icon--right"></i
-            ></el-button>
+
+            <template v-if="show">
+              <el-dropdown trigger="click" style="margin: 0 12px">
+                <el-button size="mini" type="primary">
+                  文件操作<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <!-- 复制 -->
+                  <el-dropdown-item class="moveFile_btn_dad">
+                    <el-button
+                      size="mini"
+                      class="moveFile_btn"
+                      type="text"
+                      @click="openDialog_move('copy')"
+                      >复制</el-button
+                    >
+
+                    <el-dialog
+                      title="复制到"
+                      :visible.sync="copeDialog"
+                      append-to-body
+                      class="fixedWH"
+                      width="550px"
+                    >
+                      <el-input
+                        placeholder="当前路径"
+                        v-model="selecPath"
+                        :disabled="true"
+                      >
+                      </el-input>
+                      <div class="border">
+                        <el-tree
+                          class="filter-tree"
+                          :props="props"
+                          :filter-nodeDate-method="filterNode"
+                          highlight-current
+                          lazy
+                          @node-click="handleNodeClick"
+                          :load="lazyLoadTreeDir"
+                          ref="tree"
+                        >
+                        </el-tree>
+                      </div>
+
+                      <div slot="footer" class="dialog-footer">
+                        <el-button @click="copeDialog = false">取 消</el-button>
+                        <el-button type="primary" @click="moveOk('copy')"
+                          >确 定</el-button
+                        >
+                      </div>
+                    </el-dialog>
+                  </el-dropdown-item>
+                  <!-- 移动 -->
+                  <el-dropdown-item class="moveFile_btn_dad">
+                    <el-button
+                      size="mini"
+                      class="moveFile_btn"
+                      type="text"
+                      @click="openDialog_move('move')"
+                      >移动</el-button
+                    >
+
+                    <el-dialog
+                      title="移动到"
+                      :visible.sync="moveDialog"
+                      append-to-body
+                      class="fixedWH"
+                      width="550px"
+                    >
+                      <el-input
+                        placeholder="当前路径"
+                        v-model="selecPath"
+                        :disabled="true"
+                      >
+                      </el-input>
+                      <div class="border">
+                        <el-tree
+                          class="filter-tree"
+                          :props="props"
+                          :filter-nodeDate-method="filterNode"
+                          highlight-current
+                          lazy
+                          @node-click="handleNodeClick"
+                          :load="lazyLoadTreeDir"
+                          ref="tree"
+                        >
+                        </el-tree>
+                      </div>
+
+                      <div slot="footer" class="dialog-footer">
+                        <el-button @click="moveDialog = false">取 消</el-button>
+                        <el-button type="primary" @click="moveOk('move')"
+                          >确 定</el-button
+                        >
+                      </div>
+                    </el-dialog>
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown>
+              <!-- 下载 -->
+              <el-button size="mini" type="primary" @click="downLoadFile"
+                >下载<i class="el-icon-download el-icon--right"></i
+              ></el-button>
+            </template>
           </div>
         </el-col>
-        <el-col :span="5" :offset="4">
-          <el-input placeholder="请输入" v-model="searchFile">
+        <el-col :span="6" :offset="3">
+          <el-input
+            placeholder="请输入"
+            v-model="searchFile"
+            @change="searchClick"
+          >
             <i
               slot="prefix"
-              class="el-input__icon el-icon-search"
+              class="el-input__icon el-icon-search cursor"
               @click="searchClick"
             ></i>
           </el-input>
@@ -166,7 +176,6 @@
         style="width: 100%;margin-bottom: 20px;"
         row-key="id"
         @select="selec"
-        @selection-change="seleChange"
         :default-expand-all="false"
         @row-dblclick="switchDir"
       >
@@ -189,6 +198,7 @@
         <el-table-column prop="permission" label="权限" sortable width="180">
         </el-table-column>
         <el-table-column prop="Owner" label="所有者"> </el-table-column>
+        <!-- 重命名、删除 -->
         <el-table-column label="文件操作" fixed="right" width="150">
           <template slot-scope="scope">
             <el-button
@@ -218,12 +228,12 @@
         </el-table-column>
       </el-table>
 
-      <!-- 创建文件夹 -->
+      <!-- 创建文件夹模态框 -->
       <el-dialog
         title="新建"
         :visible.sync="centerDialogVisible"
-        width="50%"
-        center
+        width="437px"
+        class="createClass"
       >
         <div class="form">
           <el-form
@@ -231,26 +241,25 @@
             :rules="rules"
             ref="ruleForm"
             label-width="100px"
-            class="demo-ruleForm"
           >
             <el-form-item label="目录名称" prop="name">
               <el-input v-model="ruleForm.name"></el-input>
             </el-form-item>
-            <el-form-item>
+            <el-form-item class="createFlex">
+              <el-button @click="resetForm('ruleForm')">重置</el-button>
+
               <el-button type="primary" @click="submitForm()"
                 >立即创建</el-button
               >
-              <el-button @click="resetForm('ruleForm')">重置</el-button>
             </el-form-item>
           </el-form>
         </div>
       </el-dialog>
-      <!-- 重命名 -->
+      <!-- 重命名模态框 -->
       <el-dialog
-        title="提示"
+        title="重命名"
         :visible.sync="centerDialogVisible2"
-        width="30%"
-        center
+        width="437px"
       >
         <el-form :inline="true" :model="formDate" class="demo-form-inline">
           <el-form-item label="文件名">
@@ -269,7 +278,6 @@
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
-// import vue from 'vue'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
 const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
@@ -321,7 +329,6 @@ export default {
       rightEventrowDate: null,
       rowDate: {},
       servertypeIndex: null,
-      downtag: true,
       showtag: false,
       // 目录移动数据
       selecPath: '',
@@ -331,6 +338,8 @@ export default {
       moveIndex: '', //选中行的索引
       //搜索文件
       searchFile: '',
+      //文件操作、下载默认隐藏
+      show: false,
     }
   },
   created() {
@@ -1110,7 +1119,6 @@ export default {
     // TODO: 下载优化
     downLoadFile() {
       //  ftp-目录出创建
-
       switch (this.parents[0]) {
         case 'ftp':
           var filepath = dialog.showOpenDialog({
@@ -1161,10 +1169,10 @@ export default {
     selec(selection, row) {
       if (selection.length) {
         this.rowDate = row
-        // this.downtag = false
+        this.show = true
       } else {
         this.rowDate = []
-        // this.downtag = true
+        this.show = false
       }
       //获取选中行的索引
       const index = this.tableData
@@ -1172,13 +1180,18 @@ export default {
         .indexOf(row.server_filename)
       this.moveIndex = index
     },
-    // 文件移动--搜索展示
+    // 文件移动/复制--搜索展示
     filterNode(value, data) {
       if (!value) return true
       return data.label.indexOf(value) !== -1
     },
-    //  文件移动/复制--点击列表
+    //文件移动、复制--点击
+    handleNodeClick(data) {
+      this.selecPath = data.path
+    },
+    //  文件移动/复制--懒加载
     async lazyLoadTreeDir(node, resolve) {
+      this.selecPath = '/'
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
@@ -1187,7 +1200,7 @@ export default {
         moveData = []
       const client = new ftp.Client()
       if (node.level === 0) {
-        for (let item of this.tableData) {
+        for (let item of this.$store.state.indexFileDate) {
           const { server_filename, isdir } = item
           moveFile = {}
           //   // 子目录请求内容
@@ -1263,7 +1276,8 @@ export default {
               }
             }
             this.selecPath = node.data.path
-
+            // let newPath = node.data.path
+            // this.$set(this.selecPath, 0, { newPath })
             resolve(moveData)
           })
         } catch (error) {
@@ -1293,7 +1307,7 @@ export default {
                 ++id
               }
             }
-            this.selecPath = node.data.path
+
             resolve(moveData)
           })
           .catch((error) => {
@@ -1383,22 +1397,16 @@ export default {
               console.log(res)
             })
         }
+        this.selecPath = '/'
       }
       this.moveDialog = false //关闭模态框
       this.copeDialog = false //关闭模态框
+      this.show = false
     },
 
     // 重置表单
     resetForm(formName) {
       this.$refs[formName].resetFields()
-    },
-
-    seleChange(selection) {
-      if (selection.length) {
-        this.downtag = false
-      } else {
-        this.downtag = true
-      }
     },
   },
 
@@ -1530,6 +1538,7 @@ export default {
 .form {
   max-width: 400px;
   margin: auto;
+  margin-bottom: 10px;
 }
 .moveFile_btn {
   width: 102%;
@@ -1557,5 +1566,17 @@ export default {
 .delete {
   border: none;
   background: initial !important;
+}
+.control {
+  text-align: left;
+  min-width: 385px;
+}
+.cursor {
+  cursor: pointer;
+}
+.createFlex {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0;
 }
 </style>
