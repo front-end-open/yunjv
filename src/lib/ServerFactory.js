@@ -12,7 +12,7 @@ const client = require('basic-ftp')
 const path = require('path')
 const SMB = require('@marsaud/smb2')
 const fs = require('fs')
-const md5 = require('md5')
+// const md5 = require('md5')
 const { SeafileAPI } = require('seafile-js')
 import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
@@ -94,7 +94,7 @@ ServerFactory.prototype = {
       })
       //on end在该分片读取完成时触发
       readStream.on('end', async () => {
-        let convert = [md5(Buffer.concat(arr))]
+        // let convert = [md5(Buffer.concat(arr))]
         // let blob = new Blob(arr)
         console.log(arr)
         http

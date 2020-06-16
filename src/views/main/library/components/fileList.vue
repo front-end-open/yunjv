@@ -291,6 +291,7 @@ const SMB = require('@marsaud/smb2')
 // const fs = require('fs')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
+
 export default {
   name: 'fileList',
   data() {
@@ -445,7 +446,7 @@ export default {
       var config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd } = config
+      const { host, user, pwd,token } = config
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
@@ -534,6 +535,26 @@ export default {
           this.centerDialogVisible = false
           break
         case 'baid':
+          this.$http
+            .post(`/rest/2.0/xpan/file?method=create&access_token=${token}`, {
+              'path': `${this.path}/${this.ruleForm.name}`,
+              'size': '0',
+              'isdir': '1',
+              'rtype': 1,
+            })
+            .then((res) => {
+              const { data } = res
+              let moveFile = {}
+              //  由于返回数据没有标识，因此需要加上筛选拼接数据
+              moveFile = {}
+              moveFile.id = Math.random()
+              moveFile.fs_id = data.fs_id
+              moveFile.server_filename = this.ruleForm.name
+              moveFile.isdir = data.isdir
+              moveFile.path = data.path
+              this.tableData.push(moveFile)
+              console.log(this.tableData)
+            })
           break
       }
       this.centerDialogVisible = false
@@ -566,30 +587,28 @@ export default {
             this.rowDate[0].path, // 设置要更改的文件/文件夹路径
             `${this.rowDate[0].parentsPath}/${this.formDate.name}`, // 设置更改后的路径---祖先路径+当前文件名
           )
-          await client.list(this.path).then((res) => {
-            this.tableDatas = []
-            for (let [index, item] of res.entries()) {
-              const { name, size, isDirectory, modifiedAt } = item
-              this.singleFile = {}
-              this.singleFile.parent = res.server_filename // 行目录名
-              // 子目录请求内容
-              this.singleFile.id = index + Math.random()
-              this.singleFile.server_filename = name
-              this.singleFile.size = SizeConvert(size)
-              this.singleFile.parentsPath = this.rowDate[0].parentsPath
-              this.singleFile.path =
-                this.rowDate[0].parentsPath == '/'
-                  ? `${this.rowDate[0].parentsPath}${name}`
-                  : `${this.rowDate[0].parentsPath}/${name}`
-              this.singleFile.isdir = Number(isDirectory)
-              this.singleFile.local_mtime = modifiedAt
-              this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
-            }
-          })
-          this.tableData = this.tableDatas // 将新的列表赋给原列表
+          if (this.path == '/') {
+            this.$set(this.tableData, this.formDate.id, {
+              'id': this.tableData[this.formDate.id].id,
+              'isdir': this.tableData[this.formDate.id].isdir,
+              'server_filename': this.formDate.name,
+              'parentsPath': this.path,
+              'local_mtime': this.tableData[this.formDate.id].local_mtime,
+              'size': this.tableData[this.formDate.id].size,
+              'path': `${this.path}${this.formDate.name}`,
+            })
+          } else {
+            this.$set(this.tableData, this.formDate.id, {
+              'id': this.tableData[this.formDate.id].id,
+              'isdir': this.tableData[this.formDate.id].isdir,
+              'server_filename': this.formDate.name,
+              'parentsPath': this.path,
+              'local_mtime': this.tableData[this.formDate.id].local_mtime,
+              'size': this.tableData[this.formDate.id].size,
+              'path': `${this.rowDate[0].parentsPath}/${this.formDate.name}`,
+            })
+          }
           this.centerDialogVisible2 = false
-          //  }
-          client.close()
         } catch (error) {
           this.centerDialogVisible2 = false // 关闭模态框
           console.log(error)
@@ -674,42 +693,26 @@ export default {
 
       if (this.parents[0] == 'ftp') {
         // ftp__删除文件/夹路径
+        const ftpClient = new ftp.Client()
+
         try {
-          await client.access({
+          await ftpClient.access({
             host,
             user,
             password: pwd,
             secure: false,
           })
-          switch (row.isdir) {
-            case 1:
-              await client.removeDir(row.path)
-              break
-            case 0:
-              await client.remove(row.path)
-              break
+          if (row.isdir == 1) {
+            await ftpClient.removeDir(row.path).then((res) => {
+              this.tableData.splice(index, 1)
+              console.log(res)
+            })
+          } else {
+            await ftpClient.remove(row.path).then((res) => {
+              this.tableData.splice(index, 1)
+              console.log(res)
+            })
           }
-          await client.list(row.parentsPath).then((res) => {
-            this.tableDatas = []
-            for (let [index, item] of res.entries()) {
-              const { name, size, isDirectory, modifiedAt } = item
-              this.singleFile = {}
-              this.singleFile.parent = res.server_filename // 行目录名
-              // 子目录请求内容
-              this.singleFile.id = index + Math.random()
-              this.singleFile.server_filename = name
-              this.singleFile.size = SizeConvert(size)
-              this.singleFile.parentsPath = row.parentsPath
-              this.singleFile.path =
-                row.parentsPath == '/'
-                  ? `${row.parentsPath}${name}`
-                  : `${row.parentsPath}/${name}`
-              this.singleFile.isdir = Number(isDirectory)
-              this.singleFile.local_mtime = modifiedAt
-              this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
-            }
-          })
-          this.tableData = this.tableDatas // 将新的列表赋给原列表
         } catch (error) {
           console.log(error)
         }
@@ -741,8 +744,6 @@ export default {
           console.log(error)
         }
       } else if (this.parents[0] == 'baid') {
-        this.tableData.splice(index, 1)
-        console.log(this.tableData)
         this.$http
           .post(
             `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete`,
@@ -752,6 +753,7 @@ export default {
             },
           )
           .then((res) => {
+            this.tableData.splice(index, 1)
             console.log(res)
           })
           .catch((error) => {
@@ -1347,30 +1349,15 @@ export default {
             secure: false,
           })
           if (select == 'move') {
-            await client.rename(
-              this.rowDate.path,
-              `${this.selecPath}/${this.rowDate.server_filename}`,
-            )
-            await client.list(this.rowDate.parentsPath).then((res) => {
-              this.tableDatas = []
-              for (let [index, item] of res.entries()) {
-                const { name, isDirectory } = item
-                this.singleFile = {}
-                this.singleFile.parent = res.server_filename // 行目录名
-                // 子目录请求内容
-                this.singleFile.id = index + Math.random()
-                this.singleFile.server_filename = name
-                this.singleFile.parentsPath = this.selecPath
-                this.singleFile.path =
-                  this.selecPath == '/'
-                    ? `${this.selecPath}${name}`
-                    : `${this.selecPath}/${name}`
-                this.singleFile.isdir = Number(isDirectory)
-                this.tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
-              }
-            })
-            this.tableData = this.tableDatas // 将新的列表赋给原列表
-            await client.lint
+            await client
+              .rename(
+                this.rowDate.path,
+                `${this.selecPath}/${this.rowDate.server_filename}`,
+              )
+              .then((res) => {
+                console.log(res)
+                this.tableData.splice(this.moveIndex, 1)
+              })
           } else if (select == 'copy') {
             console.log('复制功能')
           }
@@ -1385,7 +1372,6 @@ export default {
       } else if (this.parents[0] == 'baid') {
         //提交移动
         if (select == 'move') {
-          this.tableData.splice(this.moveIndex, 1)
           let movePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}"}]`
           this.$http
             .post(
@@ -1397,10 +1383,10 @@ export default {
             )
             .then((res) => {
               console.log(res)
+              this.tableData.splice(this.moveIndex, 1)
             })
         } else {
           //提交复制
-          this.tableData.splice(0, 0)
           let copePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}","newname":"${this.rowDate.server_filename}"}]`
           this.$http
             .post(
@@ -1412,6 +1398,7 @@ export default {
             )
             .then((res) => {
               console.log(res)
+              this.tableData.splice(0, 0)
             })
         }
         this.selecPath = '/'
