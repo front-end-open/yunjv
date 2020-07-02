@@ -19,6 +19,9 @@ import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import ServerFac from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
+import Distinct from '@/lib/arryDuplicateRemove.js'
+
+const { SeafileAPI } = require('seafile-js')
 
 Vue.use(VueRouter)
 const originalPush = VueRouter.prototype.push
@@ -56,9 +59,14 @@ const routes = [
             component: libraryFileList,
             beforeEnter: (to, from, next) => {
               const { serverType, index } = to.params,
-                { token } = JSON.parse(localStorage.getItem('config'))[index]
+                seafileAPI = new SeafileAPI(),
+                { token, host, user, pwd } = JSON.parse(
+                  localStorage.getItem('config'),
+                )[index],
+                obj = { server: host, username: user, password: pwd }
               let data = [],
                 singleFile = {}
+              seafileAPI.init(obj)
               switch (serverType) {
                 case 'baid':
                   http
@@ -138,6 +146,80 @@ const routes = [
                     next()
                   })
                   break
+                default:
+                  // seafileAPI.init(obj)
+                  seafileAPI
+                    .login()
+                    .then(async () => {
+                      let arr = []
+                      let axiosListDir = []
+                      let arrDir = []
+                      let repos = await seafileAPI.listRepos()
+                      repos.data.repos.forEach((item) => {
+                        arr.push(item.repo_id)
+                      })
+                      Distinct(arr).forEach((item) => {
+                        axiosListDir.push(seafileAPI.listDir(item, ''))
+                      })
+
+                      await Promise.all(axiosListDir).then((res) => {
+                        res.forEach((item) => {
+                          for (let val of item.data.dirent_list) {
+                            arrDir.push(val)
+                          }
+                        })
+                      })
+
+                      for (let item of arrDir) {
+                        if (item.type == 'file') {
+                          console.log(item, 'file')
+                          const {
+                            name,
+                            size,
+                            type,
+                            permissions,
+                            mtime,
+                            parent_dir,
+                          } = item
+                          singleFile = {}
+                          singleFile.id = Math.random()
+                          singleFile.server_filename = name
+                          singleFile.size = size
+                          singleFile.parent = parent_dir
+                          singleFile.parentsPath = parent_dir
+                          singleFile.path = `/${name}`
+                          singleFile.isdir = type == 'file' ? 0 : 1
+                          singleFile.local_mtime = mtime
+                          singleFile.permission = permissions
+                        } else {
+                          console.log(item, 'dir')
+                          const {
+                            name,
+                            type,
+                            permissions,
+                            mtime,
+                            parent_dir,
+                          } = item
+                          singleFile = {}
+                          singleFile.id = Math.random()
+                          singleFile.server_filename = name
+                          singleFile.parent = parent_dir
+                          singleFile.size = ''
+                          singleFile.parentsPath = parent_dir
+                          singleFile.path = `/${name}`
+                          singleFile.isdir = type == 'dir' ? 1 : 0
+                          singleFile.local_mtime = mtime
+                          singleFile.permission = permissions
+                        }
+                        data.push(singleFile)
+                      }
+                      store.commit('setindexDate', data)
+                      next()
+                    })
+                    .catch((error) => {
+                      console.log(error)
+                    })
+                  console.log(host, pwd, user)
               }
             },
             props: true,

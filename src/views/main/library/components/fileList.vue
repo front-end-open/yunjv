@@ -9,17 +9,14 @@
               <el-button
                 size="mini"
                 type="primary"
-                icon="el-icon-edit"
+                icon="el-icon-s-unfold"
+                @click="setTable"
               ></el-button>
               <el-button
                 size="mini"
                 type="primary"
-                icon="el-icon-share"
-              ></el-button>
-              <el-button
-                size="mini"
-                type="primary"
-                icon="el-icon-delete"
+                @click="setGrid"
+                icon="el-icon-s-grid"
               ></el-button>
             </el-button-group>
           </div>
@@ -171,7 +168,9 @@
     </el-row>
 
     <el-main>
+      <!-- 列表 -->
       <el-table
+        v-if="this.layout == 'table'"
         :data="tableData"
         style="width: 100%;margin-bottom: 20px;"
         row-key="id"
@@ -227,8 +226,14 @@
           </template>
         </el-table-column>
       </el-table>
-
-      <!-- 创建文件夹模态框 -->
+      <!-- 网格 -->
+      <div class="gridContainer" v-if="layout == 'grid'">
+        <div v-for="(item, index) of tableData" :key="index">
+          <v-icon :name="item.isdir ? 'folder-open' : 'file-word'" scale="2" />
+          <p>{{ item.server_filename }}</p>
+        </div>
+      </div>
+      <!-- 创建文件夹 -->
       <el-dialog
         title="新建"
         :visible.sync="centerDialogVisible"
@@ -340,6 +345,7 @@ export default {
       searchFile: '',
       //文件操作、下载默认隐藏
       show: false,
+      layout: 'table',
     }
   },
   created() {
@@ -376,6 +382,8 @@ export default {
         },
       ]
       // this.smbClient()
+      this.tableData = this.$store.state.indexFileDate
+    } else {
       this.tableData = this.$store.state.indexFileDate
     }
   },
@@ -1108,11 +1116,19 @@ export default {
           }
         }
       } else if (this.parents[0] == 'baid') {
-        const filepath = dialog.showOpenDialog({
-          properties: ['openDirectory'],
+        ipcRenderer.send('async-openDialog', 'ok') //  发送消息
+        ipcRenderer.on('async-get', (event, msg) => {
+          console.log(msg[0], '0000')
+          const server = new Server(
+            'BaiDu',
+            this.servertypeIndex,
+            JSON.parse(localStorage.getItem('config')),
+            msg[0],
+            '',
+            '',
+          )
+          server.singleUpload(msg[0])
         })
-        filepath[0]
-        this.$http.post('')
       }
     },
     //  文件下载
@@ -1137,6 +1153,7 @@ export default {
           })
           break
         case 'baid':
+          console.log('baid')
           break
         case 'smb':
           var selecfilepath = dialog.showOpenDialog({
@@ -1408,6 +1425,21 @@ export default {
     resetForm(formName) {
       this.$refs[formName].resetFields()
     },
+    //  选中行，获取行数据
+
+    seleChange(selection) {
+      if (selection.length) {
+        this.downtag = false
+      } else {
+        this.downtag = true
+      }
+    },
+    setTable() {
+      this.layout = 'table'
+    },
+    setGrid() {
+      this.layout = 'grid'
+    },
   },
 
   computed: {
@@ -1559,10 +1591,6 @@ export default {
 .breadbox {
   background: rgb(220, 230, 246);
 }
-.delete:hover {
-  border: none;
-  background: initial !important;
-}
 .delete {
   border: none;
   background: initial !important;
@@ -1578,5 +1606,16 @@ export default {
   display: flex;
   justify-content: flex-end;
   margin: 0;
+}
+.gridContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 100px);
+  grid-template-rows: repeat(3, 100px);
+  grid-row-gap: 20px;
+  grid-column-gap: 20px;
+}
+.gridContainer div {
+  overflow: auto;
+  cursor: pointer;
 }
 </style>

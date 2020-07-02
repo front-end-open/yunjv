@@ -204,11 +204,16 @@ export default {
     var validateHost = (rule, value, callback) => {
       // IP匹配正则
       const regexp = new RegExp(
-        /^(?:(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})\.){3}(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})$/,
-        'g',
-      )
-      if (!value.match(regexp)) {
-        callback(new Error('输入IP不合法'))
+          /^(?:(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})\.){3}(?:25[0-5]|2[0-4]\d|[1-9]?\d|1\d{2})$/,
+          'g',
+        ),
+        regexp2 = new RegExp(
+          /^(?:(?:https?|ftp|file):\/\/|www\.|ftp\.)(?:\([-A-Za-z0-9+&@#/%=~_|$?!:,.]*\)|[-A-Za-z0-9+&@#/%=~_|$?!:,.])*(?:\([-A-Za-z0-9+&@#/%=~_|$?!:,.]*\)|[A-Za-z0-9+&@#/%=~_|$])$/,
+          'g',
+        )
+      console.log(value.match(regexp))
+      if (!value.match(regexp) && !value.match(regexp2)) {
+        callback(new Error('输入IP或url不合法'))
       } else {
         callback()
       }
@@ -245,7 +250,7 @@ export default {
         IP: [
           {
             required: true,
-            message: '输入IP',
+            message: '输入IP或URL',
             trigger: 'blur',
           },
           {
@@ -503,7 +508,11 @@ export default {
             params: { serverType: 'smb', index },
           })
         } else {
-          ipcRenderer.send('async-webdav', 'open-webdav')
+          this.$router.push({
+            name: 'filelist',
+            params: { serverType: 'seafile', index },
+          })
+          // ipcRenderer.send('async-webdav', 'open-webdav')
         }
       }
     },

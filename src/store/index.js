@@ -7,6 +7,7 @@ export default new Vuex.Store({
   state: {
     config: JSON.parse(window.localStorage.getItem('config')),
     indexFileDate: null,
+    fileinfo: {},
   },
   mutations: {
     saveconfig(state) {
@@ -14,6 +15,9 @@ export default new Vuex.Store({
     },
     setindexDate(state, filelist) {
       state.indexFileDate = filelist
+    },
+    upLoadFIlelist(state, payload) {
+      state.fileinfo = payload
     },
   },
   actions: {},

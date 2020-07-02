@@ -1,6 +1,13 @@
 'use strict'
 
-import { Notification, ipcMain, app, protocol, BrowserWindow } from 'electron'
+import {
+  Notification,
+  ipcMain,
+  app,
+  protocol,
+  BrowserWindow,
+  dialog,
+} from 'electron'
 import {
   createProtocol,
   installVueDevtools,
@@ -52,7 +59,7 @@ ipcMain.on('async-authcode', function(event) {
         state: 1,
         info: access_token,
       })
-      // baiduWin.close()
+      baiduWin.close()
     })
     .catch((err) => {
       console.error(err)
@@ -71,6 +78,7 @@ ipcMain.on('async-openNotiton', function(event, arg) {
   })
   Notition.show()
 })
+
 //webDAV
 ipcMain.on('async-webdav', function(event, arg) {
   console.log(arg)
@@ -99,6 +107,7 @@ function createWindow() {
     height: windowHeight,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
     },
   })
 
@@ -144,6 +153,18 @@ app.on('ready', async () => {
     }
   }
   createWindow()
+
+  // downDialog
+  ipcMain.on('async-openDialog', (event) => {
+    let filepath = dialog.showOpenDialog(win, {
+      title: '选择文件',
+      buttonLabel: '确定',
+      properties: ['openFile'],
+    })
+    if (filepath) {
+      event.reply('async-get', filepath)
+    }
+  })
 })
 
 // Exit cleanly on request from parent process in development mode.
