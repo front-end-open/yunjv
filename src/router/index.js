@@ -91,7 +91,6 @@ const routes = [
                       }
                       store.commit('setindexDate', data)
                       next()
-                   
                     })
                   break
                 case 'smb':
