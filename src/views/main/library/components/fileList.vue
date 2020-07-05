@@ -446,7 +446,7 @@ export default {
       var config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      const { host, user, pwd,token } = config
+      const { host, user, pwd, token } = config
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
