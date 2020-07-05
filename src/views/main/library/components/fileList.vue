@@ -230,7 +230,7 @@
       <div class="gridContainer" v-if="layout == 'grid'">
         <div v-for="(item, index) of tableData" :key="index">
           <v-icon :name="item.isdir ? 'folder-open' : 'file-word'" scale="2" />
-          <p>{{ item.server_filename }}</p>
+          <a>{{ item.server_filename }}</a>
         </div>
       </div>
       <!-- 创建文件夹 -->
