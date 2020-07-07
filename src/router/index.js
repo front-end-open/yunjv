@@ -163,19 +163,15 @@ const routes = [
                       })
 
                       await Promise.all(axiosListDir).then((res) => {
-                        console.log(res, '222222')
                         res.forEach((item, index) => {
                           arr[index]
                           for (let val of item.data.dirent_list) {
                             val.repos_id = arr[index]
-                            console.log(val)
-                            // let dirs = val
-                            // Object.defineProperty(dirs, 'repo_id', { repes_id })
                             arrDir.push(val)
                           }
                         })
                       })
-                      console.log(arrDir)
+
                       for (let item of arrDir) {
                         if (item.type == 'file') {
                           const {
@@ -197,7 +193,6 @@ const routes = [
                           singleFile.local_mtime = mtime
                           singleFile.permission = permissions
                         } else {
-                          console.log(item, 'dir')
                           const {
                             name,
                             type,

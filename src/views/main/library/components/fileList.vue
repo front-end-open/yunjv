@@ -159,7 +159,10 @@
             <el-breadcrumb-item
               v-for="(item, index) in pathbread"
               :key="index"
-              :to="{ path: item.path, query: { path: item.filePath } }"
+              :to="{
+                path: item.path,
+                query: { path: item.filePath, repos_id: item.repos_id },
+              }"
               >{{ item.name }}</el-breadcrumb-item
             >
           </el-breadcrumb>
@@ -1008,61 +1011,63 @@ export default {
           break
         default:
           if (row.isdir) {
+            this.path = row.path
+            this.$router.push({
+              name: 'filelist',
+              params: {
+                serverType: `${row.server_filename}`,
+                currentdirpath: `${row.path}`,
+                repos_id: `${row.repos_id}`,
+              },
+            })
             seafileAPI
               .login()
               .then(() => {
-                seafileAPI
-                  .listDir(row.repos_id, row.path)
-                  .then((res) => {
-                    this.tableData = []
-                    for (let item of res.data.dirent_list) {
-                      if (item.type == 'file') {
-                        console.log(item, 'file')
-                        const {
-                          name,
-                          size,
-                          type,
-                          permissions,
-                          mtime,
-                          parent_dir,
-                        } = item
-                        this.singleFile = {}
-                        this.singleFile.id = Math.random()
-                        this.singleFile.server_filename = name
-                        this.singleFile.size = size
-                        this.singleFile.parent = parent_dir
-                        this.singleFile.parentsPath = row.path
-                        this.singleFile.path = `${row.path}/${name}`
-                        this.singleFile.isdir = type == 'file' ? 0 : 1
-                        this.singleFile.local_mtime = mtime
-                        this.singleFile.permission = permissions
-                      } else {
-                        console.log(item, 'dir')
-                        const {
-                          name,
-                          type,
-                          permissions,
-                          mtime,
-                          parent_dir,
-                        } = item
-                        this.singleFile = {}
-                        this.singleFile.id = Math.random()
-                        this.singleFile.server_filename = name
-                        this.singleFile.parent = parent_dir
-                        this.singleFile.size = ''
-                        this.singleFile.parentsPath = row.path
-                        this.singleFile.path = `${row.path}/${name}`
-                        this.singleFile.isdir = type == 'dir' ? 1 : 0
-                        this.singleFile.local_mtime = mtime
-                        this.singleFile.permission = permissions
-                        this.singleFile.repos_id = row.repos_id
-                      }
-                      this.tableData.push(this.singleFile)
+                seafileAPI.listDir(row.repos_id, row.path).then((res) => {
+                  this.tableData = []
+                  for (let item of res.data.dirent_list) {
+                    if (item.type == 'file') {
+                      const {
+                        name,
+                        size,
+                        type,
+                        permissions,
+                        mtime,
+                        parent_dir,
+                      } = item
+                      this.singleFile = {}
+                      this.singleFile.id = Math.random()
+                      this.singleFile.server_filename = name
+                      this.singleFile.size = size
+                      this.singleFile.parent = parent_dir
+                      this.singleFile.parentsPath = row.path
+                      this.singleFile.path = `${row.path}/${name}`
+                      this.singleFile.isdir = type == 'file' ? 0 : 1
+                      this.singleFile.local_mtime = mtime
+                      this.singleFile.permission = permissions
+                    } else {
+                      const {
+                        name,
+                        type,
+                        permissions,
+                        mtime,
+                        parent_dir,
+                      } = item
+                      this.singleFile = {}
+                      this.singleFile.id = Math.random()
+                      this.singleFile.server_filename = name
+                      this.singleFile.parent = parent_dir
+                      this.singleFile.size = ''
+                      this.singleFile.parentsPath = row.path
+                      this.singleFile.path = `${row.path}/${name}`
+                      this.singleFile.isdir = type == 'dir' ? 1 : 0
+                      this.singleFile.local_mtime = mtime
+                      this.singleFile.permission = permissions
+                      this.singleFile.repos_id = row.repos_id
                     }
-                  })
-                  .catch((err) => {
-                    throw Error('获取目录信息失败：' + err)
-                  })
+                    this.tableData.push(this.singleFile)
+                  }
+                })
               })
               .catch((err) => {
                 throw Error(err)
@@ -1071,7 +1076,7 @@ export default {
       }
     },
     //面包屑切换文件列表加载
-    async getFile(path, parent, repoID) {
+    async getFile(path, parent = '', repoID = '') {
       // ftp
       const config = JSON.parse(localStorage.getItem('config'))[
           Number(this.servertypeIndex)
@@ -1150,13 +1155,8 @@ export default {
         })
         return await smbclient.readdir(path)
       } else {
-        let dirList = null
-        seafileAPI.login().then(() => {
-          seafileAPI.listDir(repoID, path).then((res) => {
-            dirList = res.data.dirent_list
-          })
-        })
-        return dirList
+        await seafileAPI.login()
+        return await seafileAPI.listDir(repoID, path)
       }
     },
     //  文件上传
@@ -1553,12 +1553,14 @@ export default {
           this.switchDirTag = 0
         }
       }
+      console.log(newVal)
       //  cliDirTag 表示路由的前进后退
       if (this.switchDirTag === 1) {
         // 目录切换，添加面包屑路径
         Path.name = newVal.params.serverType
         Path.filePath = newVal.params.currentdirpath
         Path.path = newVal.path
+        Path.repos_id = newVal.params.repos_id
         this.parents.push(newVal.params.serverType)
         this.pathbread.push(Path)
       } else {
@@ -1624,6 +1626,57 @@ export default {
             this.pathbread.splice(this.isSame + 1)
             this.parents.splice(this.isSame + 1)
           })
+        } else {
+          if (newVal.query.path) {
+            this.tableData = []
+            this.getFile(newVal.query.path, '', newVal.query.repos_id).then(
+              (res) => {
+                console.log(res)
+                for (let item of res.data.dirent_list) {
+                  if (item.type == 'file') {
+                    const {
+                      name,
+                      size,
+                      mtime,
+                      parent_dir,
+                      permissions,
+                      type,
+                    } = item
+                    this.singleFile = {}
+                    this.singleFile.id = (Math.random() + 1) * 10
+                    this.singleFile.server_filename = name
+                    this.singleFile.size = size
+                    this.singleFile.parentsPath = parent_dir
+                    this.singleFile.path = `${newVal.query.path}${name}`
+                    this.singleFile.isdir = type == 'file' ? 0 : 1
+                    this.singleFile.local_mtime = mtime
+                    this.singleFile.permission = permissions
+                    this.singleFile.repos_id = newVal.query.repos_id
+                  } else {
+                    const { name, type, permissions, mtime, parent_dir } = item
+                    this.singleFile = {}
+                    this.singleFile.id = Math.random()
+                    this.singleFile.server_filename = name
+                    this.singleFile.parent = parent_dir
+                    this.singleFile.size = ''
+                    this.singleFile.parentsPath = parent_dir
+                    this.singleFile.path = `${parent_dir}/${name}`
+                    this.singleFile.isdir = type == 'dir' ? 1 : 0
+                    this.singleFile.local_mtime = mtime
+                    this.singleFile.permission = permissions
+                    this.singleFile.repos_id = newVal.query.repos_id
+                  }
+                  this.pathbread.splice(this.isSame + 1)
+                  this.parents.splice(this.isSame + 1)
+                  this.tableData.push(this.singleFile)
+                }
+              },
+            )
+          } else {
+            this.tableData = this.$store.state.indexFileDate
+            this.pathbread.splice(this.isSame + 1)
+            this.parents.splice(this.isSame + 1)
+          }
         }
       }
     },
