@@ -228,9 +228,13 @@
       </el-table>
       <!-- 网格 -->
       <div class="gridContainer" v-if="layout == 'grid'">
-        <div v-for="(item, index) of tableData" :key="index">
+        <div
+          v-for="(item, index) of tableData"
+          :key="index"
+          @click.capture="changeIn(item)"
+        >
           <v-icon :name="item.isdir ? 'folder-open' : 'file-word'" scale="2" />
-          <a>{{ item.server_filename }}</a>
+          <p>{{ item.server_filename }}</p>
         </div>
       </div>
       <!-- 创建文件夹 -->
@@ -284,7 +288,7 @@ import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
-
+const { SeafileAPI } = require('seafile-js')
 const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
 const ftp = require('basic-ftp')
@@ -387,6 +391,13 @@ export default {
       // this.smbClient()
       this.tableData = this.$store.state.indexFileDate
     } else {
+      this.pathbread = [
+        {
+          name: `${this.$route.params.serverType}:`,
+          path: `/main/Library/filelist/${this.$route.params.serverType}`,
+          filePath: '',
+        },
+      ]
       this.tableData = this.$store.state.indexFileDate
     }
   },
@@ -811,10 +822,14 @@ export default {
     //  目录切换
     async switchDir(row) {
       // ftp
+      console.log(row, 'row')
       const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
-      const { host, user, pwd, token } = config
+          Number(this.servertypeIndex)
+        ],
+        { host, user, pwd, token } = config
+      let seafileAPI = new SeafileAPI(),
+        obj = { server: host, username: user, password: pwd }
+      seafileAPI.init(obj)
       this.switchDirTag = 1
       switch (this.parents[0]) {
         case 'ftp':
@@ -991,15 +1006,80 @@ export default {
             }
           }
           break
+        default:
+          if (row.isdir) {
+            seafileAPI
+              .login()
+              .then(() => {
+                seafileAPI
+                  .listDir(row.repos_id, row.path)
+                  .then((res) => {
+                    this.tableData = []
+                    for (let item of res.data.dirent_list) {
+                      if (item.type == 'file') {
+                        console.log(item, 'file')
+                        const {
+                          name,
+                          size,
+                          type,
+                          permissions,
+                          mtime,
+                          parent_dir,
+                        } = item
+                        this.singleFile = {}
+                        this.singleFile.id = Math.random()
+                        this.singleFile.server_filename = name
+                        this.singleFile.size = size
+                        this.singleFile.parent = parent_dir
+                        this.singleFile.parentsPath = row.path
+                        this.singleFile.path = `${row.path}/${name}`
+                        this.singleFile.isdir = type == 'file' ? 0 : 1
+                        this.singleFile.local_mtime = mtime
+                        this.singleFile.permission = permissions
+                      } else {
+                        console.log(item, 'dir')
+                        const {
+                          name,
+                          type,
+                          permissions,
+                          mtime,
+                          parent_dir,
+                        } = item
+                        this.singleFile = {}
+                        this.singleFile.id = Math.random()
+                        this.singleFile.server_filename = name
+                        this.singleFile.parent = parent_dir
+                        this.singleFile.size = ''
+                        this.singleFile.parentsPath = row.path
+                        this.singleFile.path = `${row.path}/${name}`
+                        this.singleFile.isdir = type == 'dir' ? 1 : 0
+                        this.singleFile.local_mtime = mtime
+                        this.singleFile.permission = permissions
+                        this.singleFile.repos_id = row.repos_id
+                      }
+                      this.tableData.push(this.singleFile)
+                    }
+                  })
+                  .catch((err) => {
+                    throw Error('获取目录信息失败：' + err)
+                  })
+              })
+              .catch((err) => {
+                throw Error(err)
+              })
+          }
       }
     },
     //面包屑切换文件列表加载
-    async getFile(path, parent) {
+    async getFile(path, parent, repoID) {
       // ftp
       const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
-      const { host, user, pwd, token } = config
+          Number(this.servertypeIndex)
+        ],
+        { host, user, pwd, token } = config,
+        seafileAPI = new SeafileAPI(),
+        obj = { server: host, username: user, password: pwd }
+      seafileAPI.init(obj)
       if (this.parents[0] == 'ftp') {
         if (path) {
           var source = null
@@ -1069,6 +1149,14 @@ export default {
           autoCloseTimeout: 0,
         })
         return await smbclient.readdir(path)
+      } else {
+        let dirList = null
+        seafileAPI.login().then(() => {
+          seafileAPI.listDir(repoID, path).then((res) => {
+            dirList = res.data.dirent_list
+          })
+        })
+        return dirList
       }
     },
     //  文件上传
@@ -1432,6 +1520,10 @@ export default {
     setGrid() {
       this.layout = 'grid'
     },
+    changeIn(row) {
+      console.log('ok', row)
+      this.switchDir(row)
+    },
   },
 
   computed: {
@@ -1579,6 +1671,7 @@ export default {
 }
 .el-main {
   height: calc(100vh - 110px);
+  background-color: #fff;
 }
 .breadbox {
   background: rgb(220, 230, 246);

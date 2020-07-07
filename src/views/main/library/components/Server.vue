@@ -230,7 +230,7 @@ export default {
         name: '',
         option: '',
         IP: '',
-        port: 21,
+        port: 80,
         usr: '',
         pwd: '',
       },

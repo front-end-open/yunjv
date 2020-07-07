@@ -163,16 +163,21 @@ const routes = [
                       })
 
                       await Promise.all(axiosListDir).then((res) => {
-                        res.forEach((item) => {
+                        console.log(res, '222222')
+                        res.forEach((item, index) => {
+                          arr[index]
                           for (let val of item.data.dirent_list) {
+                            val.repos_id = arr[index]
+                            console.log(val)
+                            // let dirs = val
+                            // Object.defineProperty(dirs, 'repo_id', { repes_id })
                             arrDir.push(val)
                           }
                         })
                       })
-
+                      console.log(arrDir)
                       for (let item of arrDir) {
                         if (item.type == 'file') {
-                          console.log(item, 'file')
                           const {
                             name,
                             size,
@@ -199,6 +204,7 @@ const routes = [
                             permissions,
                             mtime,
                             parent_dir,
+                            repos_id,
                           } = item
                           singleFile = {}
                           singleFile.id = Math.random()
@@ -210,6 +216,7 @@ const routes = [
                           singleFile.isdir = type == 'dir' ? 1 : 0
                           singleFile.local_mtime = mtime
                           singleFile.permission = permissions
+                          singleFile.repos_id = repos_id
                         }
                         data.push(singleFile)
                       }
@@ -219,7 +226,6 @@ const routes = [
                     .catch((error) => {
                       console.log(error)
                     })
-                  console.log(host, pwd, user)
               }
             },
             props: true,

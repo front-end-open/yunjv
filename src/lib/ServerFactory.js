@@ -21,6 +21,7 @@ import http from '@/server/index.js'
 import axios from 'axios'
 import store from '@/store/index.js'
 import { Buffer } from 'buffer'
+import Distinct from '@/lib/arryDuplicateRemove.js'
 
 export default function ServerFactory(
   type,
@@ -446,17 +447,68 @@ ServerFactory.prototype = {
       }
     }
   },
-  SEAFILE: function() {
-    const server = '127.0.0.1:80',
-      username = 'me@example.com',
-      password = '123456'
-    const seafileAPI = new SeafileAPI(server, username, password)
+  SEAFILE: function(index, config, localpath) {
+    let seafileAPI = new SeafileAPI(),
+      { host, user, pwd } = config[index],
+      obj = { server: host, username: user, password: pwd },
+      arr = [],
+      singleFile = {},
+      axiosListDir = [],
+      arrDir = [],
+      data = []
+    seafileAPI.init(obj)
+    console.log(index, config, localpath)
+    this.createDir = function() {
+      seafileAPI.login().then(async (response) => {
+        console.log(response)
+        let repos = await seafileAPI.listRepos()
+        repos.data.repos.forEach((item) => {
+          arr.push(item.repo_id)
+        })
 
-    seafileAPI.login().then((response) => {
-      console.log(response)
-      seafileAPI.authPing().then((response) => {
-        console.log(response.data)
+        Distinct(arr).forEach((item) => {
+          axiosListDir.push(seafileAPI.listDir(item, ''))
+        })
+
+        await Promise.all(axiosListDir).then((res) => {
+          res.forEach((item) => {
+            for (let val of item.data.dirent_list) {
+              arrDir.push(val)
+            }
+          })
+        })
+
+        for (let item of arrDir) {
+          if (item.type == 'file') {
+            console.log(item, 'file')
+            const { name, size, type, permissions, mtime, parent_dir } = item
+            singleFile = {}
+            singleFile.id = Math.random()
+            singleFile.server_filename = name
+            singleFile.size = size
+            singleFile.parent = parent_dir
+            singleFile.parentsPath = parent_dir
+            singleFile.path = `/${name}`
+            singleFile.isdir = type == 'file' ? 0 : 1
+            singleFile.local_mtime = mtime
+            singleFile.permission = permissions
+          } else {
+            console.log(item, 'dir')
+            const { name, type, permissions, mtime, parent_dir } = item
+            singleFile = {}
+            singleFile.id = Math.random()
+            singleFile.server_filename = name
+            singleFile.parent = parent_dir
+            singleFile.size = ''
+            singleFile.parentsPath = parent_dir
+            singleFile.path = `/${name}`
+            singleFile.isdir = type == 'dir' ? 1 : 0
+            singleFile.local_mtime = mtime
+            singleFile.permission = permissions
+          }
+          data.push(singleFile)
+        }
       })
-    })
+    }
   },
 }
