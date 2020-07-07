@@ -3,7 +3,6 @@
 import { ipcMain, app, protocol, BrowserWindow, dialog } from 'electron'
 import {
   createProtocol,
-  installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import { LoginBaidu } from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
