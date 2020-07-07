@@ -10,7 +10,6 @@ import {
 } from 'electron'
 import {
   createProtocol,
-  installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 import { start } from 'repl'
