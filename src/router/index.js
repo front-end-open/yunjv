@@ -30,6 +30,8 @@ VueRouter.prototype.push = function push(location) {
 }
 
 // const config = JSON.parse(localStorage.getItem('config')),
+//   { token } = config
+0
 const routes = [
   {
     path: '/',
@@ -58,7 +60,7 @@ const routes = [
             beforeEnter: (to, from, next) => {
               const { serverType, index } = to.params,
                 seafileAPI = new SeafileAPI(),
-                { token, host, user, pwd } = JSON.parse(
+                { token, user, pwd, host } = JSON.parse(
                   localStorage.getItem('config'),
                 )[index],
                 obj = { server: host, username: user, password: pwd }

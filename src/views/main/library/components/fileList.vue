@@ -485,9 +485,14 @@ export default {
     // 创建目录
     async submitForm() {
       var config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
-      const { host, user, pwd, token } = config
+          Number(this.servertypeIndex)
+        ],
+        { token, user, pwd, host } = config
+
+      let seafileAPI = new SeafileAPI(),
+        obj = { server: host, username: user, password: pwd }
+      seafileAPI.init(obj)
+
       switch (this.parents[0]) {
         case 'ftp':
           var createD = new Server( // 实列话类
@@ -599,6 +604,30 @@ export default {
               console.log(this.tableData)
             })
           break
+        default:
+        console.log(`${this.rowDate.path}/${this.ruleForm.name}`)
+        console.log(this.rowDate.repos_id)
+          seafileAPI.login().then(() => {
+            if (this.path == '/') {
+              seafileAPI
+                .createDir(
+                  this.tableData[0].repos_id,
+                  `${this.path}/${this.ruleForm.name}`,
+                )
+                .then((res) => {
+                  console.log(res)
+                })
+            } else {
+              seafileAPI
+                .createDir(
+                  this.rowDate.repos_id,
+                  `${this.rowDate.path}/${this.ruleForm.name}`,
+                )
+                .then((res) => {
+                  console.log(res)
+                })
+            }
+          })
       }
       this.centerDialogVisible = false
     },
@@ -850,6 +879,8 @@ export default {
     //  目录切换
     async switchDir(row) {
       // ftp
+      console.log(row, 'row')
+      this.rowDate = row
       const config = JSON.parse(localStorage.getItem('config'))[
           Number(this.servertypeIndex)
         ],
