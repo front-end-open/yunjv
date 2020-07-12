@@ -23,14 +23,33 @@
         </el-col>
         <el-col :span="10">
           <div class="control">
+            {{ 'hello' + this.$store.state.precentage }}
             <el-button size="mini" type="primary" @click="createDiretory"
               >新建文件夹</el-button
             >
             <!-- 上传 -->
-            <el-button size="mini" type="primary" @click="upLoadFile"
+
+            <el-upload
+              v-if="serverType == 'baid'"
+              class="upload-bt"
+              action="xxx"
+              :on-change="btUp"
+              :file-list="upload_list"
+              multiple
+              :limit="1"
+              :auto-upload="false"
+            >
+              <el-button size="small" type="primary"
+                >上传<i class="el-icon-upload el-icon--right"></i
+              ></el-button>
+            </el-upload>
+            <el-button
+              v-if="serverType !== 'baid'"
+              size="mini"
+              type="primary"
+              @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
-
             <template v-if="show">
               <el-dropdown trigger="click" style="margin: 0 12px">
                 <el-button size="mini" type="primary">
@@ -291,6 +310,9 @@ import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import Server from '@/lib/ServerFactory.js'
 import OwnerConvert from '@/lib/PERMISSIONCONVERT.js'
+import http from '@/server/index.js'
+import axios from 'axios'
+const SparkMD5 = require('spark-md5')
 const { SeafileAPI } = require('seafile-js')
 const ipcRenderer = require('electron').ipcRenderer
 const path = require('path')
@@ -304,6 +326,7 @@ export default {
   name: 'fileList',
   data() {
     return {
+      upload_list: [],
       props: {
         label: 'name',
         children: 'zones',
@@ -355,6 +378,7 @@ export default {
       //文件操作、下载默认隐藏
       show: false,
       layout: 'table',
+      serverType: '',
     }
   },
 
@@ -364,6 +388,7 @@ export default {
     this.servertypeIndex = this.$route.params.index
     // 服务类型
     this.parents.push(this.$route.params.serverType)
+    this.serverType = this.$route.params.serverType
 
     if (this.$route.params.serverType == 'ftp') {
       this.pathbread = [
@@ -825,7 +850,6 @@ export default {
     //  目录切换
     async switchDir(row) {
       // ftp
-      console.log(row, 'row')
       const config = JSON.parse(localStorage.getItem('config'))[
           Number(this.servertypeIndex)
         ],
@@ -899,7 +923,6 @@ export default {
           }
           break
         case 'baid':
-          console.log(row)
           if (row.isdir) {
             this.tableData = []
             this.path = row.path
@@ -932,6 +955,7 @@ export default {
                   fileDate.local_mtime = Dateformate(val.local_mtime)
                   fileDate.local_ctime = Dateformate(val.local_ctime)
                   fileDate.size = SizeConvert(val.size)
+                  fileDate.sizeC = val.size
                   fileDate.isdir = val.isdir
                   fileDate.path = val.path
                   this.tableData.push(fileDate)
@@ -1136,6 +1160,7 @@ export default {
               fileDate.local_mtime = Dateformate(val.local_mtime)
               fileDate.local_ctime = Dateformate(val.local_ctime)
               fileDate.size = SizeConvert(val.size)
+              fileDate.sizeC = val.size
               fileDate.isdir = val.isdir
               fileDate.path = val.path
               this.tableData.push(fileDate)
@@ -1226,9 +1251,115 @@ export default {
         })
       }
     },
+    btUp(files) {
+      let This = this
+      console.log(This, 'ddddds23')
+      this.upload_list = []
+      let file = files.raw
+      let block_list = []
+      let fileSize = file.size // 文件大小
+      let chunkSize = 4 * 1024 * 1024 // 切片的大小
+      let chunks = Math.ceil(fileSize / chunkSize) // 获取切片的个数
+      let blobSlice =
+        File.prototype.slice ||
+        File.prototype.mozSlice ||
+        File.prototype.webkitSlice
+      let spark = new SparkMD5.ArrayBuffer()
+      let spark1 = new SparkMD5.ArrayBuffer()
+      let reader = new FileReader()
+      let currentChunk = 0
+      let preparams = null
+      let chunksarr = []
+      // 文件hash, 分块hash
+      reader.onload = async function(e) {
+        console.log(This, this, 'ddddddd')
+        const result = e.target.result
+        spark.append(result)
+        spark1.append(result)
+        const fileChunkMd5 = spark1.end()
+        block_list.push(`${fileChunkMd5}`)
+        currentChunk++
+        if (currentChunk < chunks) {
+          loadNext()
+        } else {
+          spark.end()
+          console.log(block_list)
+          //预上传
+          await http
+            .post(
+              `/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              {
+                path: '/apps/BTBD',
+                size: this.size,
+                isdir: '0',
+                autoinit: 1,
+                rtype: 1,
+                block_list: JSON.stringify(block_list),
+              },
+            )
+            .then((res) => {
+              preparams = res.data
+            })
+            .catch((err) => {
+              throw new Error(err)
+            })
+
+          // 分片上传
+          for (let i = 0; i < chunks; i++) {
+            const start = i * chunkSize
+            const end = Math.min(file.size, start + chunkSize)
+            const params = new FormData()
+            params.append('file', blobSlice.call(file, start, end))
+            chunksarr.push(
+              axios.post(
+                `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${preparams.uploadid}&partseq=${preparams.block_list[i]}`,
+                params,
+                {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+                },
+              ),
+            )
+          }
+          await Promise.all(chunksarr)
+            .then((res) => {
+              console.log(res)
+            })
+            .catch((error) => {
+              throw new Error(error)
+            })
+          // 创建文件
+          await http
+            .post(
+              ` https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              {
+                path: `/apps/BTBD/${file.name}`,
+                size: fileSize,
+                isdir: 0,
+                uploadid: preparams.uploadid,
+                block_list: JSON.stringify(block_list),
+              },
+            )
+            .then((res) => {
+              console.log(res, '文件上传成功')
+            })
+            .catch((error) => {
+              throw new Error(error)
+            })
+        }
+      }
+      reader.onerror = function() {
+        console.log('读取文件失败')
+      }
+      function loadNext() {
+        var start = currentChunk * chunkSize
+        var end = start + chunkSize > file.size ? file.size : start + chunkSize
+        reader.readAsArrayBuffer(blobSlice.call(file, start, end))
+      }
+      loadNext()
+    },
     //  文件下载
     // TODO: 下载优化
-    downLoadFile() {
+    async downLoadFile() {
       //  ftp-目录出创建
       switch (this.parents[0]) {
         case 'ftp':
@@ -1248,7 +1379,10 @@ export default {
           })
           break
         case 'baid':
-          console.log('baid')
+          if (this.rowDate.isdir == 0) {
+            this.$store.commit('downloadTasks', { file: this.rowDate })
+            this.$store.dispatch('startDownload')
+          }
           break
         case 'smb':
           var selecfilepath = dialog.showOpenDialog({
@@ -1553,7 +1687,7 @@ export default {
           this.switchDirTag = 0
         }
       }
-      console.log(newVal)
+
       //  cliDirTag 表示路由的前进后退
       if (this.switchDirTag === 1) {
         // 目录切换，添加面包屑路径
@@ -1755,5 +1889,12 @@ export default {
 .gridContainer div {
   overflow: auto;
   cursor: pointer;
+}
+.upload-bt {
+  margin-left: 12px;
+  display: inline-block;
+}
+.el-upload-list {
+  display: none;
 }
 </style>

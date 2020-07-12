@@ -16,6 +16,11 @@ module.exports = {
         ws: true,
         changeOrigin: true,
       },
+      '/rest/2.0/pcs/superfile2': {
+        target: 'https://d.pcs.baidu.com',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
   css: {
