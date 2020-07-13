@@ -2,6 +2,64 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.4.0](https://github.com/PachVerb/yunjv/compare/v1.3.0...v1.4.0) (2020-07-13)
+
+
+### 优化
+
+* **filelist.vue:** ftp文件操作代码优化 ([a1a7021](https://github.com/PachVerb/yunjv/commit/a1a7021fdc8a4987e2166e21e5a86c18ae99804c))
+
+
+### 修复
+
+* 123 ([d4a00a2](https://github.com/PachVerb/yunjv/commit/d4a00a26960e1f01ba07248055646abf7651cd52))
+* baidu创建文件夹 ([425420e](https://github.com/PachVerb/yunjv/commit/425420ec31bdd31c78f6e71be6bd57877268175c))
+* post 传入数据处理 ([2fa70bd](https://github.com/PachVerb/yunjv/commit/2fa70bd37c57777caf2f940015b73e4d06d235c4))
+* 文件传输 ([5c3d3e9](https://github.com/PachVerb/yunjv/commit/5c3d3e9e034610b27023e91a19bac17da094f6ab))
+* 文件传输1 ([5ac49ce](https://github.com/PachVerb/yunjv/commit/5ac49cef1eef463affc36d1c6ade94ffc1c72158))
+* 新建文件夹及下载列表部分更新 ([2fe545e](https://github.com/PachVerb/yunjv/commit/2fe545eeb34cd81d8faa05869e0475240bfba848))
+* **filelist.vue:** 百度文件操作视图更新 ([82b4037](https://github.com/PachVerb/yunjv/commit/82b4037b55e36a524b88a4b96d33b37c6b7b97b3))
+* **filelist.vue:** 百度移动搜索框路径问题 ([1ccfd3f](https://github.com/PachVerb/yunjv/commit/1ccfd3fcf4049eba3973357453849d27c8e16e00))
+* **server/index.js:** post请求头，发送数据格式设置 ([1dde7d7](https://github.com/PachVerb/yunjv/commit/1dde7d7d5a17eab293ba1cc955f47fbc4f2be852))
+
+
+### 其他
+
+* Merge branch 'dev' ([841cf4f](https://github.com/PachVerb/yunjv/commit/841cf4f0e049419db4d7ead7dbfa597f40927fee))
+
+
+### 功能
+
+* 文件本分 ([60b3aa5](https://github.com/PachVerb/yunjv/commit/60b3aa5c843e21914555d333168f883d75b129bb))
+* **filelist:** seafile服务接入 ([b75fda2](https://github.com/PachVerb/yunjv/commit/b75fda22d4b20ea68f310b8cedf6d6abe0c6340c))
+* **filelist:** seafile服务添加 ([96ef011](https://github.com/PachVerb/yunjv/commit/96ef01104d1c5a2098ecd91c199af7dbbd2d568c))
+* **filelist.vue:** 文件操作 ([d6aff6f](https://github.com/PachVerb/yunjv/commit/d6aff6ff6026f2dda27fba4373b7bea149a6bb7c))
+* **filelist.vue:** 百度搜索文件 ([5009522](https://github.com/PachVerb/yunjv/commit/5009522e596686f8e27fd6af9ed280cf7b719beb))
+* **filelist.vue:** 百度新建 ([cd80b12](https://github.com/PachVerb/yunjv/commit/cd80b12fac927e86b61ace79cf2c90db6cd56e1c))
+* **filelist.vue:** 百度新建 ([ae13ecf](https://github.com/PachVerb/yunjv/commit/ae13ecf0ce6b7163578585ca7863b8355767cef7))
+* **smb:** 目录切换 ([c703807](https://github.com/PachVerb/yunjv/commit/c7038077e8e6d6f2acc3c0ed05919361032a28e6))
+* **transsion:** 文件下载 ([703c1b1](https://github.com/PachVerb/yunjv/commit/703c1b1c54c656911b4c7a33376c1aa0a9a45d92))
+* 文件视图切换 ([f408007](https://github.com/PachVerb/yunjv/commit/f40800794eaa2f1dbc8960f3c04bf4941b3818ce))
+
+
+### 文档
+
+* change code style ([6669455](https://github.com/PachVerb/yunjv/commit/6669455865352e20011751dca80e48e472d5f618))
+
+
+### 格式
+
+* **filelist.vue:** smb文件移动 ([12aaf1f](https://github.com/PachVerb/yunjv/commit/12aaf1f12106632e1d05e9286e4a61a90b5f06e0))
+* **filelist.vue:** 部分样式 ([18496f5](https://github.com/PachVerb/yunjv/commit/18496f5289423916d151c89f02e52665ef026406))
+* 代码样式调整 ([fef3a3a](https://github.com/PachVerb/yunjv/commit/fef3a3acd7958b05e83c1a8d7246e46934bf446a))
+* 部分样式 ([22e656e](https://github.com/PachVerb/yunjv/commit/22e656e53228f9ef5c92bdecb554f7c3f4068196))
+
+
+### 重构
+
+* **filelist,router:** 路由调整，文件首页数据加载。 ([5d7b2fc](https://github.com/PachVerb/yunjv/commit/5d7b2fcfebadc3bfcf839f75b943d75e88e94882))
+* **server.vue:** 路由配置 ([1f23a8b](https://github.com/PachVerb/yunjv/commit/1f23a8b16ae68ca3d688a240a8c03187dfe95a34))
+
 # [1.3.0](https://github.com/PachVerb/yunjv/compare/v1.2.0...v1.3.0) (2020-06-04)
 
 
