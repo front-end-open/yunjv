@@ -5,7 +5,6 @@
         <el-avatar
           src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
         ></el-avatar>
-        <!-- <p>anonymous</p> -->
       </div>
       <el-menu
         router
@@ -17,9 +16,14 @@
           <i class="el-icon-folder"></i>
           <span slot="title">文件库</span>
         </el-menu-item>
-        <el-menu-item index="/main/transmission">
+        <el-menu-item class="transsion" index="/main/transmission">
           <i class="el-icon-sort"></i>
           <span slot="title">传输列表</span>
+          <transition name="el-fade-in">
+            <div v-if="this.$store.state.tag" class="brand">
+              {{ this.$store.state.brandNum }}
+            </div>
+          </transition>
         </el-menu-item>
         <el-menu-item index="/main/backup">
           <i class="el-icon-receiving"></i>
@@ -79,5 +83,21 @@ export default {
 }
 .aside {
   user-select: none;
+}
+.transsion {
+  position: relative;
+}
+.brand {
+  position: absolute;
+  top: 50%;
+  right: 10%;
+  width: 2em;
+  height: 2em;
+  border-radius: 50%;
+  background: #409eff;
+  text-align: center;
+  line-height: 2em;
+  margin-top: -1em;
+  color: #fff;
 }
 </style>

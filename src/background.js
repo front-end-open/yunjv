@@ -1,6 +1,13 @@
 'use strict'
 
-import { Notification, ipcMain, app, protocol, BrowserWindow } from 'electron'
+import {
+  Notification,
+  ipcMain,
+  app,
+  protocol,
+  BrowserWindow,
+  dialog,
+} from 'electron'
 import {
   createProtocol,
   installVueDevtools,
@@ -9,7 +16,8 @@ import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
 const querystring = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
-
+const Axios = require('axios')
+const fs = require('fs')
 let win
 
 // Scheme must be registered before the app is ready
@@ -71,6 +79,7 @@ ipcMain.on('async-openNotiton', function(event, arg) {
   })
   Notition.show()
 })
+
 //webDAV
 ipcMain.on('async-webdav', function(event, arg) {
   console.log(arg)
@@ -83,6 +92,49 @@ ipcMain.on('async-webdav', function(event, arg) {
   win.on('ready-to-show', () => {
     win.show()
   })
+})
+
+ipcMain.on('download', (event, msg) => {
+  let { dinks, path, size } = msg
+  Axios({
+    //   url: 'http://kd.269.net/200.zip',
+    url: dinks,
+    method: 'get',
+    onUploadProgress(e) {
+      console.log(11, e)
+    },
+    onDownloadProgress: function(qq) {
+      console.log(qq)
+    },
+    withCredentials: true,
+
+    responseType: 'stream',
+  })
+    .then((result) => {
+      let fileStream = fs.createWriteStream(path)
+      let count = 0
+      result.data.on('data', (c) => {
+        count += c.length
+        let prcentage = ((count / size) * 100).toFixed(0)
+        event.reply('async-authcode-reply', {
+          download: prcentage,
+          status: 0,
+        })
+        fileStream.write(c)
+      })
+      result.data.on('end', () => {
+        event.reply('async-authcode-reply', {
+          download: 100,
+          status: 1,
+        })
+        console.log('完成了 100%')
+        fileStream.end()
+      })
+    })
+    .catch((err) => {
+      console.log('错误')
+      console.log(err)
+    })
 })
 function createWindow() {
   const windowHeight = 800
@@ -99,6 +151,7 @@ function createWindow() {
     height: windowHeight,
     webPreferences: {
       nodeIntegration: true,
+      webSecurity: false,
     },
   })
 
@@ -144,6 +197,29 @@ app.on('ready', async () => {
     }
   }
   createWindow()
+
+  // downDialog
+  ipcMain.on('async-openDialog', (event) => {
+    let filepath = dialog.showOpenDialog(win, {
+      title: '选择文件',
+      buttonLabel: '确定',
+      properties: ['openFile'],
+    })
+    if (filepath) {
+      event.reply('async-get', filepath)
+    }
+  })
+  // backup
+  ipcMain.on('async-openBackDialog', (event) => {
+    let filepath = dialog.showOpenDialog(win, {
+      title: '选择备份目录',
+      buttonLabel: '确定',
+      properties: ['openDirectory'],
+    })
+    if (filepath) {
+      event.reply('async-get', filepath)
+    }
+  })
 })
 
 // Exit cleanly on request from parent process in development mode.

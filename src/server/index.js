@@ -2,14 +2,38 @@ import Vue from 'vue'
 import axios from 'axios'
 
 const config = {
-  //   responseType: 'json',
+  transformRequest: [
+    function(data) {
+      // post 数据转表单
+      let ret = ''
+      for (let it in data) {
+        if (Array.isArray(data[it])) {
+          ret += `${encodeURIComponent(it)}=["${encodeURIComponent(
+            data[it],
+          )}"]&`
+        } else {
+          ret += `${encodeURIComponent(it)}=${encodeURIComponent(data[it])}&`
+        }
+      }
+      return ret
+    },
+  ],
 }
 const instance = axios.create(config)
 
-axios.interceptors.request.use(
+instance.interceptors.request.use(
   function(config) {
-    console.log(config)
-    return config
+    // post请求设置表单格式头部
+    if (config.method === 'post') {
+      config.headers = Object.assign(
+        {
+          'Accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        config.headers,
+      )
+    }
+    return Promise.resolve(config)
   },
   function(error) {
     // Do something with request error
@@ -17,9 +41,8 @@ axios.interceptors.request.use(
   },
 )
 
-axios.interceptors.response.use(
+instance.interceptors.response.use(
   function(response) {
-    // console.log(response)
     return response
   },
   function(error) {

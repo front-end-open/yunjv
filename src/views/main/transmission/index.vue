@@ -1,190 +1,107 @@
 <template>
   <el-container>
-    <!-- <h1>transmission</h1> -->
-    <!-- 选项 -->
-    <el-tabs
-      v-model="activeName"
-      type="card"
-      @tab-click="handleClick"
-      style="width:100%"
-    >
-      <el-tab-pane label="上传" name="up">
-        <el-table
-          v-loading="loading"
-          element-loading-text="拼了老命的加载中"
-          element-loading-spinner="el-icon-loading"
-          element-loading-background="rgba(0,0,0,0.8)"
-          :data="upData"
-          style="width:100%"
-          class="up-checkbox"
-          index="/transmission/up"
-        >
-          <el-table-column type="selection" width="50"></el-table-column>
-          <el-table-column prop="upName" label="文件名称"> </el-table-column>
-          <el-table-column prop="upSize" label="文件大小"> </el-table-column>
-          <el-table-column prop="upEvolve" label="上传进度">
-            <el-progress
-              :text-inside="true"
-              :stroke-width="16"
-              :percentage="0"
-              :color="customColor"
-            ></el-progress>
-          </el-table-column>
-
-          <el-table-column prop="upDate" label="上传日期"> </el-table-column>
-          <el-table-column width="180">
-            <template slot-scope="upscope">
-              <el-button
-                type="warning"
-                icon="el-icon-video-pause"
-                @click.native.stop="pauseup(upscope.$index, upEvolve)"
-                size="small"
-                circle
-              ></el-button
-              ><el-button
-                type="warning"
-                icon="el-icon-video-play"
-                @click.native.self="palyup(upscope.$index, upEvolve)"
-                size="small"
-                circle
-              ></el-button>
-              <el-button
-                type="danger"
-                icon="el-icon-delete"
-                @click.native.prevent="deleteup(upscope.$index, upData)"
-                size="small"
-                circle
-              >
-              </el-button>
-              <el-button
-                icon="el-icon-folder"
-                @click.native.capture="folderup(upscope.$index, upData)"
-                size="small"
-                circle
-              ></el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-      <!-- <el-tab-pane label="下载" name="down"
-       \><el-tabl
-        v-loading="loading"
-        element-loading-text="拼了老命的加载中"
-        element-loading-spinner="el-icon-loading"
-        element-loading-background="rgba(0,0,0,0.8)"
-        :data="downData"
-        height="600"
-        style="width:100%"
-        class="down-checkbox"
-        index="/transmission/up"
-      \>
-        <el-table-column type="selection" width="50"></el-table-column>
-        <el-table-column prop="downName" label="文件名称" width="150">
-        </el-table-column>
-        <el-table-column prop="downSize" label="文件大小" width="150">
-        </el-table-column>
-        <el-table-column prop="downEvolve" label="下载进度" width="200">
-          <el-progress
-            :text-inside="true"
-            :stroke-width="16"
-            :percentage="0"
-            :color="customColor"
-          \></el-progress>
-        </el-table-column>
-        <el-table-column prop="downDate" label="下载日期" width="150">
-        </el-table-column>
-        <el-table-column width="300">
-          <template slot-scope="downscope">
-            <el-button
-              type="warning"
-              icon="el-icon-video-pause"
-              @click.native.stop="pauseup(upscope.$index, upEvolve)"
-              size="small"
-              circle
-            \></el-button
-            \><el-button
-              type="warning"
-              icon="el-icon-video-play"
-              @click.native.self="palyup(upscope.$index, upEvolve)"
-              size="small"
-              circle
-            \></el-button>
-            <el-button
-              type="danger"
-              icon="el-icon-delete"
-              @click.native.prevent="deleteup(upscope.$index, upData)"
-              size="small"
-              circle
-            \>
-            </el-button>
-            <el-button
-              icon="el-icon-folder"
-              @click.native.capture="folderup(upscope.$index, upData)"
-              size="small"
-              circle
-            \></el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-tab-pane>-->
-    </el-tabs>
+    <h1>{{ this.$store.state.precentage }}</h1>
+    <el-table :data="this.$store.state.downloadLists">
+      <el-table-column
+        align="center"
+        header-align="center"
+        label="文件名"
+        width="180"
+        prop="server_filename"
+      >
+      </el-table-column>
+      <el-table-column
+        label="大小"
+        width="180"
+        align="center"
+        header-align="center"
+        prop="size"
+      >
+      </el-table-column>
+      <el-table-column
+        align="center"
+        header-align="center"
+        label="状态"
+        width="180"
+      >
+        <el-progress
+          :text-inside="true"
+          :stroke-width="26"
+          :percentage="precentage"
+        ></el-progress>
+      </el-table-column>
+      <el-table-column align="center" header-align="center" label="操作">
+        <template slot-scope="scope">
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)"
+          >
+            <i class="el-icon-video-play"></i
+          ></el-button>
+          <el-button
+            size="mini"
+            type="danger"
+            @click="handleDelete(scope.$index, scope.row)"
+            ><i class="el-icon-delete"></i
+          ></el-button>
+        </template>
+      </el-table-column>
+    </el-table>
   </el-container>
 </template>
 
 <script>
 export default {
+  name: 'transission',
   data() {
     return {
-      activeName: 'up',
-      // percentage:#,
-      customColor: '#409eff',
-      upData: [
+      tableData: [
         {
-          upName: '文件1',
-          upSize: '120M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
+          server_filename: '2016-05-02',
+          size: '王小虎',
         },
         {
-          upName: '文件2',
-          upSize: '12M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
+          date: '2016-05-04',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1517 弄',
         },
         {
-          upName: '文件3',
-          upSize: '13M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
+          date: '2016-05-01',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1519 弄',
         },
         {
-          upName: '文件4',
-          upSize: '14M',
-          upEvolve: ' ',
-          upDate: '2020-10-03',
+          date: '2016-05-03',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1516 弄',
         },
       ],
-      downData: [{}],
-      loading: false,
+      precentage: Number(this.$store.state.precentage),
     }
   },
+  created() {
+    console.log(this.$store.state.precentage)
+  },
   methods: {
-    handleClick(tab, event) {
-      console.log(tab, event)
+    handleEdit(index, row) {
+      console.log(index, row)
     },
-    pauseup(index, upEvolve) {
-      upEvolve.splice(index, 1)
+    handleDelete(index, row) {
+      console.log(index, row)
     },
-    deleteup(index, ups) {
-      ups.splice(index, 1)
+  },
+  watch: {
+    precentage(newVal, oldVal) {
+      console.log(newVal, oldVal)
     },
   },
 }
 </script>
 
 <style lang="less" scoped>
-.up-checkbox {
-  min-width: 600px;
-  min-height: 400px;
+.el-table {
+  width: 100%;
+  margin-top: -15px;
 }
 </style>

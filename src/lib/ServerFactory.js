@@ -11,14 +11,22 @@
 const client = require('basic-ftp')
 const path = require('path')
 const SMB = require('@marsaud/smb2')
+const fs = require('fs')
+// const md5 = require('md5')
+const { SeafileAPI } = require('seafile-js')
 import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
 import OwnerConvert from './PERMISSIONCONVERT.js'
+import http from '@/server/index.js'
+import axios from 'axios'
+import store from '@/store/index.js'
+import { Buffer } from 'buffer'
+import Distinct from '@/lib/arryDuplicateRemove.js'
 
 export default function ServerFactory(
   type,
-  serverindx,
-  config,
+  serverindx = '',
+  config = '',
   localpath = '',
   remotepath = '',
   rowfileinfo = '',
@@ -39,10 +47,94 @@ export default function ServerFactory(
 }
 // 服务基类添加
 ServerFactory.prototype = {
-  BaiDu: function() {
-    console.log('baidu')
+  BaiDu: function(index, config, lpath, remotepath, rowfileinfo) {
+    console.log(index, config, lpath, remotepath, rowfileinfo)
+    // 文件信息读取
+    this.singleUpload = function(filepath) {
+      let stats = fs.statSync(filepath) // 文件信息
+      let chunkSize = 4 * Math.pow(1024, 2) // 分片大小
+      let size = stats.size // 文件大小
+      let pieces = Math.ceil(size / chunkSize) // 文件切片数量
+      let filename = path.basename(filepath)
+
+      const stream = fs.createReadStream(lpath)
+      let arr = []
+
+      stream.on('data', (data) => {
+        arr.push(data)
+      })
+      stream.on('end', function() {
+        var fileC = new File(Buffer.concat(arr), filename)
+        // var fileC = Buffer.concat(arr)
+        store.commit('upLoadFIlelist', {
+          filename,
+          chunkSize,
+          size,
+          pieces,
+          lpath,
+          fileC,
+        })
+      })
+    }
+    this.uploadpieces = function(chunkSize, size, i, lpath, file) {
+      // 创建可读流
+      console.log(1)
+      let enddata = Math.min(size, (i + 1) * chunkSize)
+      let arr = []
+
+      console.log('chunkSize', chunkSize)
+      console.log('size', size)
+      //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
+      let readStream = fs.createReadStream(lpath, {
+        start: i * chunkSize,
+        end: enddata - 1,
+      })
+      //on data读取数据
+      readStream.on('data', (data) => {
+        arr.push(data)
+      })
+      //on end在该分片读取完成时触发
+      readStream.on('end', async () => {
+        // let convert = [md5(Buffer.concat(arr))]
+        // let blob = new Blob(arr)
+        console.log(arr)
+        http
+          .post(
+            `/rest/2.0/xpan/file?method=precreate&access_token=123.408e3e7cbc0ba103a86b3bc80131f84a.Ymd0wqY1YGm0DkZJL0NRQBR-6EVbhgVqBZhhNkT.BDR5Ig`,
+            {
+              path: '/apps/BTBD',
+              size,
+              isdir: '0',
+              autoinit: 1,
+              rtype: 1,
+              block_list: convert,
+            },
+          )
+          .then((res) => {
+            console.log(res.data)
+            let params = new FormData()
+            params.append('file', file)
+            console.log(file)
+            axios
+              .post(
+                `/rest/2.0/pcs/superfile2?method=upload&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&type=tmpfile&path=/apps/BTBD&uploadid=N1-NjEuMTU3LjI0My4xMjE6MTU5MjE5MDI4NjozODYwNzE1NTUzNjI5MTQ3Mzk1&partseq=1`,
+                params,
+                {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+                },
+              )
+              .then((res) => {
+                console.log(res)
+              })
+              .catch((error) => {
+                console.log(error.toJSON())
+              })
+          })
+      })
+    }
   },
   SMB: function(serverindx, config) {
+    // 首页文件目录加载
     this.loadFile = function() {
       let smbData = [] //存放smb数据
       const { host, user, pwd } = config[serverindx]
@@ -71,6 +163,61 @@ ServerFactory.prototype = {
         console.log(error)
       }
     }
+    // 目录创建
+
+    // 文件上传
+    this.upload = function(path, destination, parent) {
+      const { host, pwd, user } = config[serverindx]
+      let fileList = null
+      try {
+        var smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+          autocloseTimeout: 0,
+        })
+        smbclient.createWriteStream(path, function(err, writeStream) {
+          if (err) throw err
+          var readStream = fs.createReadStream(destination)
+          readStream.pipe(writeStream)
+          // TODO: 列表更新
+          smbclient.readdir(parent, (error, files) => {
+            if (error) throw error
+            console.log(files)
+            fileList = files
+          })
+        })
+        return fileList
+      } catch (error) {
+        smbclient.disconnect()
+
+        console.log(error)
+      }
+    }
+    // 文件下载
+    this.download = function(path, destination) {
+      const { host, pwd, user } = config[serverindx]
+
+      try {
+        var smbclient = new SMB({
+          share: `\\\\${host}\\share`,
+          domain: 'WORKGROUP',
+          username: user,
+          password: pwd,
+          autocloseTimeout: 0,
+        })
+        smbclient.createReadStream(path, function(err, readStream) {
+          if (err) throw err
+          var writeStream = fs.createWriteStream(destination)
+          readStream.pipe(writeStream)
+        })
+        smbclient.disconnect()
+      } catch (error) {
+        smbclient.disconnect()
+        console.log(error)
+      }
+    }
   },
   FTP: function(serverindx, config, localpath, remotepath, rowfileinfo) {
     //连接ftp
@@ -80,7 +227,7 @@ ServerFactory.prototype = {
       const config = JSON.parse(localStorage.getItem('config'))[serverindx]
       const { host, user, pwd } = config
       try {
-        await client
+        await ftp
           .access({
             host,
             user,
@@ -90,10 +237,9 @@ ServerFactory.prototype = {
           .then((res) => {
             console.log(res)
           })
-        return await client.list('')
+        return await ftp.list('')
       } catch (err) {
-        console.log(err)
-        client.close()
+        ftp.close()
       }
     }
     // 文件上传
@@ -301,7 +447,68 @@ ServerFactory.prototype = {
       }
     }
   },
-  SEAFILE: function() {
-    console.log('seafile')
+  SEAFILE: function(index, config, localpath) {
+    let seafileAPI = new SeafileAPI(),
+      { host, user, pwd } = config[index],
+      obj = { server: host, username: user, password: pwd },
+      arr = [],
+      singleFile = {},
+      axiosListDir = [],
+      arrDir = [],
+      data = []
+    seafileAPI.init(obj)
+    console.log(index, config, localpath)
+    this.createDir = function() {
+      seafileAPI.login().then(async (response) => {
+        console.log(response)
+        let repos = await seafileAPI.listRepos()
+        repos.data.repos.forEach((item) => {
+          arr.push(item.repo_id)
+        })
+
+        Distinct(arr).forEach((item) => {
+          axiosListDir.push(seafileAPI.listDir(item, ''))
+        })
+
+        await Promise.all(axiosListDir).then((res) => {
+          res.forEach((item) => {
+            for (let val of item.data.dirent_list) {
+              arrDir.push(val)
+            }
+          })
+        })
+
+        for (let item of arrDir) {
+          if (item.type == 'file') {
+            console.log(item, 'file')
+            const { name, size, type, permissions, mtime, parent_dir } = item
+            singleFile = {}
+            singleFile.id = Math.random()
+            singleFile.server_filename = name
+            singleFile.size = size
+            singleFile.parent = parent_dir
+            singleFile.parentsPath = parent_dir
+            singleFile.path = `/${name}`
+            singleFile.isdir = type == 'file' ? 0 : 1
+            singleFile.local_mtime = mtime
+            singleFile.permission = permissions
+          } else {
+            console.log(item, 'dir')
+            const { name, type, permissions, mtime, parent_dir } = item
+            singleFile = {}
+            singleFile.id = Math.random()
+            singleFile.server_filename = name
+            singleFile.parent = parent_dir
+            singleFile.size = ''
+            singleFile.parentsPath = parent_dir
+            singleFile.path = `/${name}`
+            singleFile.isdir = type == 'dir' ? 1 : 0
+            singleFile.local_mtime = mtime
+            singleFile.permission = permissions
+          }
+          data.push(singleFile)
+        }
+      })
+    }
   },
 }
