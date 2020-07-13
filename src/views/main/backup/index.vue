@@ -22,27 +22,30 @@
         </el-collapse>
       </el-header>
       <el-main>
-        <el-card class="box-card" shadow="never">
-          <div class="body">
+        <el-card class="box-card1" shadow="never">
+          <div slot="header" class="body">
             <el-row>
-              <el-col :span="22"
+              <el-col :span="20"
                 ><div class="add">
                   <el-input
                     v-model="input"
                     placeholder="select your computer local Dir to setting"
                   ></el-input></div
               ></el-col>
-              <el-col :span="2"
+              <el-col :span="4"
                 ><div class="grid-content bg-purple-light">
                   <el-button
                     @click="addPath"
                     type="warning"
                     icon="el-icon-plus"
-                    size="mini"
-                    circle
-                  ></el-button></div
-              ></el-col>
+                  ></el-button>
+                  <el-button type="primary" plain>应用</el-button>
+                </div></el-col
+              >
             </el-row>
+          </div>
+          <div v-for="o in 4" :key="o" class="text item">
+            {{ '列表内容 ' + o }}
           </div>
         </el-card>
       </el-main>
@@ -59,21 +62,18 @@ export default {
     }
   },
   methods: {
-    handleEdit(index, row) {
-      console.log(index, row)
-    },
-    handleDelete(index, row) {
-      console.log(index, row)
-    },
     addPath() {
       ipcRenderer.send('async-openBackDialog', 'open')
-      ipcRenderer.on('async-get')
+      ipcRenderer.on('async-get', (event, msg) => {
+        this.input = msg[0]
+      })
     },
   },
 }
 </script>
 <style lang="less" scoped>
 .back-content {
+  position: relative;
   margin: -20px;
   background: #222c32;
   height: 100vh;
@@ -83,15 +83,19 @@ export default {
 }
 .el-card {
   border: none;
-  background: #222c32;
 }
-.body {
-  min-height: 500px;
-}
+// .body {
+//   min-height: 500px;
+// }
 .add,
 .grid-content {
   min-height: 40px;
   line-height: 40px;
   padding-left: 12px;
 }
+// .bottom-tool {
+//   position: fixed;
+//   bottom: 0;
+//   background: #fff;
+// }
 </style>

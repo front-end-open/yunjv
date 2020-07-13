@@ -212,9 +212,9 @@ app.on('ready', async () => {
   // backup
   ipcMain.on('async-openBackDialog', (event) => {
     let filepath = dialog.showOpenDialog(win, {
-      title: '选择文件',
+      title: '选择备份目录',
       buttonLabel: '确定',
-      properties: ['openFile'],
+      properties: ['openDirectory'],
     })
     if (filepath) {
       event.reply('async-get', filepath)
