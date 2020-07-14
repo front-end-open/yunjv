@@ -111,7 +111,7 @@
 
 <script>
 // 获取文件路径
-
+const Axios = require('axios')
 export default {
   data() {
     return {
@@ -163,6 +163,7 @@ export default {
       aboutOwnership: 'Copyright © 2020 Yanqi All Rights Reserved', //所有权
     }
   },
+  created() {},
   methods: {
     //点击浏览按钮 将input的value值替换为文件夹路径
     files() {

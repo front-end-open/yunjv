@@ -1270,9 +1270,7 @@ export default {
       let currentChunk = 0
       let preparams = null
       let chunksarr = []
-      // 文件hash, 分块hash
       reader.onload = async function(e) {
-        console.log(This, this, 'ddddddd')
         const result = e.target.result
         spark.append(result)
         spark1.append(result)
@@ -1283,7 +1281,6 @@ export default {
           loadNext()
         } else {
           spark.end()
-          console.log(block_list)
           //预上传
           await http
             .post(

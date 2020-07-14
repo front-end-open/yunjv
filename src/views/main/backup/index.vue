@@ -39,7 +39,9 @@
                     type="warning"
                     icon="el-icon-plus"
                   ></el-button>
-                  <el-button type="primary" plain>应用</el-button>
+                  <el-button type="primary" @click="isAddPath" plain
+                    >应用</el-button
+                  >
                 </div></el-col
               >
             </el-row>
@@ -48,6 +50,46 @@
             {{ '列表内容 ' + o }}
           </div>
         </el-card>
+
+        <el-dialog
+          title="配置"
+          :visible.sync="centerDialogVisible"
+          width="30%"
+          center
+        >
+          <el-form
+            :model="ruleForm"
+            :rules="rules"
+            ref="ruleForm"
+            label-width="auto"
+            class="demo-ruleForm"
+          >
+            <el-form-item label="服务" prop="server">
+              <el-select v-model="ruleForm.server" placeholder="选择备份到服务">
+                <el-option
+                  v-for="(item, index) in config"
+                  :label="item"
+                  :value="item"
+                  :key="index"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="备份地址" prop="path">
+              <el-select v-model="ruleForm.path" placeholder="请选择活动区域">
+                <el-option
+                  :label="ruleForm.path"
+                  :value="ruleForm.path"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" @click="submitForm('ruleForm')"
+                >立即创建</el-button
+              >
+              <el-button @click="resetForm('ruleForm')">取消</el-button>
+            </el-form-item>
+          </el-form>
+        </el-dialog>
       </el-main>
     </el-container>
   </div>
@@ -59,14 +101,81 @@ export default {
   data() {
     return {
       input: '',
+      ruleForm: {
+        server: '',
+        path: '/apps/BTBD',
+      },
+      rules: {
+        server: [{ required: true, message: '请选择服务', trigger: 'blur' }],
+        path: [{ required: true, message: '请选择备份目录', trigger: 'blur' }],
+      },
+      config: [],
+      centerDialogVisible: false,
     }
   },
+  created() {
+    let config = JSON.parse(localStorage.getItem('config'))
+    config.forEach((item) => {
+      this.config.push(item.type)
+    })
+    let arr = [
+      '2002fe17743ffd3db11ae43eb40c6ac9',
+      'c0f646c9139daf5caf32f91abd986d97',
+      'b2dbcefca7e62a80eefd6f2abc4e7e7f',
+      '2f12cc0f50f474b0b5c499c4c481f05b',
+    ]
+    this.$http
+      .post(
+        `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+        {
+          path: '/apps/BTBD',
+          size: 16459842,
+          isdir: 0,
+          autoinit: 1,
+          rtype: 1,
+          block_list: JSON.stringify(arr),
+        },
+      )
+      .then((res) => {
+        console.log(res.data)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  },
   methods: {
+    // 备份目录
     addPath() {
-      ipcRenderer.send('async-openBackDialog', 'open')
+      ipcRenderer.send('async-openBackDialog', { status: 'getPath' })
       ipcRenderer.on('async-get', (event, msg) => {
         this.input = msg[0]
       })
+    },
+    // 开始备份
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          ipcRenderer.send('async-openBackDialog', {
+            status: 'backup',
+            path: this.input,
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
+    // 重置
+    resetForm(formName) {
+      this.$refs[formName].resetFields()
+      this.centerDialogVisible = false
+    },
+    isAddPath() {
+      if (this.input) {
+        this.centerDialogVisible = true
+      } else {
+        alert('请选择备份目录')
+      }
     },
   },
 }
@@ -83,10 +192,8 @@ export default {
 }
 .el-card {
   border: none;
+  min-height: 50em;
 }
-// .body {
-//   min-height: 500px;
-// }
 .add,
 .grid-content {
   min-height: 40px;

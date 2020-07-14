@@ -43,6 +43,9 @@ module.exports = {
           artifactName: '${productName}-Portable-${version}.${ext}',
         },
       },
+      // 声明本机模块，作为外部web包
+      externals: ['chokidar'],
+      nodeModulesPath: ['../../node_modules', './node_modules'],
     },
   },
 }
