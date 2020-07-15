@@ -210,7 +210,7 @@ app.on('ready', async () => {
     } else {
       console.log('111111')
       var watcher = chokidar.watch(path, {
-        ignored: /[\/\\]\./,
+        ignored: /[\\/\\]\./,
         persistent: true,
         ignoreInitial: false,
         usePolling: true,
@@ -459,7 +459,7 @@ app.on('ready', async () => {
     }
   })
   //downloadSave
-  ipcMain.on('async-save', async (event, msg) => {
+  ipcMain.on('async-save', async (event) => {
     let path = dialog.showSaveDialog(win, {
       title: '下载',
       showsTagField: true,
