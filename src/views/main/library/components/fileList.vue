@@ -333,13 +333,6 @@
               @click="switchDir(rightMenuRow)"
               >打开</el-button
             >
-            <el-button
-              size="mini"
-              type="text"
-              class="renameBtnColor"
-              @click="downLoadFile"
-              >下载</el-button
-            >
           </ul>
           <ul>
             <el-button
@@ -2001,6 +1994,7 @@ export default {
     },
     //  文件移动/复制--懒加载
     async lazyLoadTreeDir(node, resolve) {
+      this.selecPath = '/'
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
@@ -2160,6 +2154,7 @@ export default {
     },
     // 移动/复制 提交
     async moveOk(select) {
+      this.selecPath = '/'
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
@@ -2419,8 +2414,6 @@ export default {
       this.$refs.rightMenu.style.left = event.clientX - 196 + 'px'
       document.addEventListener('click', this.foo)
       this.$refs.rightMenu.style.top = event.clientY + 5 + 'px'
-      //添加下载数据
-      this.rowDate = row
       //获取选中行的索引
       const index = this.tableData
         .map((e) => e.server_filename)
