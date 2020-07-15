@@ -160,6 +160,20 @@ export default {
         }
       })
     },
+    // 开始备份
+    submitForm(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          ipcRenderer.send('async-openBackDialog', {
+            status: 'backup',
+            path: this.input,
+          })
+        } else {
+          console.log('error submit!!')
+          return false
+        }
+      })
+    },
     // 重置
     resetForm(formName) {
       this.$refs[formName].resetFields()

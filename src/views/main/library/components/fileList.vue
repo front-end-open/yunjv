@@ -504,6 +504,16 @@ export default {
       //  finish the progress bar
       this.$Progress.finish()
     })
+
+    ipcRenderer.on('async-savepath', (event, msg) => {
+      console.log(msg)
+      this.$store.commit('downloadTasks', {
+        file: this.rowDate,
+        index: this.servertypeIndex,
+        downpath: msg,
+      })
+      this.$store.dispatch('startDownload')
+    })
   },
   methods: {
     //搜索文件
@@ -1910,8 +1920,7 @@ export default {
           break
         case 'baid':
           if (this.rowDate.isdir == 0) {
-            this.$store.commit('downloadTasks', { file: this.rowDate })
-            this.$store.dispatch('startDownload')
+            ipcRenderer.send('async-save', 'open')
           }
           break
         case 'smb':
