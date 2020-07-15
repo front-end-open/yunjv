@@ -19,123 +19,21 @@
               :limit="1"
               :auto-upload="false"
             >
-              <el-button size="small" type="primary"
+              <el-button size="small" plain
                 >上传<i class="el-icon-upload el-icon--right"></i
               ></el-button>
             </el-upload>
             <el-button
               v-if="serverType !== 'baid'"
               size="mini"
-              type="primary"
+              plain
               @click="upLoadFile"
               >上传<i class="el-icon-upload el-icon--right"></i
             ></el-button>
             <!-- 下载 -->
-            <el-button size="mini" type="primary" @click="downLoadFile"
+            <el-button size="mini" plain @click="downLoadFile"
               >下载<i class="el-icon-download el-icon--right"></i
             ></el-button>
-            <!-- 文件操作 -->
-            <el-dropdown trigger="click">
-              <el-button size="small" plain :disabled="show">
-                文件操作<i class="el-icon-arrow-down el-icon--right"></i>
-              </el-button>
-              <el-dropdown-menu slot="dropdown">
-                <!-- 复制 -->
-                <el-dropdown-item class="moveFile_btn_dad">
-                  <el-button
-                    size="mini"
-                    class="moveFile_btn"
-                    type="text"
-                    @click="openDialog_move('copy')"
-                    >复制</el-button
-                  >
-                  <el-dialog
-                    title="复制到"
-                    :visible.sync="copeDialog"
-                    append-to-body
-                    class="fixedWH"
-                    width="550px"
-                  >
-                    <el-input
-                      placeholder="当前路径"
-                      v-model="selecPath"
-                      :disabled="true"
-                    >
-                    </el-input>
-                    <div class="border">
-                      <el-tree
-                        class="filter-tree"
-                        :props="props"
-                        :filter-nodeDate-method="filterNode"
-                        highlight-current
-                        lazy
-                        @node-click="handleNodeClick"
-                        :load="lazyLoadTreeDir"
-                        ref="tree"
-                      >
-                      </el-tree>
-                    </div>
-                    <div slot="footer" class="dialog-footer">
-                      <el-button @click="copeDialog = false">取 消</el-button>
-                      <el-button type="primary" @click="moveOk('copy')" plain
-                        >确 定</el-button
-                      >
-                    </div>
-                  </el-dialog>
-                </el-dropdown-item>
-                <!-- 移动 -->
-                <el-dropdown-item class="moveFile_btn_dad">
-                  <el-button
-                    size="mini"
-                    class="moveFile_btn"
-                    type="text"
-                    @click="openDialog_move('move')"
-                    >移动</el-button
-                  >
-                  <el-dialog
-                    title="移动到"
-                    :visible.sync="moveDialog"
-                    append-to-body
-                    class="fixedWH"
-                    width="550px"
-                  >
-                    <el-input
-                      placeholder="当前路径"
-                      v-model="selecPath"
-                      :disabled="true"
-                    >
-                    </el-input>
-                    <div class="border">
-                      <el-tree
-                        class="filter-tree"
-                        :props="props"
-                        :filter-nodeDate-method="filterNode"
-                        highlight-current
-                        lazy
-                        @node-click="handleNodeClick"
-                        :load="lazyLoadTreeDir"
-                        ref="tree"
-                      >
-                      </el-tree>
-                    </div>
-                    <div slot="footer" class="dialog-footer">
-                      <el-button @click="moveDialog = false">取 消</el-button>
-                      <el-button type="primary" @click="moveOk('move')" plain
-                        >确 定</el-button
-                      >
-                    </div>
-                  </el-dialog>
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown>
-            <!-- 删除 -->
-            <el-button
-              size="small"
-              plain
-              @click="deleteDialogVisible = true"
-              :disabled="show"
-              >删除</el-button
-            >
           </div>
         </el-col>
         <!-- 搜索框 -->
@@ -774,9 +672,11 @@ export default {
         default:
           seafileAPI.login().then(async () => {
             if (this.path == '/') {
+              let repoes = await seafileAPI.listRepos()
+              let reposID = repoes.data.repos[0].repo_id
               await seafileAPI
                 .createDir(
-                  '9a69b781-7421-4e31-a65b-a5451f7d92b2', //repos_id
+                  reposID, //repos_id
                   `${this.path}${this.ruleForm.name}`,
                 )
                 .then((res) => {
@@ -833,7 +733,7 @@ export default {
                   tableD.path = `/${item.name}`
                   tableD.isdir = item.type == 'file' ? 0 : 1
                   tableD.local_mtime = item.mtime
-                  tableD.permission = 'undefined'
+                  tableD.permission = ''
                   this.tableData.push(tableD)
                 })
                 console.log(this.tableData)
@@ -2647,7 +2547,7 @@ export default {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  min-width: 380px;
+  width: 375px;
 }
 
 .cursor {

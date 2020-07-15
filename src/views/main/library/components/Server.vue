@@ -545,7 +545,7 @@ export default {
 .ServerCard {
   width: 100%;
   height: 130px;
-  background: url('https://picsum.photos/1920/1080?35');
+  background: url('https://img-blog.csdnimg.cn/20200716074111712.jpg');
 }
 .cardSelec {
   display: flex;
