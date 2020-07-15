@@ -211,7 +211,7 @@ app.on('ready', async () => {
       }
     } else {
       var watcher = chokidar.watch(path, {
-        ignored: /[\/\\]\./,
+        ignored: /[\\/\\]\./,
         persistent: true,
         ignoreInitial: false,
         usePolling: true,
@@ -458,6 +458,24 @@ app.on('ready', async () => {
         })
     }
   })
+<<<<<<< HEAD
+=======
+  //downloadSave
+  ipcMain.on('async-save', async (event) => {
+    let path = dialog.showSaveDialog(win, {
+      title: '下载',
+      showsTagField: true,
+      properties: [
+        'createDirectory',
+        'showOverwriteConfirmation',
+        'dontAddToRecent',
+      ],
+    })
+    if (path) {
+      event.reply('async-savepath', path)
+    }
+  })
+>>>>>>> style: code lint
 })
 
 // Exit cleanly on request from parent process in development mode.
