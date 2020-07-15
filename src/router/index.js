@@ -182,6 +182,7 @@ const routes = [
                             permissions,
                             mtime,
                             parent_dir,
+                            repos_id
                           } = item
                           singleFile = {}
                           singleFile.id = Math.random()
@@ -193,6 +194,7 @@ const routes = [
                           singleFile.isdir = type == 'file' ? 0 : 1
                           singleFile.local_mtime = mtime
                           singleFile.permission = permissions
+                          singleFile.repos_id = repos_id
                         } else {
                           const {
                             name,

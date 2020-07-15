@@ -1,7 +1,6 @@
 'use strict'
 
 import {
-  Notification,
   ipcMain,
   app,
   protocol,
@@ -10,6 +9,7 @@ import {
 } from 'electron'
 import {
   createProtocol,
+  installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
 import { start } from 'repl'
@@ -68,19 +68,6 @@ ipcMain.on('async-authcode', function(event) {
     .catch((err) => {
       console.error(err)
     })
-})
-//通知消息
-ipcMain.on('async-openNotiton', function(event, arg) {
-  console.log(arg)
-  let Notition = new Notification({
-    body: '创建成功',
-    silent: true,
-    actions: {
-      type: 'button',
-      text: '关闭',
-    },
-  })
-  Notition.show()
 })
 
 //webDAV

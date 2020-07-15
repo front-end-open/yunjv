@@ -83,6 +83,7 @@ export default {
 }
 .aside {
   user-select: none;
+  overflow:hidden;
 }
 .transsion {
   position: relative;
