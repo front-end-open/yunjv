@@ -2653,12 +2653,4 @@ export default {
   text-align: left;
   padding-left: 25px;
 }
-
-.rightMenu > ul > button {
-  border: 1px solid transparent;
-}
-.rightMenu > ul > button:hover {
-  border: 1px solid rgb(213, 234, 255);
-  background: rgb(236, 245, 255);
-}
 </style>
