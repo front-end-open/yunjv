@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Vuex from 'vuex'
 import http from '@/server/index.js'
 const ipcRenderer = require('electron').ipcRenderer
-
+const npath = require('path')
 Vue.use(Vuex)
 
 export default new Vuex.Store({
@@ -14,6 +14,8 @@ export default new Vuex.Store({
     tag: false,
     brandNum: 0,
     precentage: 0,
+    index: 0,
+    downpath: '',
   },
   mutations: {
     saveconfig(state) {
@@ -27,6 +29,8 @@ export default new Vuex.Store({
     },
     downloadTasks(state, payload) {
       state.downloadLists.push(payload.file)
+      state.index = payload.index
+      state.downpath = payload.downpath
       state.tag = true
       state.brandNum++
     },
@@ -44,10 +48,11 @@ export default new Vuex.Store({
     async startDownload({ state, commit }) {
       const fsidarr = []
       let dlink = ''
+      const config = JSON.parse(localStorage.getItem('config'))[state.index]
       fsidarr.push(state.downloadLists[0].fs_id)
       await http
         .get(
-          `https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+          `https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas&access_token=${config.token}`,
           {
             params: {
               fsids: JSON.stringify(fsidarr),
@@ -59,8 +64,10 @@ export default new Vuex.Store({
           console.log(res.data)
           dlink = res.data.list[0].dlink
         })
-      let path = `/Users/ousan/desktop/${state.downloadLists[0].server_filename}`
-      let dinks = `${dlink}&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`
+      console.log(path)
+      let extname = npath.extname(state.downloadLists[0].server_filename)
+      let path = `${state.downpath}${extname}`
+      let dinks = `${dlink}&access_token=${config.token}`
       ipcRenderer.send('download', {
         dinks,
         path,

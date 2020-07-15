@@ -52,10 +52,7 @@
                   ></el-input>
                 </el-form-item>
                 <el-form-item label="端口" prop="port">
-                  <el-input
-                    v-model.number="ruleForm.port"
-                    :disabled="true"
-                  ></el-input>
+                  <el-input v-model.number="ruleForm.port"></el-input>
                 </el-form-item>
                 <el-form-item label="账号" prop="usr">
                   <el-input placeholder="可选" v-model="ruleForm.usr" clearable>
