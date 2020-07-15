@@ -57,6 +57,24 @@ const routes = [
             path: 'filelist/:serverType',
             name: 'filelist',
             component: libraryFileList,
+            meta: {
+              progress: {
+                func: [
+                  { call: 'color', modifier: 'temp', argument: '#ffb000' },
+                  { call: 'fail', modifier: 'temp', argument: '#6e0000' },
+                  { call: 'location', modifier: 'temp', argument: 'top' },
+                  {
+                    call: 'transition',
+                    modifier: 'temp',
+                    argument: {
+                      speed: '1.5s',
+                      opacity: '0.6s',
+                      termination: 400,
+                    },
+                  },
+                ],
+              },
+            },
             beforeEnter: (to, from, next) => {
               const { serverType, index } = to.params,
                 seafileAPI = new SeafileAPI(),
@@ -84,7 +102,9 @@ const routes = [
                         fileDate.server_filename = val.server_filename
                         fileDate.local_mtime = Dateformate(val.local_mtime)
                         fileDate.local_ctime = Dateformate(val.local_ctime)
-                        val.isdir ==1 ? fileDate.size = "" : fileDate.size = SizeConvert(val.size)
+                        val.isdir == 1
+                          ? (fileDate.size = '')
+                          : (fileDate.size = SizeConvert(val.size))
                         fileDate.sizeC = val.size
                         fileDate.isdir = val.isdir
                         fileDate.path = val.path
@@ -182,7 +202,7 @@ const routes = [
                             permissions,
                             mtime,
                             parent_dir,
-                            repos_id
+                            repos_id,
                           } = item
                           singleFile = {}
                           singleFile.id = Math.random()

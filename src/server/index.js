@@ -43,6 +43,7 @@ instance.interceptors.request.use(
 
 instance.interceptors.response.use(
   function(response) {
+    console.log(response)
     return response
   },
   function(error) {
