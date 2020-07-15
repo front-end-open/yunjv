@@ -85,11 +85,11 @@
     </el-row>
     <!-- 服务列表 -->
     <div class="server-list">
-      <el-row :gutter="12">
-        <el-col :span="8" v-for="(list, index) in server" :key="index">
-          <div class="ServerCard">
-            <el-card shadow="hover">
-              <div class="cardSelec" style="text-align: right">
+      <el-row :gutter="12" class="listCard">
+        <el-col :span="8" v-for="(list, index) in server" :key="index" >
+          <div>
+            <el-card shadow="hover" class="ServerCard">
+              <div class="cardSelec" >
                 <el-dropdown trigger="click" @command="singleServerSelec">
                   <span class="el-dropdown-link">
                     <i class="el-icon-arrow-down el-icon--right"></i>
@@ -536,5 +536,33 @@ export default {
 <style lang="less" scoped>
 .server-list {
   margin: 12px;
+}
+.listCard{
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap:12px 14px;
+}
+.listCard>*{
+  width:100%;
+  
+}
+.ServerCard{
+  width:100%;
+  height: 130px;
+  background:url("https://picsum.photos/1920/1080?35");
+}
+.cardSelec{
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+    
+}
+.serverPanel>div{
+  font-family: serif;
+  font-size:14px;
+  margin-bottom:3px;
+}
+.listCard::before,.listCard::after{
+  display:none
 }
 </style>
