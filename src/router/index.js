@@ -210,11 +210,7 @@ const routes = [
                             permissions,
                             mtime,
                             parent_dir,
-<<<<<<< HEAD
                             repos_id,
-=======
-                            repos_id
->>>>>>> feat(filelist.vue): 右击菜单
                           } = item
                           singleFile = {}
                           singleFile.id = Math.random()
