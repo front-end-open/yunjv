@@ -44,7 +44,7 @@
                 </el-select>
               </el-form-item>
               <div v-if="serverPanelVisible">
-                <el-form-item label="服务IP" prop="IP">
+                <el-form-item label="服务IP或URL" prop="IP">
                   <el-input
                     v-model="ruleForm.IP"
                     placeholder="如：0.0.0.0"
@@ -235,15 +235,7 @@ export default {
         pwd: '',
       },
       rules: {
-        name: [
-          { required: true, message: '输入服务名称', trigger: 'blur' },
-          {
-            min: 3,
-            max: 50,
-            message: '长度在 5 到 50 个字符',
-            trigger: 'blur',
-          },
-        ],
+        name: [{ required: true, message: '输入服务名称', trigger: 'blur' }],
         option: [
           { required: true, message: '至少选择一项目服务', trigger: 'change' },
         ],

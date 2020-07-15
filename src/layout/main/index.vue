@@ -1,5 +1,6 @@
 <template>
   <el-container class="main-container">
+    <vue-progress-bar></vue-progress-bar>
     <el-aside width="200px" class="aside">
       <div class="user">
         <el-avatar
@@ -83,7 +84,7 @@ export default {
 }
 .aside {
   user-select: none;
-  overflow:hidden;
+  overflow: hidden;
 }
 .transsion {
   position: relative;

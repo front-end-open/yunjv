@@ -38,6 +38,7 @@
     "spark-md5": "^3.0.1",
     "vue": "^2.6.11",
     "vue-awesome": "^4.0.2",
+    "vue-progressbar": "^0.7.5",
     "vue-router": "^3.1.6",
     "vuex": "^3.1.3"
   },

@@ -1,12 +1,6 @@
 'use strict'
 
-import {
-  ipcMain,
-  app,
-  protocol,
-  BrowserWindow,
-  dialog,
-} from 'electron'
+import { ipcMain, app, protocol, BrowserWindow, dialog } from 'electron'
 import {
   createProtocol,
   installVueDevtools,
@@ -87,7 +81,7 @@ ipcMain.on('async-webdav', function(event, arg) {
     win.show()
   })
 })
-
+// 文件下载
 ipcMain.on('download', (event, msg) => {
   let { dinks, path, size } = msg
   Axios({
