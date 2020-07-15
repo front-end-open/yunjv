@@ -78,12 +78,8 @@ ServerFactory.prototype = {
     }
     this.uploadpieces = function(chunkSize, size, i, lpath, file) {
       // 创建可读流
-      console.log(1)
       let enddata = Math.min(size, (i + 1) * chunkSize)
       let arr = []
-
-      console.log('chunkSize', chunkSize)
-      console.log('size', size)
       //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
       let readStream = fs.createReadStream(lpath, {
         start: i * chunkSize,
@@ -95,9 +91,6 @@ ServerFactory.prototype = {
       })
       //on end在该分片读取完成时触发
       readStream.on('end', async () => {
-        // let convert = [md5(Buffer.concat(arr))]
-        // let blob = new Blob(arr)
-        console.log(arr)
         http
           .post(
             `/rest/2.0/xpan/file?method=precreate&access_token=123.408e3e7cbc0ba103a86b3bc80131f84a.Ymd0wqY1YGm0DkZJL0NRQBR-6EVbhgVqBZhhNkT.BDR5Ig`,
@@ -110,25 +103,16 @@ ServerFactory.prototype = {
               block_list: convert,
             },
           )
-          .then((res) => {
-            console.log(res.data)
+          .then(() => {
             let params = new FormData()
             params.append('file', file)
-            console.log(file)
-            axios
-              .post(
-                `/rest/2.0/pcs/superfile2?method=upload&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&type=tmpfile&path=/apps/BTBD&uploadid=N1-NjEuMTU3LjI0My4xMjE6MTU5MjE5MDI4NjozODYwNzE1NTUzNjI5MTQ3Mzk1&partseq=1`,
-                params,
-                {
-                  headers: { 'Content-Type': 'multipart/form-data' },
-                },
-              )
-              .then((res) => {
-                console.log(res)
-              })
-              .catch((error) => {
-                console.log(error.toJSON())
-              })
+            axios.post(
+              `/rest/2.0/pcs/superfile2?method=upload&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&type=tmpfile&path=/apps/BTBD&uploadid=N1-NjEuMTU3LjI0My4xMjE6MTU5MjE5MDI4NjozODYwNzE1NTUzNjI5MTQ3Mzk1&partseq=1`,
+              params,
+              {
+                headers: { 'Content-Type': 'multipart/form-data' },
+              },
+            )
           })
       })
     }
@@ -184,7 +168,6 @@ ServerFactory.prototype = {
           // TODO: 列表更新
           smbclient.readdir(parent, (error, files) => {
             if (error) throw error
-            console.log(files)
             fileList = files
           })
         })
@@ -227,16 +210,12 @@ ServerFactory.prototype = {
       const config = JSON.parse(localStorage.getItem('config'))[serverindx]
       const { host, user, pwd } = config
       try {
-        await ftp
-          .access({
-            host,
-            user,
-            password: pwd,
-            secure: false,
-          })
-          .then((res) => {
-            console.log(res)
-          })
+        await ftp.access({
+          host,
+          user,
+          password: pwd,
+          secure: false,
+        })
         return await ftp.list('')
       } catch (err) {
         ftp.close()
@@ -255,25 +234,14 @@ ServerFactory.prototype = {
           user,
           password: pwd,
         })
-        ftp.trackProgress((info) => {
-          console.log('File', info.name)
-          console.log('Type', info.type)
-          console.log('Transferred', info.bytes)
-          console.log('Transferred Overall', info.bytesOverall)
-        })
-        await ftp
-          .uploadFromDir(
-            localpath,
-            `${remotepath}/${formatLocalPath[formatLocalPath.length - 1]}`,
-          )
-          .then((res) => {
-            console.log(res)
-          })
+        await ftp.uploadFromDir(
+          localpath,
+          `${remotepath}/${formatLocalPath[formatLocalPath.length - 1]}`,
+        )
         await ftp
           .list(remotepath)
           .then((res) => {
-            for (let [index, item] of res.entries()) {
-              console.log(index)
+            for (let item of res) {
               const { name, size, isDirectory, permissions, date, user } = item
               currentFileInfo = {}
               currentFileInfo.id = (Math.random() + 1) * 10
@@ -295,8 +263,7 @@ ServerFactory.prototype = {
             console.log(error)
           })
         const filelist = await ftp.list(remotepath)
-        for (let [index, item] of filelist.entries()) {
-          console.log(index)
+        for (let item of filelist) {
           const { name, size, isDirectory, permissions, date, user } = item
           currentFileInfo = {}
           currentFileInfo.id = (Math.random() + 1) * 10
@@ -331,21 +298,9 @@ ServerFactory.prototype = {
           password: pwd,
         })
         if (isdir) {
-          ftp.trackProgress((info) => {
-            console.log('File', info.name)
-            console.log('Type', info.type)
-            console.log('Transferred', info.bytes)
-            console.log('Transferred Overall', info.bytesOverall)
-          })
-          return await ftp.downloadToDir(localpath, path).then((res) => {
-            console.log(res)
-          })
+          return await ftp.downloadToDir(localpath, path)
         } else {
-          return await ftp
-            .downloadTo(`${localpath}/${server_filename}`, path)
-            .then((res) => {
-              console.log(res)
-            })
+          return await ftp.downloadTo(`${localpath}/${server_filename}`, path)
         }
       } catch (error) {
         ftp.close()
@@ -395,14 +350,6 @@ ServerFactory.prototype = {
         ftp.close()
       }
     }
-    // //删除
-    // this.delete = async function() {
-    //   this.client.ftp.verbose = true
-    //   //文件目录删除
-    //   this.client.removeDir()
-    //   //文件删除
-    //   this.client.remove()
-    // }
     //重命名
     this.rename = async function(currentName, newName) {
       const { host, user, pwd } = config[serverindx]
@@ -447,7 +394,7 @@ ServerFactory.prototype = {
       }
     }
   },
-  SEAFILE: function(index, config, localpath) {
+  SEAFILE: function(index, config) {
     let seafileAPI = new SeafileAPI(),
       { host, user, pwd } = config[index],
       obj = { server: host, username: user, password: pwd },
@@ -457,10 +404,8 @@ ServerFactory.prototype = {
       arrDir = [],
       data = []
     seafileAPI.init(obj)
-    console.log(index, config, localpath)
     this.createDir = function() {
-      seafileAPI.login().then(async (response) => {
-        console.log(response)
+      seafileAPI.login().then(async () => {
         let repos = await seafileAPI.listRepos()
         repos.data.repos.forEach((item) => {
           arr.push(item.repo_id)
@@ -480,7 +425,6 @@ ServerFactory.prototype = {
 
         for (let item of arrDir) {
           if (item.type == 'file') {
-            console.log(item, 'file')
             const { name, size, type, permissions, mtime, parent_dir } = item
             singleFile = {}
             singleFile.id = Math.random()
@@ -493,7 +437,6 @@ ServerFactory.prototype = {
             singleFile.local_mtime = mtime
             singleFile.permission = permissions
           } else {
-            console.log(item, 'dir')
             const { name, type, permissions, mtime, parent_dir } = item
             singleFile = {}
             singleFile.id = Math.random()
