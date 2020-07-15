@@ -84,7 +84,7 @@ const routes = [
                         fileDate.server_filename = val.server_filename
                         fileDate.local_mtime = Dateformate(val.local_mtime)
                         fileDate.local_ctime = Dateformate(val.local_ctime)
-                        fileDate.size = SizeConvert(val.size)
+                        val.isdir ==1 ? fileDate.size = "" : fileDate.size = SizeConvert(val.size)
                         fileDate.sizeC = val.size
                         fileDate.isdir = val.isdir
                         fileDate.path = val.path

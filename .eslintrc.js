@@ -11,17 +11,16 @@ module.exports = {
     // 'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
     'no-console': 'off',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    "prettier/prettier": "off",
-    // 'prettier/prettier': [
-    //   'warn',
-    //   {
-    //     singleQuote: true,
-    //     semi: false,
-    //     trailingComma: 'all',
-    //     quoteProps: 'preserve',
-    //     arrowParens: 'always',
-    //   },
-    // ],
+    'prettier/prettier': [
+      'warn',
+      {
+        singleQuote: true,
+        semi: false,
+        trailingComma: 'all',
+        quoteProps: 'preserve',
+        arrowParens: 'always',
+      },
+    ],
   },
   overrides: [
     {
