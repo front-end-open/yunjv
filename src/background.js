@@ -1,16 +1,6 @@
 'use strict'
 
-<<<<<<< HEAD
 import { ipcMain, app, protocol, BrowserWindow, dialog } from 'electron'
-=======
-import {
-  ipcMain,
-  app,
-  protocol,
-  BrowserWindow,
-  dialog,
-} from 'electron'
->>>>>>> feat(filelist.vue): 右击菜单
 import {
   createProtocol,
   installVueDevtools,

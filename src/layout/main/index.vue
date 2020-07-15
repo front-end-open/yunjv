@@ -84,11 +84,7 @@ export default {
 }
 .aside {
   user-select: none;
-<<<<<<< HEAD
   overflow: hidden;
-=======
-  overflow:hidden;
->>>>>>> feat(filelist.vue): 右击菜单
 }
 .transsion {
   position: relative;
