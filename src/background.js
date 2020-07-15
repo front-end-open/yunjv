@@ -12,8 +12,10 @@ import {
   installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
-import { start } from 'repl'
+// import { start } from 'repl'
 import http from '@/server/index.js'
+import { Buffer } from 'buffer'
+// import { Form } from 'node_modules/element-ui/types/index'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
 const querystring = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -21,6 +23,8 @@ const Axios = require('axios')
 const fs = require('fs')
 const chokidar = require('chokidar')
 const md5 = require('md5')
+const FormData = require('form-data')
+// const Blob = require('cross-blob')
 let win
 
 // Scheme must be registered before the app is ready
@@ -223,11 +227,118 @@ app.on('ready', async () => {
 
       let log = console.log.bind(console)
       let filepath = []
+
       watcher
-        .on('add', function(path, stats) {
+        .on('add', async function(path, stats) {
           log('File', path, 'has been added', stats)
           let fileinfo = { path, stats }
           filepath.push(fileinfo)
+
+          let { fileSize } = stats
+          let chunkSize = 4 * 1024 * 1024
+          let pieces = Math.ceil(fileSize / chunkSize) //总共的分片数
+          let block_lists = []
+
+          function singleUpload(path, stats, i) {
+            return new Promise((res, rej) => {
+              let { size } = stats
+              let chunkSize = 3 * 1024 * 1024 //每片分块的大小3M
+              //计算每块的结束位置
+              let enddata = Math.min(size, (i + 1) * chunkSize)
+              let arr = []
+              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
+              let readStream = fs.createReadStream(path, {
+                start: i * chunkSize,
+                end: enddata - 1,
+              })
+              //on data读取数据
+              readStream.on('data', (data) => {
+                arr.push(data)
+              })
+              //on end在该分片读取完成时触发
+              readStream.on('end', () => {
+                res(md5(Buffer.concat(arr)))
+              })
+              readStream.on('error', () => {
+                rej('分片读取失败')
+              })
+            })
+          }
+
+          function singlePieces(path, stats, i, uploadid, block_list) {
+            return new Promise((res, rej) => {
+              let { size } = stats
+              let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
+              //计算每块的结束位置
+              let enddata = Math.min(size, (i + 1) * chunkSize)
+              let chunk = 0
+              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
+              let readStream = fs.createReadStream(path, {
+                start: i * chunkSize,
+                end: enddata - 1,
+              })
+              //on data读取数据
+              readStream.on('data', (data) => {
+                // arr.push(data)
+                chunk += data
+              })
+              //on end在该分片读取完成时触发
+              readStream.on('end', () => {
+                // Buffer.concat(arr)
+
+                let params = new FormData()
+                // let blob = new Blob([chunk])
+                params.append('file', chunk)
+                log('开始上传分片')
+                Axios.post(
+                  `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${uploadid}&partseq=${block_list}`,
+                  params,
+                  {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                  },
+                )
+                  .then((response) => {
+                    res(response)
+                  })
+                  .catch((error) => {
+                    console.log('分片上传失败')
+                    console.log(error)
+                  })
+              })
+              readStream.on('error', () => {
+                rej('分片读取失败')
+              })
+            })
+          }
+          // 分片md5计算
+          for (let i = 0; i < pieces; i++) {
+            let filemd5 = await singleUpload(path, stats, i)
+            block_lists.push(filemd5)
+          }
+
+          // 预上传
+          let preRes = await http.post(
+            `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+            {
+              path: '/apps/BTBD',
+              size: fileSize,
+              isdir: 0,
+              autoinit: 1,
+              rtype: 1,
+              block_list: JSON.stringify(block_lists),
+            },
+          )
+          // 分片上传
+          const { block_list, uploadid } = preRes.data
+          for (let i = 0; i < block_list.length; i++) {
+            await singlePieces(path, stats, i, uploadid, block_list[i])
+              .then((res) => {
+                console.log(res)
+              })
+              .catch((error) => {
+                console.log(error)
+              })
+          }
         }) // 添加文件
         .on('addDir', function(path) {
           log('Directory', path, 'has been added')
@@ -267,14 +378,13 @@ app.on('ready', async () => {
               })
             })
           }
-          function singlePieces(fileinfo, i) {
+          function singlePieces(path, stats, i, uploadid, block_list) {
             return new Promise((res, rej) => {
-              let { path, stats } = fileinfo
-              let size = stats.size
-              let chunkSize = 3 * 1024 * 1024 //每片分块的大小3M
+              let { size } = stats
+              let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
               //计算每块的结束位置
               let enddata = Math.min(size, (i + 1) * chunkSize)
-              let arr = []
+              let chunk = 0
               //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
               let readStream = fs.createReadStream(path, {
                 start: i * chunkSize,
@@ -282,12 +392,31 @@ app.on('ready', async () => {
               })
               //on data读取数据
               readStream.on('data', (data) => {
-                arr.push(data)
+                // arr.push(data)
+                chunk += data
               })
               //on end在该分片读取完成时触发
               readStream.on('end', () => {
-                let blob = new Blob(arr)
-                res(blob)
+                // Buffer.concat(arr)
+
+                let params = new FormData()
+                // let blob = new Blob([chunk])
+                params.append('file', chunk)
+                log('开始上传分片')
+                Axios.post(
+                  `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${uploadid}&partseq=${block_list}`,
+                  params,
+                  {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                  },
+                )
+                  .then((response) => {
+                    res(response)
+                  })
+                  .catch((error) => {
+                    console.log('分片上传失败')
+                    console.log(error)
+                  })
               })
               readStream.on('error', () => {
                 rej('分片读取失败')
@@ -316,10 +445,17 @@ app.on('ready', async () => {
                 block_list: JSON.stringify(block_lists),
               },
             )
-            const { block_list } = preRes.data
+            const { block_list, uploadid } = preRes.data
             for (let i = 0; i < block_list.length; i++) {
-              console.log(await singlePieces(item, i))
+              await singlePieces(item, i, uploadid, block_list[i])
+                .then((res) => {
+                  console.log(res)
+                })
+                .catch((error) => {
+                  console.log(error)
+                })
             }
+            log(block_list, uploadid, preRes.data)
           })
         })
         .on('error', function(error) {

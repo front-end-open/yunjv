@@ -118,30 +118,6 @@ export default {
     config.forEach((item) => {
       this.config.push(item.type)
     })
-    let arr = [
-      '2002fe17743ffd3db11ae43eb40c6ac9',
-      'c0f646c9139daf5caf32f91abd986d97',
-      'b2dbcefca7e62a80eefd6f2abc4e7e7f',
-      '2f12cc0f50f474b0b5c499c4c481f05b',
-    ]
-    this.$http
-      .post(
-        `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
-        {
-          path: '/apps/BTBD',
-          size: 16459842,
-          isdir: 0,
-          autoinit: 1,
-          rtype: 1,
-          block_list: JSON.stringify(arr),
-        },
-      )
-      .then((res) => {
-        console.log(res.data)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
   },
   methods: {
     // 备份目录
