@@ -2317,7 +2317,7 @@ export default {
 .renameBtnColor{
   color:#606266;
   padding: 7px 5px;
-  margin:0;
+  margin:0 !important;
 }
 // 文件夹颜色
 .dir{
