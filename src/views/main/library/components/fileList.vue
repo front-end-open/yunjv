@@ -2357,7 +2357,7 @@ export default {
   width: 100%;
   margin-bottom: 20px;
 }
-//右击菜单--------------------------------------
+//右击菜单
 .rightMenu{
     width:200px;
     position: absolute;
@@ -2388,8 +2388,6 @@ export default {
      text-align: left;
      padding-left: 25px;
 }
-   
-
 .rightMenu>ul>button{
     border: 1px solid transparent;
 }
@@ -2397,6 +2395,4 @@ export default {
     border:1px solid rgb(213,234,255);
     background:rgb(236,245,255);
 }
-//--------------------------------------------
-
 </style>
