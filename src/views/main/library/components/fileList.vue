@@ -7,7 +7,6 @@
             <el-button size="small" plain @click="createDiretory"
               >新建文件夹</el-button
             >
-            {{ 'hello' + this.$store.state.precentage }}
             <!-- 上传 -->
             <el-upload
               v-if="serverType == 'baid'"
@@ -1886,11 +1885,6 @@ export default {
         case 'baid':
           if (this.rowDate.isdir == 0) {
             ipcRenderer.send('async-save', 'savepath')
-            // this.$store.commit('downloadTasks', {
-            //   file: this.rowDate,
-            //   index: this.servertypeIndex,
-            // })
-            // this.$store.dispatch('startDownload')
           } else {
             //提示消息
             this.$notify({

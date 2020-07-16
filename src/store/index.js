@@ -12,7 +12,7 @@ export default new Vuex.Store({
     fileinfo: {},
     downloadLists: [],
     tag: false,
-    brandNum: 0,
+    brandNum: 1,
     precentage: 0,
   },
   mutations: {
@@ -26,18 +26,18 @@ export default new Vuex.Store({
       state.fileinfo = payload
     },
     downloadTasks(state, payload) {
+      // state.downloadLi sts = []
       state.downloadLists.push(payload.file)
       state.tag = true
-      state.brandNum++
     },
     clearDownTask(state) {
-      state.brandNum = 0
       state.tag = false
       state.precentage = 0
       state.downloadLists = []
     },
     process(state, payload) {
       state.precentage = payload
+      console.log(payload)
     },
   },
   actions: {

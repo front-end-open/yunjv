@@ -1,6 +1,5 @@
 <template>
   <el-container>
-    <h1>{{ this.$store.state.precentage }}</h1>
     <el-table :data="this.$store.state.downloadLists">
       <el-table-column
         align="center"
@@ -21,14 +20,10 @@
       <el-table-column
         align="center"
         header-align="center"
-        label="状态"
+        label="进度"
         width="180"
       >
-        <el-progress
-          :text-inside="true"
-          :stroke-width="26"
-          :percentage="precentage"
-        ></el-progress>
+        <span>{{ this.$store.state.precentage + '%' }}</span>
       </el-table-column>
       <el-table-column align="center" header-align="center" label="操作">
         <template slot-scope="scope">
