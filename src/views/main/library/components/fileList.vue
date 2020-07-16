@@ -326,6 +326,15 @@
             </el-button>
             <el-button
               size="mini"
+              slot="reference"
+              type="text"
+              class="renameBtnColor"
+              @click="downLoadFile"
+            >
+              下载
+            </el-button>
+            <el-button
+              size="mini"
               type="text"
               class="renameBtnColor"
               @click="editFileName(rightMenuIndex, rightMenuRow)"
