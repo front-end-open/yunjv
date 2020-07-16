@@ -44,7 +44,7 @@
                 </el-select>
               </el-form-item>
               <div v-if="serverPanelVisible">
-                <el-form-item label="IP或URL" prop="IP">
+                <el-form-item label="服务IP或URL" prop="IP">
                   <el-input
                     v-model="ruleForm.IP"
                     placeholder="如：0.0.0.0"
@@ -150,7 +150,7 @@
                       clearable
                     ></el-input>
                   </el-form-item>
-                  <el-form-item label="服务地址" prop="host">
+                  <el-form-item label="服务IP或URL" prop="host">
                     <el-input
                       v-model="sapServerConfig.host"
                       clearable
@@ -179,7 +179,7 @@
                   <el-button @click="dialogVisible2 = false"
                     >放弃修改</el-button
                   >
-                  <el-button type="primary" @click="changeServerConfig()"
+                  <el-button type="primary" @click="changeServerConfig"
                     >确 定</el-button
                   >
                 </span>
@@ -322,7 +322,6 @@ export default {
       sapServerConfig: {},
       dialogVisible2: false,
       dialogVisible: false,
-      currentConfig: null,
     }
   },
   created() {
@@ -527,15 +526,6 @@ export default {
     cancelAddServer(formName) {
       this.dialogVisible = false
       this.$refs[formName].resetFields()
-    },
-  },
-  watch: {
-    sapServerConfig: {
-      handler: function(val, oldVal) {
-        console.log(val, oldVal)
-        this.currentConfig = val
-      },
-      deep: true,
     },
   },
 }
