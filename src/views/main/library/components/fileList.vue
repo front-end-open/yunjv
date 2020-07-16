@@ -1905,7 +1905,10 @@ export default {
           break
         case 'baid':
           if (this.rowDate.isdir == 0) {
-            this.$store.commit('downloadTasks', { file: this.rowDate })
+            this.$store.commit('downloadTasks', {
+              file: this.rowDate,
+              index: this.servertypeIndex,
+            })
             this.$store.dispatch('startDownload')
           }
           break

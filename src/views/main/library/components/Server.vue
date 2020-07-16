@@ -44,7 +44,7 @@
                 </el-select>
               </el-form-item>
               <div v-if="serverPanelVisible">
-                <el-form-item label="服务IP或URL" prop="IP">
+                <el-form-item label="IP或URL" prop="IP">
                   <el-input
                     v-model="ruleForm.IP"
                     placeholder="如：0.0.0.0"
@@ -150,7 +150,7 @@
                       clearable
                     ></el-input>
                   </el-form-item>
-                  <el-form-item label="服务IP或URL" prop="host">
+                  <el-form-item label="服务地址" prop="host">
                     <el-input
                       v-model="sapServerConfig.host"
                       clearable
@@ -514,6 +514,7 @@ export default {
       this.$refs[formName].resetFields()
     },
   },
+  watch: {},
 }
 </script>
 <style lang="less" scoped>
