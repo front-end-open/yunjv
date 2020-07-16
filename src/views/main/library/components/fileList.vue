@@ -240,6 +240,39 @@
               @click="openDialog_move('copy')"
               >复制</el-button
             >
+            <el-dialog
+              title="复制到"
+              :visible.sync="copeDialog"
+              append-to-body
+              class="fixedWH"
+              width="550px"
+            >
+              <el-input
+                placeholder="当前路径"
+                v-model="selecPath"
+                :disabled="true"
+              >
+              </el-input>
+              <div class="border">
+                <el-tree
+                  class="filter-tree"
+                  :props="props"
+                  :filter-nodeDate-method="filterNode"
+                  highlight-current
+                  lazy
+                  @node-click="handleNodeClick"
+                  :load="lazyLoadTreeDir"
+                  ref="tree"
+                >
+                </el-tree>
+              </div>
+              <div slot="footer" class="dialog-footer">
+                <el-button @click="copeDialog = false">取 消</el-button>
+                <el-button type="primary" @click="moveOk('copy')" plain
+                  >确 定</el-button
+                >
+              </div>
+            </el-dialog>
             <el-button
               size="mini"
               type="text"
@@ -247,6 +280,39 @@
               @click="openDialog_move('move')"
               >移动</el-button
             >
+            <el-dialog
+              title="移动到"
+              :visible.sync="moveDialog"
+              append-to-body
+              class="fixedWH"
+              width="550px"
+            >
+              <el-input
+                placeholder="当前路径"
+                v-model="selecPath"
+                :disabled="true"
+              >
+              </el-input>
+              <div class="border">
+                <el-tree
+                  class="filter-tree"
+                  :props="props"
+                  :filter-nodeDate-method="filterNode"
+                  highlight-current
+                  lazy
+                  @node-click="handleNodeClick"
+                  :load="lazyLoadTreeDir"
+                  ref="tree"
+                >
+                </el-tree>
+              </div>
+              <div slot="footer" class="dialog-footer">
+                <el-button @click="moveDialog = false">取 消</el-button>
+                <el-button type="primary" @click="moveOk('move')" plain
+                  >确 定</el-button
+                >
+              </div>
+            </el-dialog>
           </ul>
           <ul>
             <el-button
@@ -1844,6 +1910,7 @@ export default {
     },
     // 移动、复制模态框
     openDialog_move(select) {
+      console.log(select)
       select == 'move' ? (this.moveDialog = true) : (this.copeDialog = true) // 打开模态框
       this.selecPath = '/'
     },
@@ -2031,7 +2098,6 @@ export default {
     },
     // 移动/复制 提交
     async moveOk(select) {
-      this.selecPath = '/'
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
