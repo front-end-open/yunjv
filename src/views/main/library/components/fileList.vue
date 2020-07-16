@@ -1918,6 +1918,7 @@ export default {
     },
     // 移动、复制模态框
     openDialog_move(select) {
+      console.log(select)
       select == 'move' ? (this.moveDialog = true) : (this.copeDialog = true) // 打开模态框
       this.selecPath = '/'
     },
@@ -2105,7 +2106,6 @@ export default {
     },
     // 移动/复制 提交
     async moveOk(select) {
-      this.selecPath = '/'
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
