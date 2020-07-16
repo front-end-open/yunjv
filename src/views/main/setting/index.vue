@@ -11,7 +11,7 @@
             <el-col :span="7" :offset="3" class="inine_h_dad">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">上传并行任务数：</span>
-                <el-select v-model="upload" size="mini" class="udLoad">
+                <el-select v-model="upload" size="small" class="udLoad">
                   <el-option
                     v-for="item in optionsUp"
                     :key="item.value"
@@ -25,7 +25,7 @@
             <el-col :span="7" :offset="2">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">下载并行任务数：</span>
-                <el-select v-model="download" size="mini" class="udLoad">
+                <el-select v-model="download" size="small" class="udLoad">
                   <el-option
                     v-for="item in optionsDown"
                     :key="item.value"
@@ -46,14 +46,19 @@
             <el-col :span="6" :offset="3">
               <el-input
                 placeholder="请浏览文件路径"
-                size="mini"
+                size="small"
                 v-model="filePath"
               >
               </el-input>
             </el-col>
             <el-col :span="3" style="margin-left:5px">
               <el-row>
-                <el-button type="info" plain size="mini" @click="files"
+                <el-button
+                  type="info"
+                  plain
+                  size="small"
+                  @click="files"
+                  class="liulan"
                   >浏览</el-button
                 >
               </el-row>
@@ -91,8 +96,8 @@
     <!-- <el-divider></el-divider> -->
 
     <el-card shadow="hover">
-      <h3 class="marginB30 fontSizeS">关于</h3>
-      <ul class="fontSizeF">
+      <h3 class="fontSizeS">关于</h3>
+      <ul class="fontSizeF flexBox">
         <li>{{ aboutName }}</li>
         <li>当前版本：{{ aboutEdition }}</li>
         <li>
@@ -170,8 +175,8 @@ export default {
       dialog.showOpenDialog(
         {
           properties: ['openFile', 'openDirectory'],
-          title: '红烧牛肉面',
-          buttonLabel: '买单',
+          title: '默认下载地址',
+          buttonLabel: '确定',
         },
         (result) => {
           this.filePath = String(result)
@@ -203,7 +208,7 @@ li {
   font-size: 16px;
 }
 .inline_h {
-  line-height: 27px;
+  line-height: 36px;
 }
 .inine_h_dad {
   line-height: 100%;
@@ -224,18 +229,30 @@ li {
   flex-wrap: warp;
 }
 .flexCol {
-  /* 全局flex */
+  /* flex */
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  margin: 50px 38px;
 }
 .el-card {
-  margin-bottom: 15px;
-  border-radius: 20px;
+  margin-bottom: 20px;
+  border-radius: 5px;
   background: rgb(249, 249, 249);
+  font-family: serif;
 }
-.el-card.is-hover-shadow:hover,
-.el-card:hover {
-  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+.flexBox {
+  height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+}
+.udLoad {
+  width: 77px;
+}
+.liulan {
+  width: 60%;
+  display: flex;
+  justify-content: center;
 }
 </style>
