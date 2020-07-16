@@ -108,6 +108,7 @@ ipcMain.on('download', (event, msg) => {
           download: prcentage,
           status: 0,
         })
+        console.log(prcentage)
         fileStream.write(c)
       })
       result.data.on('end', () => {
@@ -197,7 +198,7 @@ app.on('ready', async () => {
       event.reply('async-get', filepath)
     }
   })
-  // backup
+  // backup-BT
   ipcMain.on('async-openBackDialog', (event, msg) => {
     let { status, path } = msg
     if (status === 'getPath') {
