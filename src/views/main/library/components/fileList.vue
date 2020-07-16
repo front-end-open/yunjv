@@ -409,7 +409,7 @@ export default {
       servertypeIndex: null,
       showtag: false,
       allRepos_id: '',
-      // 目录f数据
+      // 目录数据
       selecPath: '',
       selecReposID: '9a69b781-7421-4e31-a65b-a5451f7d92b2',
       selecParent: '/',
@@ -421,7 +421,7 @@ export default {
       moveDialog: false,
       // 复制dialog
       copeDialog: false,
-      //文件操作、下载默认禁用
+      //下载默认禁用
       show: true,
       layout: 'table',
       //删除dialog
@@ -481,20 +481,14 @@ export default {
       this.tableData = this.$store.state.indexFileDate
     }
     this.$router.beforeEach((to, from, next) => {
-      //  does the page we want to go to have a meta.progress object
       if (to.meta.progress !== undefined) {
         let meta = to.meta.progress
-        // parse meta tags
         this.$Progress.parseMeta(meta)
       }
-      //  start the progress bar
       this.$Progress.start()
-      //  continue to next page
       next()
     })
-    //  hook the progress bar to finish after we've finished moving router-view
     this.$router.afterEach(() => {
-      //  finish the progress bar
       this.$Progress.finish()
     })
 
@@ -521,21 +515,23 @@ export default {
           break
         case 'baid':
           this.$http
-            .get(`/rest/2.0/xpan/file?method=search&access_token=${token}`, {
-              params: {
-                dir: `/`,
-                key: `${this.searchFile}`,
-                recursion: '1',
-                web: 1,
+            .get(
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=search&access_token=${token}`,
+              {
+                params: {
+                  dir: `/`,
+                  key: `${this.searchFile}`,
+                  recursion: '1',
+                  web: 1,
+                },
               },
-            })
+            )
             .then((res) => {
               const { list } = res.data
               let id = 0
               let moveFile = {}
               let moveData = []
               for (let val of list) {
-                //  由于返回数据没有标识，因此需要加上筛选拼接数据
                 moveFile = {}
                 if (val.isdir) {
                   moveFile.id = id
@@ -548,7 +544,6 @@ export default {
                 }
               }
               this.tableData = moveData
-              console.log(this.tableData)
             })
             .catch((error) => {
               console.log(error.toJSON())
@@ -573,7 +568,7 @@ export default {
 
       switch (this.parents[0]) {
         case 'ftp':
-          var createD = new Server( // 实列话类
+          var createD = new Server(
             'FTP',
             this.servertypeIndex,
             JSON.parse(localStorage.getItem('config')),
@@ -625,7 +620,6 @@ export default {
                 `${this.ruleForm.name}` + Math.random(),
                 (err) => {
                   if (err) throw err
-                  console.log('Directory created!')
                   let tableDatas = []
                   smbclient
                     .readdir('')
@@ -637,12 +631,12 @@ export default {
                         this.singleFile.id = Math.random()
                         this.singleFile.server_filename = item
                         this.singleFile.parentsPath = ``
-                        this.singleFile.path = `${item}` //  作为子目录，请求remote-path
+                        this.singleFile.path = `${item}`
                         this.singleFile.isdir = path.extname(item) ? 0 : 1
                         this.singleFile.local_mtime = ''
                         this.singleFile.permission = ''
                         this.singleFile.Owner = 'owner'
-                        tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+                        tableDatas.push(this.singleFile)
                       }
                       this.tableData = tableDatas
                       // 成功提示消息
@@ -669,7 +663,6 @@ export default {
                 `${this.path}${this.ruleForm.name}` + Math.random(),
                 (err) => {
                   if (err) throw err
-                  console.log('Directory created!')
 
                   let tableDatas = []
                   smbclient
@@ -677,17 +670,17 @@ export default {
                     .then((res) => {
                       for (let item of res) {
                         this.singleFile = {}
-                        this.singleFile.parent = res.server_filename // 行目录名
+                        this.singleFile.parent = res.server_filename
                         // 子目录请求内容
                         this.singleFile.id = Math.random()
                         this.singleFile.server_filename = item
                         this.singleFile.parentsPath = `${this.path}`
-                        this.singleFile.path = `${this.path}${item}\\\\` //  作为子目录，请求remote-path
+                        this.singleFile.path = `${this.path}${item}\\\\`
                         this.singleFile.isdir = path.extname(item) ? 0 : 1
                         this.singleFile.local_mtime = ''
                         this.singleFile.permission = ''
                         this.singleFile.Owner = 'owner'
-                        tableDatas.push(this.singleFile) // 把行请求内容加入到表格数据
+                        tableDatas.push(this.singleFile)
                       }
 
                       this.tableData = tableDatas
@@ -715,16 +708,18 @@ export default {
           break
         case 'baid':
           this.$http
-            .post(`/rest/2.0/xpan/file?method=create&access_token=${token}`, {
-              'path': `${this.path}/${this.ruleForm.name}`,
-              'size': '0',
-              'isdir': '1',
-              'rtype': 1,
-            })
+            .post(
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=${token}`,
+              {
+                'path': `${this.path}/${this.ruleForm.name}`,
+                'size': '0',
+                'isdir': '1',
+                'rtype': 1,
+              },
+            )
             .then((res) => {
               const { data } = res
               let moveFile = {}
-              //  由于返回数据没有标识，因此需要加上筛选拼接数据
               moveFile = {}
               moveFile.id = Math.random()
               moveFile.fs_id = data.fs_id
@@ -757,10 +752,7 @@ export default {
               let repoes = await seafileAPI.listRepos()
               let reposID = repoes.data.repos[0].repo_id
               await seafileAPI
-                .createDir(
-                  reposID, //repos_id
-                  `${this.path}${this.ruleForm.name}`,
-                )
+                .createDir(reposID, `${this.path}${this.ruleForm.name}`)
                 .then((res) => {
                   console.log(res)
                   // 成功提示消息
@@ -802,8 +794,6 @@ export default {
                     arrDir.push(val)
                   }
                 })
-
-                console.log(arrDir)
                 this.tableData = []
 
                 arrDir.forEach((item) => {
@@ -818,7 +808,6 @@ export default {
                   tableD.permission = ''
                   this.tableData.push(tableD)
                 })
-                console.log(this.tableData)
               })
             } else {
               await seafileAPI
@@ -976,7 +965,6 @@ export default {
               `${this.formDate.name}`,
               function(err) {
                 if (err) throw err
-                console.log('file has been renamed')
               },
             )
             .then((res) => {
@@ -1007,7 +995,6 @@ export default {
               `${this.rowDate[0].parentsPath}${this.formDate.name}`,
               function(err) {
                 if (err) throw err
-                console.log('file has been renamed')
               },
             )
             .then((res) => {
@@ -1037,7 +1024,7 @@ export default {
         let path = `[{"path":"${this.rowDate[0].path}","newname":"${this.formDate.name}"}]`
         this.$http
           .post(
-            `/rest/2.0/xpan/file?access_token=${token}&method=filemanager&opera=rename`,
+            `https://pan.baidu.com/rest/2.0/xpan/file?access_token=${token}&method=filemanager&opera=rename`,
             {
               async: 2,
               filelist: path,
@@ -1152,8 +1139,6 @@ export default {
     // TODO: 文件删除
     async deleteFile(index, row) {
       this.deleteDialogVisible = false //关闭模态框
-      console.log(index)
-      console.log(row)
       const config = JSON.parse(localStorage.getItem('config'))[
         this.servertypeIndex
       ]
@@ -1251,7 +1236,6 @@ export default {
             await smbclient
               .unlink(`${row.server_filename}`, function(err) {
                 if (err) throw err
-                console.log('file has been deleted')
               })
               .then((res) => {
                 console.log(res)
@@ -1277,7 +1261,7 @@ export default {
       } else if (this.parents[0] == 'baid') {
         this.$http
           .post(
-            `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete`,
+            `https://pan.baidu.com/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=delete`,
             {
               'async': 1,
               'filelist': [row.path],
@@ -1340,7 +1324,6 @@ export default {
       const config = JSON.parse(localStorage.getItem('config'))[
         Number(this.servertypeIndex)
       ]
-      console.log('ftpclonet')
       const { host, user, pwd } = config
       try {
         await client
@@ -1381,7 +1364,6 @@ export default {
     //  目录切换
     async switchDir(row) {
       // ftp
-      console.log(row, 'row')
       this.rowDate = row
       const config = JSON.parse(localStorage.getItem('config'))[
           Number(this.servertypeIndex)
@@ -1456,7 +1438,6 @@ export default {
           }
           break
         case 'baid':
-          console.log(row)
           if (row.isdir) {
             this.tableData = []
             this.path = row.path
@@ -1469,7 +1450,7 @@ export default {
             })
             this.$http
               .get(
-                `/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
+                `https://pan.baidu.com/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
                 {
                   params: {
                     path: row.path,
@@ -1511,7 +1492,6 @@ export default {
         case 'smb':
           if (row.isdir == 1) {
             // 处理目录
-            //  let currentDirflag = Math.ceil(Math.random() + 10)
             this.switchDirTag = 1
             this.tableData = [] // 目录清空
 
@@ -1524,9 +1504,6 @@ export default {
                 password: pwd,
                 autoCloseTimeout: 0,
               })
-              // smbclient.exists(row.path).then((res) => {
-              //   console.log(res)
-              // })
               await smbclient.readdir(row.path).then((res) => {
                 for (let item of res) {
                   this.singleFile = {}
@@ -1592,7 +1569,6 @@ export default {
                         mtime,
                         parent_dir,
                       } = item
-                      console.log(item)
                       this.singleFile = {}
                       this.singleFile.id = Math.random()
                       this.singleFile.server_filename = name
@@ -1676,7 +1652,7 @@ export default {
         let id = 1
         this.$http
           .get(
-            `/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
+            `https://pan.baidu.com/rest/2.0/xpan/multimedia?&access_token=${token}&method=listall`,
             {
               params: {
                 path,
@@ -1772,7 +1748,6 @@ export default {
       } else if (this.parents[0] == 'baid') {
         ipcRenderer.send('async-openDialog', 'ok') //  发送消息
         ipcRenderer.on('async-get', (event, msg) => {
-          console.log(msg[0], '0000')
           const server = new Server(
             'BaiDu',
             this.servertypeIndex,
@@ -1786,8 +1761,6 @@ export default {
       }
     },
     btUp(files) {
-      let This = this
-      console.log(This, 'ddddds23')
       this.upload_list = []
       let file = files.raw
       let block_list = []
@@ -1806,7 +1779,6 @@ export default {
       let chunksarr = []
       // 文件hash, 分块hash
       reader.onload = async function(e) {
-        console.log(This, this, 'ddddddd')
         const result = e.target.result
         spark.append(result)
         spark1.append(result)
@@ -1817,11 +1789,10 @@ export default {
           loadNext()
         } else {
           spark.end()
-          console.log(block_list)
           //预上传
           await http
             .post(
-              `/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
               {
                 path: '/apps/BTBD',
                 size: this.size,
@@ -1892,7 +1863,6 @@ export default {
       loadNext()
     },
     //  文件下载
-    // TODO: 下载优化
     downLoadFile() {
       //  ftp-目录出创建
       switch (this.parents[0]) {
@@ -1955,7 +1925,6 @@ export default {
     selec(selection, row) {
       if (selection.length) {
         this.rowDate = row
-        console.log(this.rowDate)
         this.show = false
       } else {
         this.rowDate = []
@@ -1997,10 +1966,10 @@ export default {
         for (let item of this.$store.state.indexFileDate) {
           const { server_filename, isdir, repos_id, parentsPath } = item
           moveFile = {}
-          //   // 子目录请求内容
+          // 子目录请求内容
           if (isdir) {
             moveFile.id = Math.random()
-            moveFile.name = server_filename // 行目录名
+            moveFile.name = server_filename
             if (this.parents[0] == 'ftp') {
               moveFile.parentsPath = `/`
               moveFile.path = `/${server_filename}`
@@ -2038,7 +2007,7 @@ export default {
                 moveFile.id = index + Math.random()
                 moveFile.parentsPath = node.data.path
                 moveFile.path = `${node.data.path}/${name}`
-                moveFile.name = name // 行目录名
+                moveFile.name = name
                 moveData.push(moveFile)
               }
             }
@@ -2070,13 +2039,11 @@ export default {
                 moveFile.id = Math.random()
                 moveFile.name = item[1]
                 moveFile.isdir = path.extname(node.data.path) ? 0 : 1
-                moveFile.path = `${node.data.path}\\\\${item[1]}` //  作为子目录，请求remote-path
-                moveData.push(moveFile) // 把行请求内容加入到表格数据
+                moveFile.path = `${node.data.path}\\\\${item[1]}`
+                moveData.push(moveFile)
               }
             }
             this.selecPath = node.data.path
-            // let newPath = node.data.path
-            // this.$set(this.selecPath, 0, { newPath })
             resolve(moveData)
           })
         } catch (error) {
@@ -2085,16 +2052,18 @@ export default {
         }
       } else if (this.parents[0] == 'baid') {
         this.$http
-          .get(`/rest/2.0/xpan/file?&access_token=${token}&method=list`, {
-            params: {
-              dir: node.data.path,
+          .get(
+            `https://pan.baidu.com/rest/2.0/xpan/file?&access_token=${token}&method=list`,
+            {
+              params: {
+                dir: node.data.path,
+              },
             },
-          })
+          )
           .then((res) => {
             const { list } = res.data
             let id = 0
             for (let val of list) {
-              //  由于返回数据没有标识，因此需要加上筛选拼接数据
               moveFile = {}
               if (val.isdir) {
                 moveFile.id = id
@@ -2113,28 +2082,24 @@ export default {
             console.log(error.toJSON())
           })
       } else {
-        console.log(node.data)
-
         seafileAPI.login().then(() => {
-          seafileAPI
-            .listDir(node.data.repos_id, node.data.path) //全部repos_id
-            .then((res) => {
-              for (let item of res.data.dirent_list) {
-                const { name, type } = item
-                moveFile = {}
-                if (type == 'dir') {
-                  moveFile.id = Math.random()
-                  moveFile.repos_id = node.data.repos_id
-                  moveFile.name = name
-                  moveFile.path = `${node.data.path}/${name}`
-                  moveFile.isdir = type == 'file' ? 0 : 1
-                  moveFile.parentsPath = node.data.path
-                  moveData.push(moveFile)
-                  console.log(moveFile)
-                }
+          seafileAPI.listDir(node.data.repos_id, node.data.path).then((res) => {
+            for (let item of res.data.dirent_list) {
+              const { name, type } = item
+              moveFile = {}
+              if (type == 'dir') {
+                moveFile.id = Math.random()
+                moveFile.repos_id = node.data.repos_id
+                moveFile.name = name
+                moveFile.path = `${node.data.path}/${name}`
+                moveFile.isdir = type == 'file' ? 0 : 1
+                moveFile.parentsPath = node.data.path
+                moveData.push(moveFile)
+                console.log(moveFile)
               }
-              resolve(moveData)
-            })
+            }
+            resolve(moveData)
+          })
         })
       }
     },
@@ -2186,7 +2151,6 @@ export default {
                 })
               })
           } else if (select == 'copy') {
-            console.log('复制功能')
             //提示消息
             this.$notify({
               title: '此功能尚在完善',
@@ -2209,7 +2173,6 @@ export default {
           })
         }
       } else if (this.parents[0] == 'smb') {
-        console.log('smb文件移动')
         //提示消息
         this.$notify({
           title: '此功能尚在完善',
@@ -2223,7 +2186,7 @@ export default {
           let movePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}"}]`
           this.$http
             .post(
-              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=move`,
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=move`,
               {
                 filelist: movePath,
                 async: 1,
@@ -2251,11 +2214,11 @@ export default {
               })
             })
         } else {
-          //提交复制
+          //复制提交
           let copePath = `[{"path":"${this.rowDate.path}","dest":"${this.selecPath}","newname":"${this.rowDate.server_filename}"}]`
           this.$http
             .post(
-              `/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=copy`,
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=filemanager&access_token=${token}&opera=copy`,
               {
                 filelist: copePath,
                 async: 2,
@@ -2323,13 +2286,6 @@ export default {
           let dstfilePath = this.selecParent
           let dirPath = this.rowDate.parentsPath
           let direntNames = this.rowDate.server_filename
-
-          console.log(repoID)
-          console.log(dstrepoID)
-          console.log(dstfilePath)
-          console.log(dirPath)
-          console.log(direntNames)
-
           seafileAPI.login().then(() => {
             seafileAPI
               .copyDir(repoID, dstrepoID, dstfilePath, dirPath, direntNames)
@@ -2394,9 +2350,7 @@ export default {
     //表格单元行右击事件
     rightMenuMethod(row, column, event) {
       this.rightMenushow = false
-
       this.rightMenushow = true
-
       this.$refs.rightMenu.style.left = event.clientX - 196 + 'px'
       document.addEventListener('click', this.foo)
       this.$refs.rightMenu.style.top = event.clientY + 5 + 'px'
@@ -2408,7 +2362,6 @@ export default {
       this.rightMenuRow = row
       //获取选中行数据
       this.rowDate = row
-      console.log(this.rowDate)
       this.moveIndex = index
     },
   },
@@ -2454,7 +2407,7 @@ export default {
         this.path = newVal.query.path
         for (let [index, item] of this.parents.entries()) {
           if (newVal.params.serverType === item) {
-            this.isSame = index //
+            this.isSame = index
           }
         }
         if (this.parents[0] == 'ftp') {
