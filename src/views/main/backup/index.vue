@@ -111,6 +111,7 @@ export default {
       },
       config: [],
       centerDialogVisible: false,
+      backupDir: [],
     }
   },
   created() {
@@ -135,6 +136,8 @@ export default {
             status: 'backup',
             path: this.input,
           })
+          this.backupDir.push(this.input)
+          localStorage.setItem('backup')
         } else {
           console.log('error submit!!')
           return false
