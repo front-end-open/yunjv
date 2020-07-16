@@ -1890,6 +1890,14 @@ export default {
             //   index: this.servertypeIndex,
             // })
             // this.$store.dispatch('startDownload')
+          } else {
+            //提示消息
+            this.$notify({
+              title: '仅支持下载文件',
+              type: 'info',
+              duration: 1500,
+              showClose: false,
+            })
           }
           break
         case 'smb':
