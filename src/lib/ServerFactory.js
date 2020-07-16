@@ -219,6 +219,8 @@ ServerFactory.prototype = {
         return await ftp.list('')
       } catch (err) {
         ftp.close()
+        ftp.ftp.verbose = true
+        alert('登陆超时，请检查你的网络是否正常接入或账号密码是否正确')
       }
     }
     // 文件上传
