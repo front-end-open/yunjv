@@ -44,14 +44,18 @@
               >
             </el-row>
           </div>
-          <div class="cardBody">
-            <el-button @click="deletion" plain class="fixed"
-              >清空记录</el-button
-            >
-
-            <el-table :data="tableData" style="width: 100%">
-              <el-table-column prop="name"> </el-table-column>
-            </el-table>
+          <div
+            v-for="(item, index) in this.backDirList"
+            :key="index"
+            class="text item"
+          >
+            <span class="rig">{{ item }}</span>
+            <el-button
+              type="danger"
+              @click="delec(index)"
+              icon="el-icon-delete"
+              circle
+            ></el-button>
           </div>
         </el-card>
 
@@ -117,7 +121,7 @@ export default {
       config: [],
       centerDialogVisible: false,
       backupDir: [],
-      tableData: [],
+      backDirList: [],
     }
   },
   created() {
@@ -195,20 +199,7 @@ export default {
   line-height: 40px;
   padding-left: 12px;
 }
-//卡片body
-.cardBody {
-  padding: 0 10px;
-  position: relative;
+.rig {
+  margin-right: 100px;
 }
-.fixed {
-  position: absolute;
-  top: 0;
-  right: 10px;
-  z-index: 999;
-}
-// .bottom-tool {
-//   position: fixed;
-//   bottom: 0;
-//   background: #fff;
-// }
 </style>
