@@ -167,6 +167,9 @@ export default {
             status: 'backup',
             path: this.input,
           })
+          ipcRenderer.on('aaa', (event, msgs) => {
+            console.log(msgs)
+          })
           this.backupDir.push(this.input)
           localStorage.setItem('backup')
         } else {
