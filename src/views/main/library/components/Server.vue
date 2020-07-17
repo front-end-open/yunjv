@@ -325,10 +325,6 @@ export default {
       sapServerConfig: {},
       dialogVisible2: false,
       dialogVisible: false,
-<<<<<<< HEAD
-      change: null,
-=======
->>>>>>> feat: beifen
     }
   },
   created() {
@@ -513,21 +509,6 @@ export default {
       }
     },
     changeServerConfig() {
-      //这里暂为提供修改配置表单验证， 表单获取出现bug.
-      // 先模拟修改，由于没发拿到当前该条数据的tag表识，因此没发准确插入数据库修改。
-      // 后期存储数据库，统一为每条数据进行唯一标识。
-      // const config = JSON.parse(localStorage.getItem('config'))
-      // config.splice(this.sapServerConfig.flag, 1)
-      // this.server.splice(this.sapServerConfig.flag, 1)
-
-      // this.server.push(this.sapServerConfig)
-      // config.push(this.sapServerConfig)
-      // localStorage.setItem('config', JSON.stringify(config))
-      // this.$message({
-      //   showClose: true,
-      //   message: '恭喜你，这是一条成功消息',
-      //   type: 'success',
-      // })
       this.sapServerConfig = this.change
       this.dialogVisible2 = false
     },
