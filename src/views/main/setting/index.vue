@@ -115,13 +115,11 @@
 </template>
 
 <script>
-// 获取文件路径
-const Axios = require('axios')
 export default {
   data() {
     return {
-      filePath: '', //下载文件地址
-      upload: '1', //上传并行任务数
+      filePath: '',
+      upload: '1',
       optionsUp: [
         {
           //上传选项
