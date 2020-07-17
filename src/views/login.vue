@@ -3,7 +3,7 @@
     <header>
       <div>
         <img
-          src="https://img-blog.csdnimg.cn/20200717124303439.png"
+          src="https://img-blog.csdnimg.cn/20200716074111712.jpg"
           alt="yunjv"
         />
         <h1>云居</h1>
@@ -24,7 +24,7 @@
         >
           <el-form-item prop="tel">
             <el-input
-              v-model="ruleForm2.name"
+              v-model="ruleForm2.tel"
               auto-complete="off"
               placeholder="请输入账号"
             ></el-input>
@@ -52,7 +52,6 @@
   </div>
 </template>
 <script>
-import Axios from 'axios'
 export default {
   name: 'Register',
   data() {
@@ -60,6 +59,8 @@ export default {
     let checkTel = (rule, value, callback) => {
       if (value === '') {
         callback(new Error('请输入账号'))
+      } else if (!this.checkMobile(value)) {
+        callback(new Error('账号不合法'))
       } else {
         callback()
       }
@@ -75,14 +76,28 @@ export default {
         callback()
       }
     }
+    // <!--二次验证密码-->
+    let validatePass2 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请再次输入密码'))
+      } else if (value !== this.ruleForm2.pass) {
+        callback(new Error('两次输入密码不一致!'))
+      } else {
+        callback()
+      }
+    }
     return {
       ruleForm2: {
         pass: '',
+        checkPass: '',
+        tel: '',
+        smscode: '',
         name: '',
       },
       rules2: {
         pass: [{ validator: validatePass, trigger: 'change' }],
-        name: [{ validator: checkTel, trigger: 'change' }],
+        checkPass: [{ validator: validatePass2, trigger: 'change' }],
+        tel: [{ validator: checkTel, trigger: 'change' }],
       },
       flag: true,
     }
@@ -92,21 +107,9 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          Axios.post('http://127.0.0.1:3000/api/user/login', {
-            name: this.ruleForm2.name,
-            pass: this.ruleForm2.pass,
-          })
-            .then(() => {
-              this.$message({
-                showClose: true,
-                message: '登陆成功',
-                type: 'error',
-              })
-              this.$router.push({ path: '/main' })
-            })
-            .catch((error) => {
-              console.log(error)
-            })
+          setTimeout(() => {
+            alert('登录成功')
+          }, 400)
         } else {
           console.log('error submit!!')
           return false

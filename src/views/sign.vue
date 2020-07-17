@@ -3,7 +3,7 @@
     <header>
       <div>
         <img
-          src="https://img-blog.csdnimg.cn/20200717124303439.png"
+          src="https://img-blog.csdnimg.cn/20200716074111712.jpg"
           alt="yunjv"
         />
         <h1>云居</h1>
@@ -32,7 +32,7 @@
 
           <el-form-item prop="tel">
             <el-input
-              v-model="ruleForm2.user"
+              v-model="ruleForm2.tel"
               auto-complete="off"
               placeholder="请输入账号"
             ></el-input>
@@ -118,13 +118,14 @@ export default {
       ruleForm2: {
         pass: '',
         checkPass: '',
-        user: '',
+        tel: '',
+        smscode: '',
         name: '',
       },
       rules2: {
         pass: [{ validator: validatePass, trigger: 'blur' }],
         checkPass: [{ validator: validatePass2, trigger: 'blur' }],
-        user: [{ validator: checkTel, trigger: 'blur' }],
+        tel: [{ validator: checkTel, trigger: 'blur' }],
         name: [{ validator: zhanghao, trigger: 'blur' }],
       },
       flag: true,
@@ -137,8 +138,8 @@ export default {
         if (valid) {
           Axios.post('http://127.0.0.1:3000/api/user/addUser', {
             name: this.ruleForm2.name,
-            account: this.ruleForm2.user,
-            pass: this.ruleForm2.pass,
+            account: this.ruleForm2.tel,
+            pass: this.ruleForm2.checkPass,
           })
             .then(() => {
               this.$message({
