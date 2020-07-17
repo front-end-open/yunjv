@@ -137,7 +137,8 @@ export default {
             path: this.input,
           })
           ipcRenderer.on('aaa', (event, msgs) => {
-            console.log(msgs)
+            let name = msgs
+            console.log(name)
           })
           this.backupDir.push(this.input)
           localStorage.setItem('backup')

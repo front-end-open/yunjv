@@ -1,8 +1,19 @@
 <template>
   <div>
-    <div class="register-wrapper">
+    <header>
+      <div>
+        <img
+          src="https://img-blog.csdnimg.cn/20200716074111712.jpg"
+          alt="yunjv"
+        />
+        <h1>云居</h1>
+      </div>
+    </header>
+    <div class="titleParent">
+      <span class="title">注册</span>
+    </div>
+    <div>
       <div id="register">
-        <p class="title">注册</p>
         <el-form
           :model="ruleForm2"
           status-icon
@@ -18,6 +29,7 @@
               placeholder="昵称"
             ></el-input>
           </el-form-item>
+
           <el-form-item prop="tel">
             <el-input
               v-model="ruleForm2.tel"
@@ -112,7 +124,16 @@ export default {
         pass: [{ validator: validatePass, trigger: 'change' }],
         checkPass: [{ validator: validatePass2, trigger: 'change' }],
         tel: [{ validator: checkTel, trigger: 'change' }],
-        name: [{ validator: zhanghao, trigger: 'change' }],
+        name: [
+          { required: true, message: '请输入活动名称', trigger: 'blur' },
+          {
+            validator: zhanghao,
+            min: 3,
+            max: 5,
+            message: '长度在 3 到 5 个字符',
+            trigger: 'blur',
+          },
+        ],
       },
       flag: true,
     }
@@ -179,6 +200,7 @@ export default {
 #register {
   max-width: 340px;
   margin: 60px auto;
+  margin-top: 0;
   background: #fff;
   padding: 20px 40px;
   border-radius: 10px;
@@ -187,10 +209,13 @@ export default {
 }
 .title {
   font-size: 26px;
-  line-height: 50px;
   font-weight: bold;
-  margin: 10px;
   text-align: center;
+  height: 56px;
+  line-height: 56px;
+  margin: 0 auto;
+  padding: 0 20px;
+  background: #fff;
 }
 .el-form-item {
   text-align: center;
@@ -221,4 +246,34 @@ export default {
   border-color: #409eff;
   color: #fff;
 }
+.titleParent {
+  width: 980px;
+  height: 28px;
+  margin: 0 auto;
+  margin-top: 60px;
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 28px;
+  text-align: center;
+}
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgb(236, 245, 255);
+  padding: 20px;
+}
+header > div {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+img {
+  vertical-align: middle;
+  width: 60px;
+  height: 60px;
+  font-size: 40px;
+  margin-right: 10px;
+  border-radius: 50%;
+}
 </style>
+
