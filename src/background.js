@@ -246,9 +246,8 @@ app.on('ready', async () => {
           filepath.push(fileinfo)
           status++
           let extname = paths.basename(path)
-          let pathes = paths.dirname
           event.reply('aaa', {
-            mags: pathes,
+            mags: extname,
           })
           if (status > 1) {
             try {
