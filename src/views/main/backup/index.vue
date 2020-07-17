@@ -172,10 +172,6 @@ export default {
         alert('请选择备份目录')
       }
     },
-    //清除数据
-    deletion() {
-      this.tableData = []
-    },
   },
 }
 </script>
