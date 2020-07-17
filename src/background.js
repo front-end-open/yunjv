@@ -5,33 +5,13 @@ import {
   createProtocol,
   installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
-import LoginBaidu from '@/lib/BaiduDiskLogin.js'
-<<<<<<< HEAD
-// import { start } from 'repl'
-import http from '@/server/index.js'
-import { Buffer } from 'buffer'
-// import { Form } from 'node_modules/element-ui/types/index'
-=======
-// import { Buffer } from 'buffer'
-// import http from '@/server/index.js'
->>>>>>> feat: beifen
+import { LoginBaidu } from '@/lib/BaiduDiskLogin.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
 const querystring = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
 const Axios = require('axios')
 const fs = require('fs')
 const chokidar = require('chokidar')
-<<<<<<< HEAD
-const md5 = require('md5')
-const FormData = require('form-data')
-// const Blob = require('cross-blob')
-=======
-const ftp = require('basic-ftp')
-const paths = require('path')
-// const md5 = require('md5')
-// const FormData = require('form-data')
-
->>>>>>> feat: beifen
 let win
 
 // Scheme must be registered before the app is ready
@@ -121,7 +101,6 @@ ipcMain.on('download', (event, msg) => {
           download: prcentage,
           status: 0,
         })
-        console.log(prcentage)
         fileStream.write(c)
       })
       result.data.on('end', () => {
@@ -174,12 +153,16 @@ function createWindow() {
 
 // 所有窗口关闭，退出程序
 app.on('window-all-closed', () => {
+  // On macOS it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 
 app.on('activate', () => {
+  // On macOS it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
   if (win === null) {
     createWindow()
   }
@@ -207,7 +190,7 @@ app.on('ready', async () => {
       event.reply('async-get', filepath)
     }
   })
-  // backup-BT
+  // backup
   ipcMain.on('async-openBackDialog', (event, msg) => {
     let { status, path } = msg
     if (status === 'getPath') {
@@ -231,150 +214,15 @@ app.on('ready', async () => {
 
       let log = console.log.bind(console)
       let filepath = []
-      let backupPath = null
 
-      let status = 0
       watcher
         .on('add', async function(path, stats) {
-          const client = new ftp.Client()
           log('File', path, 'has been added', stats)
           let fileinfo = { path, stats }
           filepath.push(fileinfo)
-          status++
-          let extname = paths.basename(path)
-
-          if (status > 1) {
-            try {
-              await client.access({
-                host: '10.10.12.8',
-                user: 'scitc',
-                password: 'scitc',
-              })
-              await client
-                .uploadFrom(path, `/BackUp/${extname}`)
-                .then(() => {
-                  console.log('同步成功')
-                })
-                .catch((error) => {
-                  console.log(error, '同步失败')
-                })
-            } catch (error) {
-              console.log(error)
-            }
-          }
-<<<<<<< HEAD
-
-          let { fileSize } = stats
-          let chunkSize = 4 * 1024 * 1024
-          let pieces = Math.ceil(fileSize / chunkSize) //总共的分片数
-          let block_lists = []
-
-          function singleUpload(path, stats, i) {
-            return new Promise((res, rej) => {
-              let { size } = stats
-              let chunkSize = 3 * 1024 * 1024 //每片分块的大小3M
-              //计算每块的结束位置
-              let enddata = Math.min(size, (i + 1) * chunkSize)
-              let arr = []
-              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-              let readStream = fs.createReadStream(path, {
-                start: i * chunkSize,
-                end: enddata - 1,
-              })
-              //on data读取数据
-              readStream.on('data', (data) => {
-                arr.push(data)
-              })
-              //on end在该分片读取完成时触发
-              readStream.on('end', () => {
-                res(md5(Buffer.concat(arr)))
-              })
-              readStream.on('error', () => {
-                rej('分片读取失败')
-              })
-            })
-          }
-
-          function singlePieces(path, stats, i, uploadid, block_list) {
-            return new Promise((res, rej) => {
-              let { size } = stats
-              let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
-              //计算每块的结束位置
-              let enddata = Math.min(size, (i + 1) * chunkSize)
-              let chunk = 0
-              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-              let readStream = fs.createReadStream(path, {
-                start: i * chunkSize,
-                end: enddata - 1,
-              })
-              //on data读取数据
-              readStream.on('data', (data) => {
-                // arr.push(data)
-                chunk += data
-              })
-              //on end在该分片读取完成时触发
-              readStream.on('end', () => {
-                // Buffer.concat(arr)
-
-                let params = new FormData()
-                // let blob = new Blob([chunk])
-                params.append('file', chunk)
-                log('开始上传分片')
-                Axios.post(
-                  `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${uploadid}&partseq=${block_list}`,
-                  params,
-                  {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                  },
-                )
-                  .then((response) => {
-                    res(response)
-                  })
-                  .catch((error) => {
-                    console.log('分片上传失败')
-                    console.log(error)
-                  })
-              })
-              readStream.on('error', () => {
-                rej('分片读取失败')
-              })
-            })
-          }
-          // 分片md5计算
-          for (let i = 0; i < pieces; i++) {
-            let filemd5 = await singleUpload(path, stats, i)
-            block_lists.push(filemd5)
-          }
-
-          // 预上传
-          let preRes = await http.post(
-            `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
-            {
-              path: '/apps/BTBD',
-              size: fileSize,
-              isdir: 0,
-              autoinit: 1,
-              rtype: 1,
-              block_list: JSON.stringify(block_lists),
-            },
-          )
-          // 分片上传
-          const { block_list, uploadid } = preRes.data
-          for (let i = 0; i < block_list.length; i++) {
-            await singlePieces(path, stats, i, uploadid, block_list[i])
-              .then((res) => {
-                console.log(res)
-              })
-              .catch((error) => {
-                console.log(error)
-              })
-          }
-=======
->>>>>>> style(backup): 文件备份完善
         }) // 添加文件
         .on('addDir', function(path) {
           log('Directory', path, 'has been added')
-          backupPath = path
         }) // 添加目录
         .on('change', function(path, stats) {
           log(stats)
@@ -383,277 +231,10 @@ app.on('ready', async () => {
         .on('unlinkDir', (path) => {
           log(path)
         })
-        .on('ready', async () => {
-<<<<<<< HEAD
-          // 初始化扫描完成，开始上传文件
-<<<<<<< HEAD
-          function singleUpload(fileinfo, i) {
-            return new Promise((res, rej) => {
-              let { path, stats } = fileinfo
-              let size = stats.size
-              let chunkSize = 3 * 1024 * 1024 //每片分块的大小3M
-              //计算每块的结束位置
-              let enddata = Math.min(size, (i + 1) * chunkSize)
-              let arr = []
-              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-              let readStream = fs.createReadStream(path, {
-                start: i * chunkSize,
-                end: enddata - 1,
-              })
-              //on data读取数据
-              readStream.on('data', (data) => {
-                arr.push(data)
-              })
-              //on end在该分片读取完成时触发
-              readStream.on('end', () => {
-                res(md5(Buffer.concat(arr)))
-=======
-          // ftp 备份
-=======
->>>>>>> style(backup): 文件备份完善
-          const client = new ftp.Client()
-          try {
-            await client.access({
-              host: '10.10.12.8',
-              user: 'scitc',
-              password: 'scitc',
-            })
-            await client
-              .uploadFromDir(backupPath, '/BackUp')
-              .then(() => {
-                console.log('备份成功')
->>>>>>> feat: beifen
-              })
-              .catch((error) => {
-                console.log(error)
-              })
-          } catch (error) {
-            console.log(error)
-          }
-<<<<<<< HEAD
-<<<<<<< HEAD
-          function singlePieces(path, stats, i, uploadid, block_list) {
-            return new Promise((res, rej) => {
-              let { size } = stats
-              let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
-              //计算每块的结束位置
-              let enddata = Math.min(size, (i + 1) * chunkSize)
-              let chunk = 0
-              //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-              let readStream = fs.createReadStream(path, {
-                start: i * chunkSize,
-                end: enddata - 1,
-              })
-              //on data读取数据
-              readStream.on('data', (data) => {
-                // arr.push(data)
-                chunk += data
-              })
-              //on end在该分片读取完成时触发
-              readStream.on('end', () => {
-                // Buffer.concat(arr)
-
-                let params = new FormData()
-                // let blob = new Blob([chunk])
-                params.append('file', chunk)
-                log('开始上传分片')
-                Axios.post(
-                  `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${uploadid}&partseq=${block_list}`,
-                  params,
-                  {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                  },
-                )
-                  .then((response) => {
-                    res(response)
-                  })
-                  .catch((error) => {
-                    console.log('分片上传失败')
-                    console.log(error)
-                  })
-              })
-              readStream.on('error', () => {
-                rej('分片读取失败')
-              })
-            })
-          }
-          filepath.forEach(async (item) => {
-            let { stats } = item
-            let fileSize = stats.size
-            let chunkSize = 4 * 1024 * 1024
-            let pieces = Math.ceil(fileSize / chunkSize) //总共的分片数
-            let block_lists = []
-            for (let i = 0; i < pieces; i++) {
-              let filemd5 = await singleUpload(item, i)
-              block_lists.push(filemd5)
-            }
-            console.log(fileSize)
-            let preRes = await http.post(
-              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
-              {
-                path: '/apps/BTBD',
-                size: fileSize,
-                isdir: 0,
-                autoinit: 1,
-                rtype: 1,
-                block_list: JSON.stringify(block_lists),
-              },
-            )
-            const { block_list, uploadid } = preRes.data
-            for (let i = 0; i < block_list.length; i++) {
-              await singlePieces(item, i, uploadid, block_list[i])
-                .then((res) => {
-                  console.log(res)
-                })
-                .catch((error) => {
-                  console.log(error)
-                })
-            }
-            log(block_list, uploadid, preRes.data)
-          })
-=======
-          // function singleUpload(fileinfo, i) {
-          //   let { path, stats } = fileinfo
-          //   let size = stats.size
-          //   let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
-          //   //计算每块的结束位置
-          //   let enddata = Math.min(size, (i + 1) * chunkSize)
-          //   let arr = []
-          //   //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-          //   let readStream = fs.createReadStream(path, {
-          //     start: i * chunkSize,
-          //     end: enddata - 1,
-          //   })
-          //   return new Promise((res, rej) => {
-          //     //on data读取数据
-          //     readStream.on('data', (data) => {
-          //       arr.push(data)
-          //     })
-          //     //on end在该分片读取完成时触发
-          //     readStream.on('end', () => {
-          //       res(md5(Buffer.concat(arr)))
-          //     })
-          //     readStream.on('error', () => {
-          //       rej('分片读取失败')
-          //     })
-          //   })
-          // }
-          // function singlePieces(path, stats, i, uploadid, block_list) {
-          //   let { size } = stats
-          //   let chunkSize = 4 * 1024 * 1024 //每片分块的大小3M
-          //   //计算每块的结束位置
-          //   let enddata = Math.min(size, (i + 1) * chunkSize)
-          //   let chunk = []
-          //   //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-          //   let readStream = fs.createReadStream(path, {
-          //     start: i * chunkSize,
-          //     end: enddata - 1,
-          //   })
-          //   return new Promise((res, rej) => {
-          //     //on data读取数据
-          //     readStream.on('data', (data) => {
-          //       // arr.push(data)
-          //       chunk.push(data)
-          //     })
-          //     //on end在该分片读取完成时触发
-          //     readStream.on('end', () => {
-          //       // Buffer.concat(arr)
-          //       let params = new FormData()
-          //       // let blob = new Blob([chunk])
-          //       params.append('file', Buffer.concat(chunk))
-          //       log('开始上传分片')
-          //       Axios.post(
-          //         `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.20bed3e7e972c5bc8e0de0358f9b55ef.YBipDnUEaqGJU6VI95IOJJaHdo6lvF1bxVIfuKx.Es3EKQ&type=tmpfile&path=/apps/BTBD&uploadid=${uploadid}&partseq=${block_list}`,
-          //         params,
-          //         {
-          //           headers: { 'Content-Type': 'multipart/form-data' },
-          //         },
-          //       )
-          //         .then((response) => {
-          //           res(response)
-          //         })
-          //         .catch((error) => {
-          //           console.log('分片上传失败')
-          //           console.log(error)
-          //         })
-          //     })
-          //     readStream.on('error', () => {
-          //       rej('分片读取失败')
-          //     })
-          //   })
-          // }
-          // console.log('当前目录，文件数据', filepath.length)
-          // filepath.forEach(async (item) => {
-          //   let { path, stats } = item
-          //   let fileSize = stats.size
-          //   let chunkSize = 4 * 1024 * 1024
-          //   let pieces = Math.ceil(fileSize / chunkSize) //总共的分片数
-          //   let block_lists = []
-          //   for (let i = 0; i < pieces; i++) {
-          //     let filemd5 = await singleUpload(item, i)
-          //     block_lists.push(filemd5)
-          //   }
-          //   // 预上传
-          //   let preRes = await http.post(
-          //     `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.20bed3e7e972c5bc8e0de0358f9b55ef.YBipDnUEaqGJU6VI95IOJJaHdo6lvF1bxVIfuKx.Es3EKQ`,
-          //     {
-          //       path: '/apps/BTBD',
-          //       size: fileSize,
-          //       isdir: 0,
-          //       autoinit: 1,
-          //       rtype: 1,
-          //       block_list: JSON.stringify(block_lists),
-          //     },
-          //   )
-          //   console.log('预上传结果', preRes.data)
-          //   const { block_list, uploadid } = preRes.data
-
-          //   // 分片上传
-          //   let postChunks = []
-          //   for (let i = 0; i < block_list.length; i++) {
-          //     // await singlePieces(item, i, uploadid, block_list[i])
-          //     //   .then((res) => {
-          //     //     console.log(res)
-          //     //   })
-          //     //   .catch((error) => {
-          //     //     console.log(error)
-          //     //   })
-          //     postChunks.push(
-          //       singlePieces(path, stats, i, uploadid, block_list[i]),
-          //     )
-          //   }
-          //   await Promise.all(postChunks).then((res) => {
-          //     console.log('分片发送结果', res)
-          //   })
-          // })
->>>>>>> feat: beifen
-=======
->>>>>>> style(backup): 文件备份完善
-        })
-        .on('error', function(error) {
-          log('Error happened', error)
-          watcher.close()
-        })
+        .on('ready', async () => {})
+      // 初始化扫描完成，开始上传文件
     }
   })
-<<<<<<< HEAD
-=======
-  //downloadSave
-  ipcMain.on('async-save', async (event) => {
-    let path = dialog.showSaveDialog(win, {
-      title: '下载',
-      showsTagField: true,
-      properties: [
-        'createDirectory',
-        'showOverwriteConfirmation',
-        'dontAddToRecent',
-      ],
-    })
-    if (path) {
-      event.reply('async-savepath', path)
-    }
-  })
->>>>>>> style: code lint
 })
 
 // Exit cleanly on request from parent process in development mode.
