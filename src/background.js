@@ -174,16 +174,12 @@ function createWindow() {
 
 // 所有窗口关闭，退出程序
 app.on('window-all-closed', () => {
-  // On macOS it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
   }
 })
 
 app.on('activate', () => {
-  // On macOS it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   if (win === null) {
     createWindow()
   }
@@ -266,6 +262,7 @@ app.on('ready', async () => {
               console.log(error)
             }
           }
+<<<<<<< HEAD
 
           let { fileSize } = stats
           let chunkSize = 4 * 1024 * 1024
@@ -372,6 +369,8 @@ app.on('ready', async () => {
                 console.log(error)
               })
           }
+=======
+>>>>>>> style(backup): 文件备份完善
         }) // 添加文件
         .on('addDir', function(path) {
           log('Directory', path, 'has been added')
@@ -385,6 +384,7 @@ app.on('ready', async () => {
           log(path)
         })
         .on('ready', async () => {
+<<<<<<< HEAD
           // 初始化扫描完成，开始上传文件
 <<<<<<< HEAD
           function singleUpload(fileinfo, i) {
@@ -409,6 +409,8 @@ app.on('ready', async () => {
                 res(md5(Buffer.concat(arr)))
 =======
           // ftp 备份
+=======
+>>>>>>> style(backup): 文件备份完善
           const client = new ftp.Client()
           try {
             await client.access({
@@ -428,6 +430,7 @@ app.on('ready', async () => {
           } catch (error) {
             console.log(error)
           }
+<<<<<<< HEAD
 <<<<<<< HEAD
           function singlePieces(path, stats, i, uploadid, block_list) {
             return new Promise((res, rej) => {
@@ -624,6 +627,8 @@ app.on('ready', async () => {
           //   })
           // })
 >>>>>>> feat: beifen
+=======
+>>>>>>> style(backup): 文件备份完善
         })
         .on('error', function(error) {
           log('Error happened', error)
