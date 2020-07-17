@@ -234,9 +234,7 @@ app.on('ready', async () => {
           filepath.push(fileinfo)
           status++
           let extname = paths.basename(path)
-          event.reply('aaa', {
-            mags: extname,
-          })
+
           if (status > 1) {
             try {
               await client.access({

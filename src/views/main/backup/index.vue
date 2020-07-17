@@ -36,18 +36,22 @@
                 ><div class="grid-content bg-purple-light">
                   <el-button
                     @click="addPath"
-                    type="warning"
+                    plain
                     icon="el-icon-plus"
                   ></el-button>
-                  <el-button type="primary" @click="isAddPath" plain
-                    >应用</el-button
-                  >
+                  <el-button @click="isAddPath" plain>应用</el-button>
                 </div></el-col
               >
             </el-row>
           </div>
-          <div v-for="o in 4" :key="o" class="text item">
-            {{ '列表内容 ' + o }}
+          <div class="cardBody">
+            <el-button @click="deletion" plain class="fixed"
+              >清空记录</el-button
+            >
+
+            <el-table :data="tableData" style="width: 100%">
+              <el-table-column prop="name"> </el-table-column>
+            </el-table>
           </div>
         </el-card>
 
@@ -113,6 +117,7 @@ export default {
       config: [],
       centerDialogVisible: false,
       backupDir: [],
+      tableData: [],
     }
   },
   created() {
@@ -130,16 +135,14 @@ export default {
     },
     // 开始备份
     submitForm(formName) {
+      this.centerDialogVisible = false
       this.$refs[formName].validate((valid) => {
         if (valid) {
           ipcRenderer.send('async-openBackDialog', {
             status: 'backup',
             path: this.input,
           })
-          ipcRenderer.on('aaa', (event, msgs) => {
-            let name = msgs
-            console.log(name)
-          })
+
           this.backupDir.push(this.input)
           localStorage.setItem('backup')
         } else {
@@ -159,6 +162,10 @@ export default {
       } else {
         alert('请选择备份目录')
       }
+    },
+    //清除数据
+    deletion() {
+      this.tableData = []
     },
   },
 }
@@ -184,6 +191,17 @@ export default {
   min-height: 40px;
   line-height: 40px;
   padding-left: 12px;
+}
+//卡片body
+.cardBody {
+  padding: 0 10px;
+  position: relative;
+}
+.fixed {
+  position: absolute;
+  top: 0;
+  right: 10px;
+  z-index: 999;
 }
 // .bottom-tool {
 //   position: fixed;
