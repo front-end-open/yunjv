@@ -96,6 +96,7 @@
 </template>
 <script>
 const ipcRenderer = require('electron').ipcRenderer
+
 export default {
   name: 'BackUp',
   data() {
@@ -134,6 +135,9 @@ export default {
           ipcRenderer.send('async-openBackDialog', {
             status: 'backup',
             path: this.input,
+          })
+          ipcRenderer.on('aaa', (event, msgs) => {
+            console.log(msgs)
           })
           this.backupDir.push(this.input)
           localStorage.setItem('backup')
