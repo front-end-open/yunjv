@@ -1,12 +1,15 @@
 import Vue from 'vue'
 import { Upload } from 'element-ui'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
+// import Home from '../views/Home.vue'
 import Main from '@/layout/main' //主页
 import MainLibrary from '../views/main/library' //
 import MainTransmission from '../views/main/transmission'
 import MainBackup from '../views/main/backup'
 import MainSetting from '../views/main/setting'
+
+import Login from '@/views/login.vue'
+import Sign from '@/views/sign.vue'
 
 import { DownloadItem } from 'electron'
 
@@ -35,8 +38,13 @@ VueRouter.prototype.push = function push(location) {
 const routes = [
   {
     path: '/',
-    component: Home,
-    redirect: '/main',
+    component: Login,
+    redirect: '/login',
+  },
+  { path: '/login', component: Login },
+  {
+    path: '/sign',
+    component: Sign,
   },
   {
     path: '/main',

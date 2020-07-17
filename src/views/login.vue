@@ -44,7 +44,7 @@
               style="width:100%;"
               >登录</el-button
             >
-            <p class="login">立即注册></p>
+            <router-link to="/sign">现在注册？</router-link>
           </el-form-item>
         </el-form>
       </div>

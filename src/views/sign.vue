@@ -60,7 +60,8 @@
               style="width:100%;"
               >注册</el-button
             >
-            <p class="login" @click="gotoLogin">已有账号？立即登录</p>
+            <router-link to="/login">已有账号？立即登录</router-link>
+            <!-- <p class="login" @click="gotoLogin">已有账号？立即登录</p> -->
           </el-form-item>
         </el-form>
       </div>
@@ -68,6 +69,7 @@
   </div>
 </template>
 <script>
+import Axios from 'axios'
 export default {
   name: 'Register',
   data() {
@@ -121,19 +123,10 @@ export default {
         name: '',
       },
       rules2: {
-        pass: [{ validator: validatePass, trigger: 'change' }],
-        checkPass: [{ validator: validatePass2, trigger: 'change' }],
-        tel: [{ validator: checkTel, trigger: 'change' }],
-        name: [
-          { required: true, message: '请输入活动名称', trigger: 'blur' },
-          {
-            validator: zhanghao,
-            min: 3,
-            max: 5,
-            message: '长度在 3 到 5 个字符',
-            trigger: 'blur',
-          },
-        ],
+        pass: [{ validator: validatePass, trigger: 'blur' }],
+        checkPass: [{ validator: validatePass2, trigger: 'blur' }],
+        tel: [{ validator: checkTel, trigger: 'blur' }],
+        name: [{ validator: zhanghao, trigger: 'blur' }],
       },
       flag: true,
     }
@@ -143,9 +136,28 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          setTimeout(() => {
-            alert('注册成功')
-          }, 400)
+          Axios.post('http://127.0.0.1:3000/api/user/addUser', {
+            name: this.ruleForm2.name,
+            account: this.ruleForm2.tel,
+            pass: this.ruleForm2.checkPass,
+          })
+            .then(() => {
+              this.$message({
+                showClose: true,
+                message: '恭喜, 注册账号成功',
+                type: 'success',
+                duration: 3000,
+              })
+              this.$router.push({ path: '/login' })
+            })
+            .catch((error) => {
+              this.$message({
+                showClose: true,
+                message: '注册失败',
+                type: 'error',
+              })
+              console.log(error)
+            })
         } else {
           console.log('error submit!!')
           return false
