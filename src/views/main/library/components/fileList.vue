@@ -2589,9 +2589,7 @@ export default {
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  <<<<<<<headwidth: 380px;
-  =======width: 375px;
-  >>>>>>>style(filelist): seafile repos;
+  width: 375px;
 }
 
 .cursor {
@@ -2617,43 +2615,6 @@ export default {
 .gridContainer div {
   overflow: auto;
   cursor: pointer;
-}
-// 重命名按钮样式
-.renameBtnColor {
-  color: #606266;
-  padding: 7px 5px;
-  margin: 0 !important;
-}
-// 文件夹颜色
-.dir {
-  color: rgb(255, 216, 104);
-}
-// 文件颜色
-.file {
-  color: rgb(94, 199, 251);
-}
-// 文件与目录样式
-.dirFile {
-  vertical-align: middle;
-  width: 18px;
-}
-// 文件名称
-.iconText {
-  width: 85px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-//列表文本
-.listText {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: auto 0;
-  margin-left: 10px;
-}
-.cellLater {
-  display: flex;
 }
 // 重命名按钮样式
 .renameBtnColor {
@@ -2734,25 +2695,5 @@ export default {
 .rightMenu > ul > button:hover {
   border: 1px solid rgb(213, 234, 255);
   background: rgb(236, 245, 255);
-}
-.rightMenu > ul {
-  border-bottom: 1px solid rgb(230, 231, 236);
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  border-radius: 3px;
-}
-.rightMenu > ul:last-child {
-  border-bottom: none;
-}
-.rightMenu > ul,
-.rightMenu > ul > button {
-  list-style: none;
-  cursor: default;
-}
-.rightMenu > ul > button {
-  text-align: left;
-  padding-left: 25px;
 }
 </style>

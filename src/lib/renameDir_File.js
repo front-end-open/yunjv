@@ -1,5 +1,5 @@
 function rename(This) {
-  console.log(This, 'lib 目录 renameDir Tools')
+  console.log(This)
   if (This.path == '/') {
     This.$set(This.tableData, This.formDate.id, {
       'id': Math.random(),
