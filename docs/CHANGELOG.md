@@ -2,6 +2,93 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.6.0](https://github.com/PachVerb/yunjv/compare/v1.5.0...v1.6.0) (2020-08-04)
+
+
+### 修复
+
+* **filelist:** 文件下载错误 ([e529961](https://github.com/PachVerb/yunjv/commit/e5299610661e7ee1d7a53c92fc72ad169f9174b9))
+* **filelist:** 文件下载错误 ([5b61d5c](https://github.com/PachVerb/yunjv/commit/5b61d5c21c9563e1cce2083813c809b30bb43f0d))
+* **filelist:** 移动路径修复 ([7c74f1b](https://github.com/PachVerb/yunjv/commit/7c74f1b8046c055ef59858070a83ce365844b93b))
+* **filelist:** 移动路径修复 ([afcd995](https://github.com/PachVerb/yunjv/commit/afcd995b72d7f9a3f19da28170f4bb75b1e19ad8))
+
+
+### 功能
+
+* beifen ([d68fa1d](https://github.com/PachVerb/yunjv/commit/d68fa1d0ce221f6ba1745b9fa04c949a12bfe77b))
+* 文件备份 ([d297374](https://github.com/PachVerb/yunjv/commit/d297374552e8341eeabead6afacbb3b29481b97a))
+* 添加注册 ([8b687ea](https://github.com/PachVerb/yunjv/commit/8b687ea478b41955f440286a44b4ef0fce235e40))
+* **filelist:** 右键下载添加 ([15ef625](https://github.com/PachVerb/yunjv/commit/15ef62585268fa9b8d928559f68bade07cd1e5da))
+* **filelist.vue:** seafile 文件操作 ([d114534](https://github.com/PachVerb/yunjv/commit/d114534137e4dec2021c4bbc372d33a346c717e3))
+* **filelist.vue:** seafile 文件操作 ([6f115eb](https://github.com/PachVerb/yunjv/commit/6f115eb15f40be72c7d378144b71b0ddb76dff70))
+* **filelist.vue:** 右击菜单 ([576ea47](https://github.com/PachVerb/yunjv/commit/576ea4785a7b388820a30787c2111b8338f14718))
+* beifen ([a6a18ec](https://github.com/PachVerb/yunjv/commit/a6a18ec2e1171a508eeb0104ee5408a0ffa23d50))
+* 文件备份 ([73c1a86](https://github.com/PachVerb/yunjv/commit/73c1a865ccb91dc0a651ed537fd9ff335656524d))
+* 添加注册 ([254d9fe](https://github.com/PachVerb/yunjv/commit/254d9fe8e93323b7171f2e0d695d586e6d63b669))
+* **filelist.vue:** 右击菜单 ([6a9696f](https://github.com/PachVerb/yunjv/commit/6a9696fbbc26d11d57fd0db4749e8290d46f6d39))
+
+
+### 文档
+
+* eslint配置 ([a636266](https://github.com/PachVerb/yunjv/commit/a6362667139cf086b8873800a3bc9e051f298182))
+* eslint配置 ([a038e8f](https://github.com/PachVerb/yunjv/commit/a038e8f265e19d5b6101adefc95e5cdb4af54936))
+
+
+### 杂务
+
+* **分支冲突修改:** 合并分支 ([eaff926](https://github.com/PachVerb/yunjv/commit/eaff926668994190e224fff98e3630bc37c65c3c))
+* 关闭 no-console ([7c59321](https://github.com/PachVerb/yunjv/commit/7c59321d942041773e5ed81be37b08691a66d80a))
+* 关闭 no-console ([3e122a7](https://github.com/PachVerb/yunjv/commit/3e122a71a888cb59734758b00c69945292d92dd9))
+* 去除冗余文件 ([7562f8b](https://github.com/PachVerb/yunjv/commit/7562f8b54a84eadab456c89ae886284d0aa3e6a6))
+* 去除冗余文件 ([4fa3dbb](https://github.com/PachVerb/yunjv/commit/4fa3dbb0e20906643021c9d46d8ebb75adc9ce6e))
+
+
+### 格式
+
+* **background:** 主进程代码样式调整 ([157fc71](https://github.com/PachVerb/yunjv/commit/157fc7175d000742b24c59e1bd2fd2f3139d967e))
+* **backup:** 备份样式 ([20490de](https://github.com/PachVerb/yunjv/commit/20490de7137ff948357652e41181d8e742cb48ab))
+* **backup:** 备份样式 ([977be7f](https://github.com/PachVerb/yunjv/commit/977be7f5eff324984e9509feb1e995a2ba788d67))
+* **backup:** 文件备份完善 ([605297f](https://github.com/PachVerb/yunjv/commit/605297f239b7c84024e88788cbc9f690b4fa0692))
+* **backup:** 文件备份完善 ([e23e9f1](https://github.com/PachVerb/yunjv/commit/e23e9f1f80d0284f16336e3df12b76351e5711a4))
+* **filelist:** baidu绝对路径 ([92047c1](https://github.com/PachVerb/yunjv/commit/92047c124bc66fcf3d36ebf9588e0231c5992ca3))
+* **filelist:** baidu绝对路径 ([5dffade](https://github.com/PachVerb/yunjv/commit/5dffade31413b527fd9a79e1ecd2d3d8e9613586))
+* **filelist:** code 格式调整 ([41b6a44](https://github.com/PachVerb/yunjv/commit/41b6a445ad33314c641a86a11e6a2fe981e6ba96))
+* **filelist:** code 格式调整 ([5a89b44](https://github.com/PachVerb/yunjv/commit/5a89b44f17879e9b5b547bea43bf69f039424f03))
+* **filelist:** seafile repos ([ebbbd39](https://github.com/PachVerb/yunjv/commit/ebbbd39caaffaa545ddf52589654d00233ac8a0b))
+* **filelist:** seafile repos ([4bbe5d9](https://github.com/PachVerb/yunjv/commit/4bbe5d97e78478e380dadf74176756648a9caee2))
+* **filelist:** 代码优化 ([6184b98](https://github.com/PachVerb/yunjv/commit/6184b98f02403594a16be33435bfcf425d069b54))
+* **filelist:** 代码优化 ([7daa771](https://github.com/PachVerb/yunjv/commit/7daa77133893638c713e46c6343aba7cfa1769fb))
+* **filelist:** 修改样式 ([7c06ff1](https://github.com/PachVerb/yunjv/commit/7c06ff159dc42a8b7c91fd5d41471e0a30ce8604))
+* **filelist:** 修改样式 ([6a2a2ef](https://github.com/PachVerb/yunjv/commit/6a2a2ef88c25c578ebe5eb20ab43cd1c5ed01e28))
+* **filelist:** 右键添加下载 ([3085eb5](https://github.com/PachVerb/yunjv/commit/3085eb53bc0b5ccd463c473cf1f529c44568193f))
+* **filelist:** 右键添加下载 ([b3bc1bd](https://github.com/PachVerb/yunjv/commit/b3bc1bdc286b55462e254efbeae6df0bf6b1d0aa))
+* **filelist:** 样式修改 ([5e66f88](https://github.com/PachVerb/yunjv/commit/5e66f88b6829daa4c292325a662e146a2503b8ad))
+* **filelist.vue:** 修改样式 ([4148f0d](https://github.com/PachVerb/yunjv/commit/4148f0d28d8fa1343d90118c9ce1d335124f587f))
+* **login:** 样式修改 ([2c11cd0](https://github.com/PachVerb/yunjv/commit/2c11cd0f7ed1ae0988d773125a81c21cb07bf8f7))
+* **login:** 样式修改 ([a5b636c](https://github.com/PachVerb/yunjv/commit/a5b636ca55442fa64cc166a7eecf1108b14bdc32))
+* **login:** 登录注册页面 ([40b4c81](https://github.com/PachVerb/yunjv/commit/40b4c81b2db4ba611730982e69e0c57e8035ab2e))
+* code lint ([0a18024](https://github.com/PachVerb/yunjv/commit/0a1802406366b124f20ea284ea554d11cdebd8f0))
+* 代码格式调整 lib ([d2a3df2](https://github.com/PachVerb/yunjv/commit/d2a3df2bd725e8dba9a938f9f8f2948ccbacd95b))
+* 样式调整 ([633e1a8](https://github.com/PachVerb/yunjv/commit/633e1a8ec568364bb7f39c19a22ea39e0aad4a76))
+* **filelist:** 样式修改 ([f5ba34a](https://github.com/PachVerb/yunjv/commit/f5ba34a2650e184bce314a9973ce9a3b022e5d53))
+* **filelist.vue:** 修改样式 ([84c5bfe](https://github.com/PachVerb/yunjv/commit/84c5bfe5303b5c36e76b6e252685adb70a9823b1))
+* **login:** 样式修改 ([d82d0cd](https://github.com/PachVerb/yunjv/commit/d82d0cd85f49cccdf325b1cf7ea480c646fba3f3))
+* **login:** 样式修改 ([7680be2](https://github.com/PachVerb/yunjv/commit/7680be24beb38af8975aca4491998619758d6368))
+* **login:** 登录注册页面 ([3c43c73](https://github.com/PachVerb/yunjv/commit/3c43c736a401fc1ff55df6efbbcc43896b774682))
+* **server:** 主页面样式 ([6b70822](https://github.com/PachVerb/yunjv/commit/6b7082283e1a5c33813c80f8890459a2685e2c71))
+* **setting:** 设置样式 ([e86e1ad](https://github.com/PachVerb/yunjv/commit/e86e1ad661361cd3addb95fe229352fea69e1e88))
+* code lint ([907c3ce](https://github.com/PachVerb/yunjv/commit/907c3ce879cf5b9ba931487fc1e3bc0c91bd89de))
+* 代码格式调整 lib ([ade10b2](https://github.com/PachVerb/yunjv/commit/ade10b21470b22bfaa6ebd9cead027e57b89ddc9))
+* 样式调整 ([07a990b](https://github.com/PachVerb/yunjv/commit/07a990bcb0c85c79e96715cabddc740dc1aa25ee))
+
+
+### 重构
+
+* **filelist:** fix 文件下载，上传 ([d8cfea3](https://github.com/PachVerb/yunjv/commit/d8cfea39c4201ac409785b2860ada7eccdb673b4))
+* **filelist:** fix 文件下载，上传 ([865b2db](https://github.com/PachVerb/yunjv/commit/865b2db8ac7db512c86fb6a0cbd5ef6c63182f92))
+* **filelist:** 文件下载 ([e897a07](https://github.com/PachVerb/yunjv/commit/e897a07218be6749e75b1843c50a4064d0759b06))
+* **filelist:** 文件下载 ([e4ecc7c](https://github.com/PachVerb/yunjv/commit/e4ecc7c09f385b0d5c35791c134e251223d125f6))
+
 # [1.5.0](https://github.com/PachVerb/yunjv/compare/v1.4.0...v1.5.0) (2020-07-17)
 
 
