@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import http from '@/server/index.js'
+import router from '@/router/index'
 const ipcRenderer = require('electron').ipcRenderer
 const npath = require('path')
 Vue.use(Vuex)
@@ -16,6 +17,8 @@ export default new Vuex.Store({
     precentage: 0,
     index: 0,
     downpath: '',
+    isLogin: false,
+    user_id: null,
   },
   mutations: {
     saveconfig(state) {
@@ -42,6 +45,17 @@ export default new Vuex.Store({
     process(state, payload) {
       state.precentage = payload
       console.log(payload)
+    },
+    loginstate(state, payload) {
+      if (payload.islogin) {
+        state.isLogin = payload.islogin
+        state.user_id = payload.user_id
+        router.push({ path: '/main' })
+      } else {
+        state.user_id = payload.user_id
+        state.isLogin = payload.islogin
+        router.push('/login')
+      }
     },
   },
   actions: {

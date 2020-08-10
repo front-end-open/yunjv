@@ -93,6 +93,7 @@ const routes = [
               let data = [],
                 singleFile = {}
               seafileAPI.init(obj)
+              console.log(token)
               switch (serverType) {
                 case 'baid':
                   http
@@ -100,6 +101,7 @@ const routes = [
                       `/rest/2.0/xpan/file?method=list&access_token=${token}`,
                     )
                     .then((res) => {
+                      console.log(res)
                       const { list } = res.data
                       let fileDate = {}
                       for (let val of list) {
@@ -120,6 +122,9 @@ const routes = [
                       }
                       store.commit('setindexDate', data)
                       next()
+                    })
+                    .catch((error) => {
+                      console.log(error)
                     })
                   break
                 case 'smb':

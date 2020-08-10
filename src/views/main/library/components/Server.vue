@@ -44,7 +44,7 @@
                 </el-select>
               </el-form-item>
               <div v-if="serverPanelVisible">
-                <el-form-item label="服务IP或URL" prop="IP">
+                <el-form-item label="IP或URL" prop="IP">
                   <el-input
                     v-model="ruleForm.IP"
                     placeholder="如：0.0.0.0"
@@ -194,6 +194,7 @@
 <script>
 const { tstring } = require('@/lib/TailoringString')
 const ipcRenderer = require('electron').ipcRenderer
+import axios from 'axios'
 export default {
   name: 'Server',
   data() {
@@ -227,7 +228,7 @@ export default {
         name: '',
         option: '',
         IP: '',
-        port: 80,
+        port: 21,
         usr: '',
         pwd: '',
       },
@@ -252,7 +253,12 @@ export default {
           { type: 'number', message: '端口必须为数字值' },
         ],
         usr: [
-          { min: 0, max: 200, message: '长度在 0-200之间', trigger: 'change' },
+          {
+            min: 0,
+            max: 200,
+            message: '长度在 0-200之间',
+            trigger: 'change',
+          },
         ],
         pwd: [
           { min: 0, max: 200, message: '长度在 0-200之间', trigger: 'change' },
@@ -346,13 +352,13 @@ export default {
           : []
       let server_tag = 0
       const tag = tstring(this.ruleForm.option) // 展开添加服务面板tag
-      this.$refs[formName].validate((valid) => {
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
           if (tag === 0) {
             // 百度认证
             ++server_tag
             ipcRenderer.send('async-authcode', 'ping') // 发送消息
-            ipcRenderer.on('async-authcode-reply', (event, arg) => {
+            ipcRenderer.on('async-authcode-reply', async (event, arg) => {
               const { state, info } = arg
               const { access_token } = info
               if (state) {
@@ -370,7 +376,18 @@ export default {
                 this.server.push(list)
                 config.push(list) //添加服务配置到数据库
                 window.localStorage.setItem(`config`, JSON.stringify(config)) //存储配置
-
+                await axios
+                  .post('http://121.40.30.117/server/addserver', {
+                    config: list,
+                    id: this.$store.state.user_id,
+                    type: this.ruleForm.option,
+                  })
+                  .then((res) => {
+                    console.log(res)
+                  })
+                  .catch((error) => {
+                    console.log(error)
+                  })
                 this.$refs[formName].resetFields()
               }
             })
@@ -398,6 +415,19 @@ export default {
 
                 config.push(list)
                 window.localStorage.setItem(`config`, JSON.stringify(config))
+
+                await axios
+                  .post('http://121.40.30.117:5000/server/addserver', {
+                    config: list,
+                    id: this.$store.state.user_id,
+                    type: this.ruleForm.option,
+                  })
+                  .then((res) => {
+                    console.log(res)
+                  })
+                  .catch((error) => {
+                    console.log(error)
+                  })
                 this.$refs[formName].resetFields()
               }
             } else {
@@ -417,7 +447,21 @@ export default {
               this.server.push(list)
 
               config.push(list)
+
+              await axios
+                .post('http://121.40.30.117:5000/server/addserver', {
+                  config: list,
+                  id: this.$store.state.user_id,
+                  type: this.ruleForm.option,
+                })
+                .then((res) => {
+                  console.log(res)
+                })
+                .catch((error) => {
+                  console.log(error)
+                })
               window.localStorage.setItem(`config`, JSON.stringify(config))
+
               this.$refs[formName].resetFields()
             }
           }
