@@ -92,17 +92,30 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          Axios.post('http://127.0.0.1:3000/api/user/login', {
-            name: this.ruleForm2.name,
-            pass: this.ruleForm2.pass,
+          Axios.post('http://121.40.30.117:5000/api/user/login', {
+            account: this.ruleForm2.name,
+            pwd: this.ruleForm2.pass,
           })
-            .then(() => {
-              this.$message({
-                showClose: true,
-                message: '登陆成功',
-                type: 'error',
-              })
-              this.$router.push({ path: '/main' })
+            .then((res) => {
+              console.log(res)
+              const { status, msg, user_id } = res.data
+              if (status) {
+                this.$message({
+                  showClose: true,
+                  message: msg,
+                  type: 'success',
+                })
+                this.$store.commit('loginstate', {
+                  islogin: true,
+                  user_id,
+                })
+              } else {
+                this.$message({
+                  showClose: true,
+                  message: msg,
+                  type: 'warning',
+                })
+              }
             })
             .catch((error) => {
               console.log(error)

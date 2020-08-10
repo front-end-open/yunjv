@@ -21,6 +21,11 @@ module.exports = {
         ws: true,
         changeOrigin: true,
       },
+      '/api/user/': {
+        target: 'http://121.40.30.117:5000',
+        ws: true,
+        changeOrigin: true,
+      },
     },
   },
   css: {

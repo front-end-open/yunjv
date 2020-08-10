@@ -116,7 +116,7 @@ export default {
     }
     return {
       ruleForm2: {
-        pass: '',
+        pwd: '',
         checkPass: '',
         user: '',
         name: '',
@@ -135,19 +135,26 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          Axios.post('http://127.0.0.1:3000/api/user/addUser', {
-            name: this.ruleForm2.name,
+          Axios.post('http://121.40.30.117:5000/api/user/sign', {
+            nick: this.ruleForm2.name,
             account: this.ruleForm2.user,
-            pass: this.ruleForm2.pass,
+            pwd: this.ruleForm2.pass,
           })
-            .then(() => {
-              this.$message({
-                showClose: true,
-                message: '恭喜, 注册账号成功',
-                type: 'success',
-                duration: 3000,
-              })
-              this.$router.push({ path: '/login' })
+            .then((res) => {
+              const { status, msg } = res.data
+              if (status === 5) {
+                this.$message({
+                  message: msg,
+                  type: 'info',
+                })
+              } else {
+                this.$message({
+                  message: msg,
+                  type: 'success',
+                })
+
+                this.$router.push({ path: '/login' })
+              }
             })
             .catch((error) => {
               this.$message({

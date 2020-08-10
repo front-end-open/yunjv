@@ -2,11 +2,19 @@
   <el-container class="main-container">
     <vue-progress-bar></vue-progress-bar>
     <el-aside width="200px" class="aside">
-      <div class="user">
-        <el-avatar
-          src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
-        ></el-avatar>
-      </div>
+      <el-popover placement="top-start" width="200" trigger="click">
+        <ul class="avater_menu">
+          <li>个人中心</li>
+          <li @click="loginout">注销</li>
+        </ul>
+        <div class="user" slot="reference">
+          <el-avatar
+            src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"
+          ></el-avatar>
+        </div>
+        <!-- <el-button slot="reference">hover 激活</el-button> -->
+      </el-popover>
+
       <el-menu
         router
         :default-active="activeIndex"
@@ -45,6 +53,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   data() {
     return {
@@ -56,6 +65,23 @@ export default {
         '/main/setting',
       ],
     }
+  },
+  methods: {
+    loginout() {
+      axios
+        .get('http://121.40.30.117:5000/api/user/logout')
+        .then((res) => {
+          if (res.data.status) {
+            this.$store.commit('loginstate', {
+              islogin: false,
+              user_id: null,
+            })
+          }
+        })
+        .catch((error) => {
+          throw error
+        })
+    },
   },
   computed: {
     activeIndex() {
@@ -100,6 +126,20 @@ export default {
   text-align: center;
   line-height: 2em;
   margin-top: -1em;
+  color: #fff;
+}
+.avater_menu {
+  list-style: none;
+  padding: 0;
+  text-align: center;
+}
+.avater_menu li {
+  height: 40px;
+  line-height: 40px;
+  margin: 0 -12px;
+}
+.avater_menu li:hover {
+  background: #409eff;
   color: #fff;
 }
 </style>
