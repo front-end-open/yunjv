@@ -93,17 +93,20 @@
                   </span>
                   <el-dropdown-menu slot="dropdown">
                     <el-dropdown-item
-                      :command="{ opration: 'changeConfig', index }"
+                      :command="{ opration: 'changeConfig', index: list.id }"
                       icon="el-icon-s-tools"
                       >修改配置</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="{ opration: 'dele', index }"
+                      :command="{ opration: 'dele', index: list.id }"
                       icon="el-icon-delete-solid"
                       >删除服务</el-dropdown-item
                     >
                     <el-dropdown-item
-                      :command="{ opration: list.type, index }"
+                      :command="{
+                        opration: JSON.parse(list.config).type,
+                        index: list.id,
+                      }"
                       icon="el-icon-delete-solid"
                       >查看文件</el-dropdown-item
                     >
@@ -115,19 +118,23 @@
                 <div>
                   <span>服务类型：</span>
                   <strong>
-                    {{ list.type.slice(0, list.type.length - 1) }}
+                    {{ JSON.parse(list.config).type }}
                   </strong>
                 </div>
                 <div>
                   <span>服务名称:</span>
                   <strong>
-                    {{ list.serverName }}
+                    {{ JSON.parse(list.config).serverName }}
                   </strong>
                 </div>
                 <div>
                   <span>IP:</span>
                   <strong>
-                    {{ list.host ? list.host : '' }}
+                    {{
+                      JSON.parse(list.config).host
+                        ? JSON.parse(list.config).host
+                        : ''
+                    }}
                   </strong>
                 </div>
               </div>
@@ -331,9 +338,17 @@ export default {
     }
   },
   created() {
-    if (localStorage.getItem('config')) {
-      this.server = JSON.parse(localStorage.getItem('config'))
-    }
+    axios
+      .post('http://121.40.30.117:5000/server/getservers', {
+        user_id: this.$store.state.user_id,
+      })
+      .then((res) => {
+        const { server_configs } = res.data
+        this.server = server_configs
+      })
+      .catch((error) => {
+        throw error
+      })
   },
   methods: {
     closeAddServerdialog(done) {
@@ -345,17 +360,19 @@ export default {
           console.log(error)
         })
     },
-    addServer(formName) {
-      const list = {},
-        config = localStorage.getItem('config')
-          ? JSON.parse(localStorage.getItem('config'))
-          : []
+    async addServer(formName) {
+      const list = {}
+      // config = localStorage.getItem('config')
+      //   ? JSON.parse(localStorage.getItem('config'))
+      //   : []
       let server_tag = 0
+      // let isADD = false
       const tag = tstring(this.ruleForm.option) // 展开添加服务面板tag
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
           if (tag === 0) {
             // 百度认证
+            // if (!isADD) {
             ++server_tag
             ipcRenderer.send('async-authcode', 'ping') // 发送消息
             ipcRenderer.on('async-authcode-reply', async (event, arg) => {
@@ -373,9 +390,7 @@ export default {
                 list.server_tag = server_tag
                 list.range = 100 //后面需要单独获取
                 list.token = access_token
-                this.server.push(list)
-                config.push(list) //添加服务配置到数据库
-                window.localStorage.setItem(`config`, JSON.stringify(config)) //存储配置
+
                 await axios
                   .post('http://121.40.30.117/server/addserver', {
                     config: list,
@@ -384,45 +399,20 @@ export default {
                   })
                   .then((res) => {
                     console.log(res)
-                  })
-                  .catch((error) => {
-                    console.log(error)
-                  })
-                this.$refs[formName].resetFields()
-              }
-            })
-          } else {
-            //在每次组件加载时，拿到服务器数据，添加服务时候进行比对，对于同样的iP将排除
-            const isADD = config.some((val) => {
-              return val.host === this.ruleForm.IP
-            })
-            if (config.length > 0) {
-              if (isADD) {
-                alert('服务已经添加')
-              } else {
-                ++server_tag
-                list.serverName = this.ruleForm.name //ftp
-                list.host = this.ruleForm.IP
-                list.type = this.ruleForm.option
-                list.port = this.ruleForm.port
-                list.user = this.ruleForm.usr
-                list.pwd = this.ruleForm.pwd
-                list.range = 50
-                list.tag = tag
-                list.server_tag = server_tag //标识服务的添加状态
-                list.token = ''
-                this.server.push(list)
-
-                config.push(list)
-                window.localStorage.setItem(`config`, JSON.stringify(config))
-
-                await axios
-                  .post('http://121.40.30.117:5000/server/addserver', {
-                    config: list,
-                    id: this.$store.state.user_id,
-                    type: this.ruleForm.option,
-                  })
-                  .then((res) => {
+                    const { status } = res.data
+                    if (status) {
+                      this.$message({
+                        type: 'success',
+                        message: '服务成功添加',
+                      })
+                      // config.push(list) //添加服务配置到数据库
+                      // window.localStorage.setItem(
+                      //   `config`,
+                      //   JSON.stringify(config),
+                      // ) //存储配置
+                    } else {
+                      alert('服务已经添加')
+                    }
                     console.log(res)
                   })
                   .catch((error) => {
@@ -430,40 +420,57 @@ export default {
                   })
                 this.$refs[formName].resetFields()
               }
-            } else {
-              console.log('添加新服务')
-              // ftp,smb服务添加
-              ++server_tag
-              list.serverName = this.ruleForm.name //ftp
-              list.host = this.ruleForm.IP
-              list.type = this.ruleForm.option
-              list.port = this.ruleForm.port
-              list.user = this.ruleForm.usr
-              list.pwd = this.ruleForm.pwd
-              list.range = 50
-              list.tag = tag
-              list.server_tag = server_tag //标识服务的添加状态
-              list.token = ''
-              this.server.push(list)
+            })
+            // }
+          } else {
+            ++server_tag
+            list.serverName = this.ruleForm.name //ftp
+            list.host = this.ruleForm.IP
+            list.type = this.ruleForm.option
+            list.port = this.ruleForm.port
+            list.user = this.ruleForm.usr
+            list.pwd = this.ruleForm.pwd
+            list.range = 50
+            list.tag = tag
+            list.server_tag = server_tag //标识服务的添加状态
+            list.token = ''
 
-              config.push(list)
+            await axios
+              .post('http://121.40.30.117:5000/server/addserver', {
+                config: list,
+                id: this.$store.state.user_id,
+                type: this.ruleForm.option,
+              })
+              .then((res) => {
+                console.log(res)
+                const { status } = res.data
+                if (status) {
+                  this.$message({
+                    type: 'success',
+                    message: '服务成功添加',
+                  })
 
-              await axios
-                .post('http://121.40.30.117:5000/server/addserver', {
-                  config: list,
-                  id: this.$store.state.user_id,
-                  type: this.ruleForm.option,
-                })
-                .then((res) => {
-                  console.log(res)
-                })
-                .catch((error) => {
-                  console.log(error)
-                })
-              window.localStorage.setItem(`config`, JSON.stringify(config))
-
-              this.$refs[formName].resetFields()
-            }
+                  // config.push(list)
+                  // window.localStorage.setItem(`config`, JSON.stringify(config))
+                } else {
+                  alert('服务已添加')
+                }
+              })
+              .catch((error) => {
+                console.log(error)
+              })
+            axios
+              .post('http://121.40.30.117:5000/server/getservers', {
+                user_id: this.$store.state.user_id,
+              })
+              .then((res) => {
+                const { server_configs } = res.data
+                this.server = server_configs
+              })
+              .catch((error) => {
+                throw error
+              })
+            this.$refs[formName].resetFields()
           }
           this.dialogVisible = false // 关闭dialog的时机
         } else {
@@ -481,7 +488,7 @@ export default {
     },
     singleServerSelec(commtag) {
       const { opration, index } = commtag
-      let config = JSON.parse(localStorage.getItem('config'))
+      // let config = JSON.parse(localStorage.getItem('config'))
 
       if (opration == 'dele') {
         //[].length
@@ -491,18 +498,40 @@ export default {
             cancelButtonText: '取消',
             type: 'warning',
           })
-            .then(() => {
-              this.server.splice(index, 1)
-              config.splice(index, 1)
-              localStorage.setItem('config', JSON.stringify(config))
-              this.$message({
-                message: '删除成功',
-                type: 'success',
-              })
-              this.$message({
-                type: 'success',
-                message: '删除成功!',
-              })
+            .then(async () => {
+              await axios
+                .get('http://121.40.30.117:5000/server/delserver', {
+                  params: {
+                    id: index,
+                  },
+                })
+                .then((res) => {
+                  if (res.data.status) {
+                    this.$message({
+                      type: 'success',
+                      message: '删除成功!',
+                    })
+                  }
+                })
+                .catch((error) => {
+                  this.$message({
+                    type: 'success',
+                    message: '删除失败, 网络错误',
+                  })
+                  throw error
+                })
+
+              await axios
+                .post('http://121.40.30.117:5000/server/getservers', {
+                  user_id: this.$store.state.user_id,
+                })
+                .then((res) => {
+                  const { server_configs } = res.data
+                  this.server = server_configs
+                })
+                .catch((error) => {
+                  throw error
+                })
             })
             .catch(() => {
               this.$message({
@@ -512,16 +541,16 @@ export default {
             })
         }
       } else if (opration == 'changeConfig') {
-        config = JSON.parse(localStorage.getItem('config'))[index]
-        this.configServerName = config.type.substr(0, config.type.length - 1)
-        // 后续情况，需要在打开对话框的时候，就请求当前服务配置
-        if (config.type && tstring(config.type) !== 0) {
-          this.sapServerConfig = config
-          this.sapServerConfig.flat = index
-          this.dialogVisible2 = true //打开对话框
-        } else {
-          alert('暂不提供修改')
-        }
+        // config = JSON.parse(localStorage.getItem('config'))[index]
+        // this.configServerName = config.type.substr(0, config.type.length - 1)
+        // // 后续情况，需要在打开对话框的时候，就请求当前服务配置
+        // if (config.type && tstring(config.type) !== 0) {
+        //   this.sapServerConfig = config
+        //   this.sapServerConfig.flat = index
+        //   this.dialogVisible2 = true //打开对话框
+        // } else {
+        //   alert('暂不提供修改')
+        // }
       } else {
         const { opration, index } = commtag, //索引
           tag = Number(opration.slice(-1)) // 服务

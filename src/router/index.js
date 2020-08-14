@@ -18,6 +18,7 @@ import Server from '../views/main/library/components/Server.vue'
 
 import store from '@/store/index.js'
 import http from '@/server/index.js'
+import axios from 'axios'
 import Dateformate from '@/lib/DateFormate.js'
 import SizeConvert from '@/lib/SizeConvert.js'
 import ServerFac from '@/lib/ServerFactory.js'
@@ -34,7 +35,6 @@ VueRouter.prototype.push = function push(location) {
 
 // const config = JSON.parse(localStorage.getItem('config')),
 //   { token } = config
-0
 const routes = [
   {
     path: '/',
@@ -83,17 +83,31 @@ const routes = [
                 ],
               },
             },
-            beforeEnter: (to, from, next) => {
-              const { serverType, index } = to.params,
+            beforeEnter: async (to, from, next) => {
+              await axios
+                .get('http://121.40.30.117:5000/server/singserver', {
+                  params: {
+                    id: to.params.index,
+                  },
+                })
+                .then((res) => {
+                  const { single_config } = res.data,
+                    config = []
+                  config.push(single_config)
+                  localStorage.setItem('config', JSON.stringify(config))
+                })
+                .catch((error) => {
+                  throw error
+                })
+              const { serverType } = to.params,
                 seafileAPI = new SeafileAPI(),
                 { token, user, pwd, host } = JSON.parse(
                   localStorage.getItem('config'),
-                )[index],
+                )[0],
                 obj = { server: host, username: user, password: pwd }
               let data = [],
                 singleFile = {}
               seafileAPI.init(obj)
-              console.log(token)
               switch (serverType) {
                 case 'baid':
                   http
@@ -130,7 +144,7 @@ const routes = [
                 case 'smb':
                   var smb = new ServerFac(
                     'SMB',
-                    index,
+                    0,
                     JSON.parse(localStorage.getItem('config')),
                     '',
                     '',
@@ -145,7 +159,7 @@ const routes = [
                 case 'ftp':
                   var ftp = new ServerFac(
                     'FTP',
-                    index,
+                    0,
                     JSON.parse(localStorage.getItem('config')),
                     '',
                     '',
