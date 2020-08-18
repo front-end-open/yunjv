@@ -8,7 +8,7 @@
             <h4>并行任务:</h4>
           </el-row>
           <el-row type="flex">
-            <el-col :span="7" :offset="3" class="inine_h_dad">
+            <el-col :span="10" :offset="2" class="inine_h_dad">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">上传并行任务数：</span>
                 <el-select v-model="upload" size="small" class="udLoad">
@@ -20,9 +20,17 @@
                   >
                   </el-option>
                 </el-select>
+                <div class="submit_group">
+                  <el-button class="submit" type="primary" size="small"
+                    >提交</el-button
+                  >
+                  <el-button class="submit" type="primary" size="small"
+                    >取消</el-button
+                  >
+                </div>
               </div>
             </el-col>
-            <el-col :span="7" :offset="2">
+            <el-col :span="10" :offset="2">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">下载并行任务数：</span>
                 <el-select v-model="download" size="small" class="udLoad">
@@ -34,6 +42,14 @@
                   >
                   </el-option>
                 </el-select>
+                <div class="submit_group">
+                  <el-button class="submit" type="primary" size="small"
+                    >提交</el-button
+                  >
+                  <el-button class="submit" type="primary" size="small"
+                    >取消</el-button
+                  >
+                </div>
               </div>
             </el-col>
           </el-row>
@@ -42,8 +58,8 @@
           <el-row type="flex" justify="left" class="marginB15 fontSizeF">
             <h4>文件下载路径:</h4>
           </el-row>
-          <el-row type="flex">
-            <el-col :span="6" :offset="3">
+          <el-row type="flex" gutter="10">
+            <el-col :span="6" :offset="2">
               <el-input
                 placeholder="请浏览文件路径"
                 size="small"
@@ -51,17 +67,25 @@
               >
               </el-input>
             </el-col>
-            <el-col :span="3" style="margin-left:5px">
-              <el-row>
-                <el-button
-                  type="info"
-                  plain
-                  size="small"
-                  @click="files"
-                  class="liulan"
-                  >浏览</el-button
+            <el-col :span="2">
+              <el-button
+                type="info"
+                plain
+                size="small"
+                @click="files"
+                class="liulan"
+                >浏览</el-button
+              >
+            </el-col>
+            <el-col :span="4">
+              <div class="submit_group">
+                <el-button class="submit" type="primary" size="small"
+                  >提交</el-button
                 >
-              </el-row>
+                <el-button class="submit" type="primary" size="small"
+                  >取消</el-button
+                >
+              </div>
             </el-col>
           </el-row>
         </li>
@@ -254,5 +278,8 @@ li {
   width: 60%;
   display: flex;
   justify-content: center;
+}
+.submit {
+  margin-left: 12px;
 }
 </style>
