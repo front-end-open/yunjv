@@ -335,6 +335,7 @@ export default {
       sapServerConfig: {},
       dialogVisible2: false,
       dialogVisible: false,
+      current_index: null,
     }
   },
   created() {
@@ -362,11 +363,7 @@ export default {
     },
     async addServer(formName) {
       const list = {}
-      // config = localStorage.getItem('config')
-      //   ? JSON.parse(localStorage.getItem('config'))
-      //   : []
       let server_tag = 0
-      // let isADD = false
       const tag = tstring(this.ruleForm.option) // 展开添加服务面板tag
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
@@ -392,7 +389,7 @@ export default {
                 list.token = access_token
 
                 await axios
-                  .post('http://121.40.30.117/server/addserver', {
+                  .post('http://121.40.30.117:5000/server/addserver', {
                     config: list,
                     id: this.$store.state.user_id,
                     type: this.ruleForm.option,
@@ -405,11 +402,6 @@ export default {
                         type: 'success',
                         message: '服务成功添加',
                       })
-                      // config.push(list) //添加服务配置到数据库
-                      // window.localStorage.setItem(
-                      //   `config`,
-                      //   JSON.stringify(config),
-                      // ) //存储配置
                     } else {
                       alert('服务已经添加')
                     }
@@ -417,6 +409,17 @@ export default {
                   })
                   .catch((error) => {
                     console.log(error)
+                  })
+                await axios
+                  .post('http://121.40.30.117:5000/server/getservers', {
+                    user_id: this.$store.state.user_id,
+                  })
+                  .then((res) => {
+                    const { server_configs } = res.data
+                    this.server = server_configs
+                  })
+                  .catch((error) => {
+                    throw error
                   })
                 this.$refs[formName].resetFields()
               }
@@ -459,7 +462,7 @@ export default {
               .catch((error) => {
                 console.log(error)
               })
-            axios
+            await axios
               .post('http://121.40.30.117:5000/server/getservers', {
                 user_id: this.$store.state.user_id,
               })
@@ -541,16 +544,18 @@ export default {
             })
         }
       } else if (opration == 'changeConfig') {
-        // config = JSON.parse(localStorage.getItem('config'))[index]
-        // this.configServerName = config.type.substr(0, config.type.length - 1)
-        // // 后续情况，需要在打开对话框的时候，就请求当前服务配置
-        // if (config.type && tstring(config.type) !== 0) {
-        //   this.sapServerConfig = config
-        //   this.sapServerConfig.flat = index
-        //   this.dialogVisible2 = true //打开对话框
-        // } else {
-        //   alert('暂不提供修改')
-        // }
+        this.current_index = index
+        axios
+          .get('http://121.40.30.117:5000/server/singserver', {
+            params: {
+              id: index,
+            },
+          })
+          .then((res) => {
+            console.log(res)
+            this.sapServerConfig = res.data.single_config
+            this.dialogVisible2 = true
+          })
       } else {
         const { opration, index } = commtag, //索引
           tag = Number(opration.slice(-1)) // 服务
@@ -578,22 +583,32 @@ export default {
         }
       }
     },
-    changeServerConfig() {
-      //这里暂为提供修改配置表单验证， 表单获取出现bug.
-      // 先模拟修改，由于没发拿到当前该条数据的tag表识，因此没发准确插入数据库修改。
-      // 后期存储数据库，统一为每条数据进行唯一标识。
-      const config = JSON.parse(localStorage.getItem('config'))
-      config.splice(this.sapServerConfig.flag, 1)
-      this.server.splice(this.sapServerConfig.flag, 1)
+    async changeServerConfig() {
+      if (this.sapServerConfig.type !== 'BAIDU-DISK0') {
+        await axios.post('http://121.40.30.117:5000/server/modifyserver', {
+          id: this.current_index,
+          config: this.sapServerConfig,
+        })
 
-      this.server.push(this.sapServerConfig)
-      config.push(this.sapServerConfig)
-      localStorage.setItem('config', JSON.stringify(config))
-      this.$message({
-        showClose: true,
-        message: '恭喜你，这是一条成功消息',
-        type: 'success',
-      })
+        await axios
+          .post('http://121.40.30.117:5000/server/getservers', {
+            user_id: this.$store.state.user_id,
+          })
+          .then((res) => {
+            const { server_configs } = res.data
+            this.server = server_configs
+            this.$message({
+              showClose: true,
+              message: '修改成功',
+              type: 'success',
+            })
+          })
+          .catch((error) => {
+            throw error
+          })
+      } else {
+        alert('该服务不提供修改')
+      }
       this.dialogVisible2 = false
     },
     cancelAddServer(formName) {
