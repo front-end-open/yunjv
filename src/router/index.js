@@ -104,10 +104,14 @@ const routes = [
                 { token, user, pwd, host } = JSON.parse(
                   localStorage.getItem('config'),
                 )[0],
-                obj = { server: host, username: user, password: pwd }
+                obj = {
+                  server: 'http://' + host,
+                  username: user,
+                  password: pwd,
+                }
               let data = [],
                 singleFile = {}
-              seafileAPI.init(obj)
+              const seafileServer = seafileAPI.init(obj)
               switch (serverType) {
                 case 'baid':
                   http
@@ -196,7 +200,10 @@ const routes = [
                   break
                 default:
                   // seafileAPI.init(obj)
-                  seafileAPI
+                  // seafileServer.login((res) => {
+                  //   console.log(res)
+                  // })
+                  seafileServer
                     .login()
                     .then(async () => {
                       let arr = []
