@@ -348,6 +348,7 @@ export default {
         this.server = server_configs
       })
       .catch((error) => {
+        console.log(error)
         throw error
       })
   },

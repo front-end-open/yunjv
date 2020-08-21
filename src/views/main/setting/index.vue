@@ -11,20 +11,33 @@
             <el-col :span="10" :offset="2" class="inine_h_dad">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">上传并行任务数：</span>
-                <el-select v-model="upload" size="small" class="udLoad">
+                <el-select
+                  v-model="upload"
+                  size="small"
+                  class="udLoad"
+                  @change="groupChange(1)"
+                >
                   <el-option
                     v-for="item in optionsUp"
-                    :key="item.value"
+                    :key="item.label"
                     :label="item.label"
                     :value="item.value"
                   >
                   </el-option>
                 </el-select>
-                <div class="submit_group">
-                  <el-button class="submit" type="primary" size="small"
+                <div class="submit_group" v-show="group1">
+                  <el-button
+                    class="submit"
+                    @click="submit('', upload, '', 1)"
+                    type="primary"
+                    size="small"
                     >提交</el-button
                   >
-                  <el-button class="submit" type="primary" size="small"
+                  <el-button
+                    class="submit"
+                    @click="cancel(1)"
+                    type="primary"
+                    size="small"
                     >取消</el-button
                   >
                 </div>
@@ -33,20 +46,33 @@
             <el-col :span="10" :offset="2">
               <div class="nowarp">
                 <span class="fontSizeF inline_h">下载并行任务数：</span>
-                <el-select v-model="download" size="small" class="udLoad">
+                <el-select
+                  v-model="download"
+                  size="small"
+                  class="udLoad"
+                  @change="groupChange(2)"
+                >
                   <el-option
                     v-for="item in optionsDown"
-                    :key="item.value"
+                    :key="item.label"
                     :label="item.label"
                     :value="item.value"
                   >
                   </el-option>
                 </el-select>
-                <div class="submit_group">
-                  <el-button class="submit" type="primary" size="small"
+                <div class="submit_group" v-show="group2">
+                  <el-button
+                    class="submit"
+                    @click="submit(download, '', '', 2)"
+                    type="primary"
+                    size="small"
                     >提交</el-button
                   >
-                  <el-button class="submit" type="primary" size="small"
+                  <el-button
+                    class="submit"
+                    @click="cancel(2)"
+                    type="primary"
+                    size="small"
                     >取消</el-button
                   >
                 </div>
@@ -58,31 +84,40 @@
           <el-row type="flex" justify="left" class="marginB15 fontSizeF">
             <h4>文件下载路径:</h4>
           </el-row>
-          <el-row type="flex" gutter="10">
-            <el-col :span="6" :offset="2">
+          <el-row type="flex" :gutter="10">
+            <el-col :span="10" :offset="2">
               <el-input
                 placeholder="请浏览文件路径"
                 size="small"
+                :disabled="true"
                 v-model="filePath"
               >
               </el-input>
             </el-col>
-            <el-col :span="2">
+            <el-col :span="3">
               <el-button
                 type="info"
                 plain
                 size="small"
-                @click="files"
+                @click="files(3)"
                 class="liulan"
                 >浏览</el-button
               >
             </el-col>
             <el-col :span="4">
-              <div class="submit_group">
-                <el-button class="submit" type="primary" size="small"
+              <div class="submit_group" v-show="group3">
+                <el-button
+                  class="submit"
+                  type="primary"
+                  @click="submit('', '', filePath, 3)"
+                  size="small"
                   >提交</el-button
                 >
-                <el-button class="submit" type="primary" size="small"
+                <el-button
+                  @click="cancel(3)"
+                  class="submit"
+                  type="primary"
+                  size="small"
                   >取消</el-button
                 >
               </div>
@@ -135,52 +170,57 @@
       </ul>
       <div class="bottomCol"></div>
     </el-card>
+    <p>{{ test }}</p>
   </div>
 </template>
 
 <script>
+// 获取文件路径
+import axios from 'axios'
+
 export default {
+  name: 'setting',
   data() {
     return {
-      filePath: '',
-      upload: '1',
+      filePath: '', //下载文件地址
+      upload: '', //上传并行任务数
       optionsUp: [
         {
           //上传选项
-          value: '选项1',
+          value: '1',
           label: '1',
         },
         {
-          value: '选项2',
+          value: '1',
           label: '2',
         },
         {
-          value: '选项3',
+          value: '3',
           label: '3',
         },
         {
-          value: '选项4',
+          value: '4',
           label: '4',
         },
       ],
 
-      download: '2', //下载并行任务数
+      download: '', //下载并行任务数
       optionsDown: [
         {
           //下载选项
-          value: '选项1',
+          value: '1',
           label: '1',
         },
         {
-          value: '选项2',
+          value: '2',
           label: '2',
         },
         {
-          value: '选项3',
+          value: '3',
           label: '3',
         },
         {
-          value: '选项4',
+          value: '4',
           label: '4',
         },
       ],
@@ -188,24 +228,89 @@ export default {
       aboutName: '云居', //程序名称
       aboutEdition: '1.1.1', //当前版本号
       aboutOwnership: 'Copyright © 2020 Yanqi All Rights Reserved', //所有权
+      group1: false,
+      group2: false,
+      group3: false,
+      test: 'helllosdfasfasd',
     }
   },
+<<<<<<< HEAD
   created() {},
+=======
+  created() {
+    axios
+      .post('http://121.40.30.117:5000/server/addsetting', {
+        user_id: this.$store.state.user_id,
+        downtask: this.download,
+        uptask: this.upload,
+        downpath: this.filePath,
+      })
+      .then((res) => {
+        console.log(res)
+      })
+      .catch((error) => {
+        console.log(error)
+      })
+  },
+>>>>>>> refactor(setting): 用户配置同步服务器
   methods: {
     //点击浏览按钮 将input的value值替换为文件夹路径
-    files() {
+    files(num) {
       const { dialog } = require('electron').remote
       dialog.showOpenDialog(
         {
-          properties: ['openFile', 'openDirectory'],
+          properties: ['openDirectory'],
           title: '默认下载地址',
           buttonLabel: '确定',
         },
         (result) => {
-          this.filePath = String(result)
+          if (result) {
+            this.filePath = String(result)
+            let tag = 'group' + num
+            this[`${tag}`] = true
+          }
         },
       )
     },
+    groupChange(num) {
+      this[`group${num}`] = true
+    },
+    submit(down, up, dowpath, num) {
+      axios
+        .post('http://121.40.30.117:5000/server/modifyset', {
+          user_id: this.$store.state.user_id,
+          downtask: down,
+          uptask: up,
+          downpath: dowpath,
+        })
+        .then(() => {
+          this.$message({
+            message: '更新成功',
+            type: 'success',
+          })
+          this[`group${num}`] = false
+        })
+    },
+    cancel(num) {
+      this[`group${num}`] = false
+    },
+  },
+  mounted() {
+    axios
+      .get('http://121.40.30.117:5000/server/postset', {
+        params: {
+          user_id: this.$store.state.user_id,
+        },
+      })
+      .then((res) => {
+        let { down_path, uptask_num, downtask_num } = res.data.seting
+        this.filePath = down_path
+        this.upload = uptask_num
+        this.download = downtask_num
+      })
+      .catch((error) => {
+        console.log(error)
+      })
   },
   computed: {},
   watch: {},
