@@ -1365,12 +1365,10 @@ export default {
     async switchDir(row) {
       // ftp
       this.rowDate = row
-      const config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ],
+      const config = JSON.parse(localStorage.getItem('config'))[0],
         { host, user, pwd, token } = config
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
       this.switchDirTag = 1
       switch (this.parents[0]) {
@@ -1954,9 +1952,7 @@ export default {
     //  文件移动/复制--懒加载
     async lazyLoadTreeDir(node, resolve) {
       this.selecPath = '/'
-      const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
+      const config = JSON.parse(localStorage.getItem('config'))[0]
       const { host, user, pwd, token } = config
 
       let seafileAPI = new SeafileAPI(),
