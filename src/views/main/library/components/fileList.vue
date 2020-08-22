@@ -557,13 +557,11 @@ export default {
     },
     // 创建目录
     async submitForm() {
-      var config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ],
+      var config = JSON.parse(localStorage.getItem('config'))[0],
         { token, user, pwd, host } = config
 
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
 
       switch (this.parents[0]) {
