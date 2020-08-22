@@ -504,9 +504,7 @@ export default {
   methods: {
     //搜索文件
     searchClick() {
-      var config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
+      var config = JSON.parse(localStorage.getItem('config'))[0]
       const { token } = config
       switch (this.parents[0]) {
         case 'ftp':
@@ -875,13 +873,11 @@ export default {
     },
     // 重命名-目录更该
     async changeDirName() {
-      const config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ],
+      const config = JSON.parse(localStorage.getItem('config'))[0],
         { user, pwd, host } = config
 
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
 
       if (this.parents[0] == 'ftp') {
@@ -1137,13 +1133,11 @@ export default {
     // TODO: 文件删除
     async deleteFile(index, row) {
       this.deleteDialogVisible = false //关闭模态框
-      const config = JSON.parse(localStorage.getItem('config'))[
-        this.servertypeIndex
-      ]
+      const config = JSON.parse(localStorage.getItem('config'))[0]
       const { host, user, pwd, token } = config
 
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
       // ftp__删除文件/夹路径
       if (this.parents[0] == 'ftp') {
@@ -1204,9 +1198,7 @@ export default {
       } else if (this.parents[0] == 'smb') {
         // smb__删除文件/夹路径
         try {
-          const config = JSON.parse(localStorage.getItem('config'))[
-            Number(this.servertypeIndex)
-          ]
+          const config = JSON.parse(localStorage.getItem('config'))[0]
           const { host, user, pwd } = config
           var smbclient = new SMB({
             share: `\\\\${host}\\share`,
@@ -1319,9 +1311,7 @@ export default {
     },
     //  ftp文件列表获取
     async ftpclient() {
-      const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
+      const config = JSON.parse(localStorage.getItem('config'))[0]
       const { host, user, pwd } = config
       try {
         await client
@@ -1609,12 +1599,10 @@ export default {
     //面包屑切换文件列表加载
     async getFile(path, parent = '', repoID = '') {
       // ftp
-      const config = JSON.parse(localStorage.getItem('config'))[
-          Number(this.servertypeIndex)
-        ],
+      const config = JSON.parse(localStorage.getItem('config'))[0],
         { host, user, pwd, token } = config,
         seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
       if (this.parents[0] == 'ftp') {
         if (path) {
@@ -1954,7 +1942,7 @@ export default {
       const { host, user, pwd, token } = config
 
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
 
       let moveFile = {},
@@ -2020,9 +2008,7 @@ export default {
         }
       } else if (this.parents[0] == 'smb') {
         try {
-          const config = JSON.parse(localStorage.getItem('config'))[
-            Number(this.servertypeIndex)
-          ]
+          const config = JSON.parse(localStorage.getItem('config'))[0]
           const { host, user, pwd } = config
           var smbclient = new SMB({
             share: `\\\\${host}\\share`,
@@ -2103,13 +2089,11 @@ export default {
     },
     // 移动/复制 提交
     async moveOk(select) {
-      const config = JSON.parse(localStorage.getItem('config'))[
-        Number(this.servertypeIndex)
-      ]
+      const config = JSON.parse(localStorage.getItem('config'))[0]
       const { host, user, pwd, token } = config
 
       let seafileAPI = new SeafileAPI(),
-        obj = { server: host, username: user, password: pwd }
+        obj = { server: 'http://' + host, username: user, password: pwd }
       seafileAPI.init(obj)
 
       if (this.parents[0] == 'ftp') {
