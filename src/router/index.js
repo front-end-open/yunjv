@@ -203,6 +203,7 @@ const routes = [
                   // seafileServer.login((res) => {
                   //   console.log(res)
                   // })
+
                   seafileServer
                     .login()
                     .then(async () => {
@@ -210,8 +211,12 @@ const routes = [
                       let axiosListDir = []
                       let arrDir = []
                       let repos = await seafileAPI.listRepos()
+                      console.log(repos)
                       repos.data.repos.forEach((item) => {
                         arr.push(item.repo_id)
+                      })
+                      seafileServer.listUserUploadLinks().then((res) => {
+                        console.log(res)
                       })
                       Distinct(arr).forEach((item) => {
                         axiosListDir.push(seafileAPI.listDir(item, ''))
