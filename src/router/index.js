@@ -215,9 +215,7 @@ const routes = [
                       repos.data.repos.forEach((item) => {
                         arr.push(item.repo_id)
                       })
-                      seafileServer.listUserUploadLinks().then((res) => {
-                        console.log(res)
-                      })
+
                       Distinct(arr).forEach((item) => {
                         axiosListDir.push(seafileAPI.listDir(item, ''))
                       })
