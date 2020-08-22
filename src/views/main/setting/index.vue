@@ -234,9 +234,6 @@ export default {
       test: 'helllosdfasfasd',
     }
   },
-<<<<<<< HEAD
-  created() {},
-=======
   created() {
     axios
       .post('http://121.40.30.117:5000/server/addsetting', {
@@ -252,7 +249,6 @@ export default {
         console.log(error)
       })
   },
->>>>>>> refactor(setting): 用户配置同步服务器
   methods: {
     //点击浏览按钮 将input的value值替换为文件夹路径
     files(num) {
