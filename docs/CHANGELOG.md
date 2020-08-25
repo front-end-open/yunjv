@@ -2,6 +2,30 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+## [1.6.1](https://github.com/PachVerb/yunjv/compare/v1.6.0...v1.6.1) (2020-08-22)
+
+
+### 修复
+
+* index ([deed590](https://github.com/PachVerb/yunjv/commit/deed590be8e85a5e4e34486a67d71aafb7b40987))
+* **router/:** seafile服务服务地址 ([5895c9c](https://github.com/PachVerb/yunjv/commit/5895c9c95e57e5b2fa6812a3b3c21f8ba121a5d3))
+
+
+### 杂务
+
+* seafile 服务 review ([75937f7](https://github.com/PachVerb/yunjv/commit/75937f718323eb64a9e2d1db1d432ea72d2a6365))
+* xxx ([1248231](https://github.com/PachVerb/yunjv/commit/1248231dbfadc6d4f75b9e26ef1c940f6938aeb8))
+* 清楚合并冲突 ([03a6284](https://github.com/PachVerb/yunjv/commit/03a62844c703ecc3a21ad8240ce8547d42fa7833))
+
+
+### 重构
+
+* **filelist:** 服务索引重置 ([acdf891](https://github.com/PachVerb/yunjv/commit/acdf89194680ca04594274cac2c11ca7f62d9f0e))
+* **filelist:** 服务索引错误 ([da674d1](https://github.com/PachVerb/yunjv/commit/da674d1a63d8ba310782ec419d9bbb739e2f5771))
+* **login/sign:** 登陆注册同步服务器 ([7915107](https://github.com/PachVerb/yunjv/commit/7915107c77352fe7079c67aff8aec71161a2e613))
+* **setting:** 用户配置同步服务器 ([193c0a1](https://github.com/PachVerb/yunjv/commit/193c0a144e7d0831cc12637d3739faa31095858c))
+* 服务配置数据同步服务器 ([61b7a36](https://github.com/PachVerb/yunjv/commit/61b7a3604a3b2a6954b836ab8fde10bd42a193ac))
+
 # [1.6.0](https://github.com/PachVerb/yunjv/compare/v1.5.0...v1.6.0) (2020-08-04)
 
 
