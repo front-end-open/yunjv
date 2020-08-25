@@ -48,7 +48,7 @@ export default function ServerFactory(
 // 服务基类添加
 ServerFactory.prototype = {
   BaiDu: function(index, config, lpath, remotepath, rowfileinfo) {
-    console.log(index, config, lpath, remotepath, rowfileinfo)
+    console.log(11111, remotepath, rowfileinfo)
     // 文件信息读取
     this.singleUpload = function(filepath) {
       let stats = fs.statSync(filepath) // 文件信息

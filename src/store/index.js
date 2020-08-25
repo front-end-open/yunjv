@@ -11,7 +11,7 @@ export default new Vuex.Store({
     config: JSON.parse(window.localStorage.getItem('config')),
     indexFileDate: null,
     fileinfo: {},
-    downloadLists: [],
+    downloadLists: null,
     tag: false,
     brandNum: 1,
     precentage: 0,
@@ -32,7 +32,7 @@ export default new Vuex.Store({
     },
     downloadTasks(state, payload) {
       // state.downloadLi sts = []
-      state.downloadLists.push(payload.file)
+      state.downloadLists = payload.file
       state.index = payload.index
       state.downpath = payload.downpath
       state.tag = true
@@ -44,7 +44,6 @@ export default new Vuex.Store({
     },
     process(state, payload) {
       state.precentage = payload
-      console.log(payload)
     },
     loginstate(state, payload) {
       if (payload.islogin) {
@@ -62,11 +61,11 @@ export default new Vuex.Store({
     async startDownload({ state, commit }) {
       const fsidarr = []
       let dlink = ''
-      const config = JSON.parse(localStorage.getItem('config'))[state.index]
+      const { token } = JSON.parse(localStorage.getItem('config'))[0]
       fsidarr.push(state.downloadLists[0].fs_id)
       await http
         .get(
-          `https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas&access_token=${config.token}`,
+          `https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas&access_token=${token}`,
           {
             params: {
               fsids: JSON.stringify(fsidarr),
@@ -75,17 +74,15 @@ export default new Vuex.Store({
           },
         )
         .then((res) => {
-          console.log(res.data)
           dlink = res.data.list[0].dlink
         })
-      console.log(path)
       let extname = npath.extname(state.downloadLists[0].server_filename)
       let path = `${state.downpath}${extname}`
-      let dinks = `${dlink}&access_token=${config.token}`
+      let dinks = `${dlink}&access_token=${token}`
       ipcRenderer.send('download', {
         dinks,
         path,
-        size: state.downloadLists[0].sizeC,
+        size: state.downloadLists[0].size,
       })
       ipcRenderer.on('async-authcode-reply', (event, msg) => {
         if (!msg.status) {

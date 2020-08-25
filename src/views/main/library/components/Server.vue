@@ -1,5 +1,5 @@
 <template>
-  <div class="server">
+  <div class="server" v-loading="loadding">
     <el-row type="flex" class="row-bg" justify="end">
       <el-col :span="2">
         <div class="grid-content bg-purple">
@@ -202,6 +202,33 @@
 const { tstring } = require('@/lib/TailoringString')
 const ipcRenderer = require('electron').ipcRenderer
 import axios from 'axios'
+const instance = axios.create({
+  baseURL: 'http://121.40.30.117:5000',
+})
+axios.interceptors.request.use(
+  function(config) {
+    // Do something before request is sent
+    return config
+  },
+  function(error) {
+    // Do something with request error
+    return Promise.reject(error)
+  },
+)
+
+// Add a response interceptor
+axios.interceptors.response.use(
+  function(response) {
+    // Any status code that lie within the range of 2xx cause this function to trigger
+    // Do something with response data
+    return response
+  },
+  function(error) {
+    // Any status codes that falls outside the range of 2xx cause this function to trigger
+    // Do something with response error
+    return Promise.reject(error)
+  },
+)
 export default {
   name: 'Server',
   data() {
@@ -336,16 +363,25 @@ export default {
       dialogVisible2: false,
       dialogVisible: false,
       current_index: null,
+      loadding: true,
     }
   },
   created() {
-    axios
-      .post('http://121.40.30.117:5000/server/getservers', {
+    instance
+      .post('/server/getservers', {
         user_id: this.$store.state.user_id,
       })
-      .then((res) => {
+      .then(async (res) => {
         const { server_configs } = res.data
         this.server = server_configs
+        window.clearTimeout(interval)
+        var interval = setTimeout(() => {
+          this.loadding = false
+          this.$message({
+            message: '服务加载完成',
+            type: 'success',
+          })
+        }, 2000)
       })
       .catch((error) => {
         console.log(error)
@@ -389,7 +425,7 @@ export default {
                 list.range = 100 //后面需要单独获取
                 list.token = access_token
 
-                await axios
+                await instance
                   .post('http://121.40.30.117:5000/server/addserver', {
                     config: list,
                     id: this.$store.state.user_id,
@@ -411,8 +447,8 @@ export default {
                   .catch((error) => {
                     console.log(error)
                   })
-                await axios
-                  .post('http://121.40.30.117:5000/server/getservers', {
+                await instance
+                  .post('/server/getservers', {
                     user_id: this.$store.state.user_id,
                   })
                   .then((res) => {
@@ -439,8 +475,8 @@ export default {
             list.server_tag = server_tag //标识服务的添加状态
             list.token = ''
 
-            await axios
-              .post('http://121.40.30.117:5000/server/addserver', {
+            await instance
+              .post('/server/addserver', {
                 config: list,
                 id: this.$store.state.user_id,
                 type: this.ruleForm.option,
@@ -463,8 +499,8 @@ export default {
               .catch((error) => {
                 console.log(error)
               })
-            await axios
-              .post('http://121.40.30.117:5000/server/getservers', {
+            await instance
+              .post('/server/getservers', {
                 user_id: this.$store.state.user_id,
               })
               .then((res) => {
@@ -503,8 +539,8 @@ export default {
             type: 'warning',
           })
             .then(async () => {
-              await axios
-                .get('http://121.40.30.117:5000/server/delserver', {
+              await instance
+                .get('/server/delserver', {
                   params: {
                     id: index,
                   },
@@ -525,8 +561,8 @@ export default {
                   throw error
                 })
 
-              await axios
-                .post('http://121.40.30.117:5000/server/getservers', {
+              await instance
+                .post('/server/getservers', {
                   user_id: this.$store.state.user_id,
                 })
                 .then((res) => {
@@ -546,8 +582,8 @@ export default {
         }
       } else if (opration == 'changeConfig') {
         this.current_index = index
-        axios
-          .get('http://121.40.30.117:5000/server/singserver', {
+        instance
+          .get('/server/singserver', {
             params: {
               id: index,
             },
@@ -586,13 +622,13 @@ export default {
     },
     async changeServerConfig() {
       if (this.sapServerConfig.type !== 'BAIDU-DISK0') {
-        await axios.post('http://121.40.30.117:5000/server/modifyserver', {
+        await instance.post('/server/modifyserver', {
           id: this.current_index,
           config: this.sapServerConfig,
         })
 
-        await axios
-          .post('http://121.40.30.117:5000/server/getservers', {
+        await instance
+          .post('/server/getservers', {
             user_id: this.$store.state.user_id,
           })
           .then((res) => {

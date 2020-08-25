@@ -73,16 +73,6 @@ import Axios from 'axios'
 export default {
   name: 'Register',
   data() {
-    //验证昵称是否合法
-    let zhanghao = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入昵称'))
-      } else if (!this.checkMobile2(value)) {
-        callback(new Error('昵称不合法'))
-      } else {
-        callback()
-      }
-    }
     // <!--验证账号是否合法-->
     let checkTel = (rule, value, callback) => {
       if (value === '') {
@@ -125,7 +115,7 @@ export default {
         pass: [{ validator: validatePass, trigger: 'blur' }],
         checkPass: [{ validator: validatePass2, trigger: 'blur' }],
         user: [{ validator: checkTel, trigger: 'blur' }],
-        name: [{ validator: zhanghao, trigger: 'blur' }],
+        name: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
       },
       flag: true,
     }
@@ -172,15 +162,6 @@ export default {
     },
     // 验证账号
     checkMobile(str) {
-      let re = /^[a-zA-z]\w{3,15}$/
-      if (re.test(str)) {
-        return true
-      } else {
-        return false
-      }
-    },
-    // 验证昵称
-    checkMobile2(str) {
       let re = /^[a-zA-z]\w{3,15}$/
       if (re.test(str)) {
         return true

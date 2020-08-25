@@ -99,6 +99,7 @@ const routes = [
                 .catch((error) => {
                   throw error
                 })
+              console.log(to.params)
               const { serverType } = to.params,
                 seafileAPI = new SeafileAPI(),
                 { token, user, pwd, host } = JSON.parse(
@@ -119,7 +120,6 @@ const routes = [
                       `/rest/2.0/xpan/file?method=list&access_token=${token}`,
                     )
                     .then((res) => {
-                      console.log(res)
                       const { list } = res.data
                       let fileDate = {}
                       for (let val of list) {
@@ -215,7 +215,14 @@ const routes = [
                       repos.data.repos.forEach((item) => {
                         arr.push(item.repo_id)
                       })
-
+                      let repo_id = arr[0]
+                      seafileServer
+                        .getFileDownloadLink(repo_id, '/需规格说明书.docx')
+                        .then((res) => {
+                          seafileServer.getFileContent(res.data).then((res) => {
+                            console.log(res)
+                          })
+                        })
                       Distinct(arr).forEach((item) => {
                         axiosListDir.push(seafileAPI.listDir(item, ''))
                       })

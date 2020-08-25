@@ -53,6 +53,23 @@
 </template>
 <script>
 import Axios from 'axios'
+const instance = Axios.create({
+  baseURL: 'http://121.40.30.117:5000',
+})
+instance.interceptors.response.use(
+  function(response) {
+    // Any status code that lie within the range of 2xx cause this function to trigger
+    // Do something with response data
+    console.log(response)
+    return response
+  },
+  function(error) {
+    // Any status codes that falls outside the range of 2xx cause this function to trigger
+    // Do something with response error
+    console.log(error.toJSON())
+    return Promise.reject(error)
+  },
+)
 export default {
   name: 'Register',
   data() {
@@ -92,10 +109,11 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          Axios.post('http://121.40.30.117:5000/api/user/login', {
-            account: this.ruleForm2.name,
-            pwd: this.ruleForm2.pass,
-          })
+          instance
+            .post('/api/user/login', {
+              account: this.ruleForm2.name,
+              pwd: this.ruleForm2.pass,
+            })
             .then((res) => {
               console.log(res)
               const { status, msg, user_id } = res.data
@@ -116,9 +134,6 @@ export default {
                   type: 'warning',
                 })
               }
-            })
-            .catch((error) => {
-              console.log(error)
             })
         } else {
           console.log('error submit!!')
