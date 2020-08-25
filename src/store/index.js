@@ -56,17 +56,6 @@ export default new Vuex.Store({
         router.push('/login')
       }
     },
-    loginstate(state, payload) {
-      if (payload.islogin) {
-        state.isLogin = payload.islogin
-        state.user_id = payload.user_id
-        router.push({ path: '/main' })
-      } else {
-        state.user_id = payload.user_id
-        state.isLogin = payload.islogin
-        router.push('/login')
-      }
-    },
   },
   actions: {
     async startDownload({ state, commit }) {
