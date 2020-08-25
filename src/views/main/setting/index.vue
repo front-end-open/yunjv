@@ -139,7 +139,7 @@
     </el-card>
 
     <el-card shadow="hover bottomColR">
-      <h3 class="marginB30 fontSizeS">自动更新</h3>
+      <h3 class="marginB30 fontSizeS">更新</h3>
       <ul>
         <li>
           <el-link
@@ -170,7 +170,6 @@
       </ul>
       <div class="bottomCol"></div>
     </el-card>
-    <p>{{ test }}</p>
   </div>
 </template>
 
@@ -231,7 +230,6 @@ export default {
       group1: false,
       group2: false,
       group3: false,
-      test: 'helllosdfasfasd',
     }
   },
   created() {
