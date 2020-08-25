@@ -215,7 +215,18 @@ const routes = [
                       repos.data.repos.forEach((item) => {
                         arr.push(item.repo_id)
                       })
+<<<<<<< HEAD
 
+=======
+                      let repo_id = arr[0]
+                      seafileServer
+                        .getFileDownloadLink(repo_id, '/需规格说明书.docx')
+                        .then((res) => {
+                          seafileServer.getFileContent(res.data).then((res) => {
+                            console.log(res)
+                          })
+                        })
+>>>>>>> master
                       Distinct(arr).forEach((item) => {
                         axiosListDir.push(seafileAPI.listDir(item, ''))
                       })

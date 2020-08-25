@@ -131,6 +131,7 @@ export default {
     })
   },
   methods: {
+    // 备份目录
     addPath() {
       ipcRenderer.send('async-openBackDialog', { status: 'getPath' })
       ipcRenderer.on('async-get', (event, msg) => {
@@ -190,8 +191,8 @@ export default {
 }
 .el-card {
   border: none;
+  min-height: 50em;
 }
-
 .add,
 .grid-content {
   min-height: 40px;

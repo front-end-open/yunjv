@@ -103,12 +103,13 @@ ipcMain.on('download', (event, msg) => {
       let count = 0
       result.data.on('data', (c) => {
         count += c.length
+        // if(size > 1KB)
         let prcentage = ((count / size) * 100).toFixed(0)
         event.reply('async-authcode-reply', {
           download: prcentage,
           status: 0,
         })
-        console.log(prcentage)
+        console.log(prcentage, size)
         fileStream.write(c)
       })
       result.data.on('end', () => {

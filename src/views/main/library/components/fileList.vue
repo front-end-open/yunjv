@@ -89,7 +89,7 @@
       </el-col>
     </el-row>
     <el-main>
-      <!-- 列表 -->
+      <!-- 文件列表 -->
       <el-table
         v-if="this.layout == 'table'"
         :data="tableData"
@@ -123,7 +123,11 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="size" label="大小"> </el-table-column>
+        <el-table-column prop="size" label="大小">
+          <template slot-scope="scope">
+            <span>{{ scope.row.isdir == 1 ? '--' : scope.row.size }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="local_mtime" label="已改变" sortable width="180">
         </el-table-column>
         <el-table-column prop="permission" label="权限" sortable width="180">
@@ -431,6 +435,7 @@ export default {
       rightMenuIndex: '', //右击获取当前index
       rightMenuRow: [],
       serverType: '',
+      selec_rowDatas: null,
     }
   },
 
@@ -494,8 +499,8 @@ export default {
 
     ipcRenderer.on('async-savepath', (event, msg) => {
       this.$store.commit('downloadTasks', {
-        file: this.rowDate,
-        index: this.servertypeIndex,
+        file: this.selec_rowDatas,
+        index: 0,
         downpath: msg,
       })
       this.$store.dispatch('startDownload')
@@ -1688,7 +1693,7 @@ export default {
         if (filepath) {
           const server = new Server(
             'FTP',
-            this.servertypeIndex,
+            0,
             JSON.parse(localStorage.getItem('config')),
             filepath[0],
             this.path,
@@ -1729,22 +1734,10 @@ export default {
             this.tableData.push(this.singleFile)
           }
         }
-      } else if (this.parents[0] == 'baid') {
-        ipcRenderer.send('async-openDialog', 'ok') //  发送消息
-        ipcRenderer.on('async-get', (event, msg) => {
-          const server = new Server(
-            'BaiDu',
-            this.servertypeIndex,
-            JSON.parse(localStorage.getItem('config')),
-            msg[0],
-            '',
-            '',
-          )
-          server.singleUpload(msg[0])
-        })
       }
     },
     btUp(files) {
+      const { token } = JSON.parse(localStorage.getItem('config'))[0]
       this.upload_list = []
       let file = files.raw
       let block_list = []
@@ -1761,6 +1754,7 @@ export default {
       let currentChunk = 0
       let preparams = null
       let chunksarr = []
+      let This = this
       // 文件hash, 分块hash
       reader.onload = async function(e) {
         const result = e.target.result
@@ -1776,7 +1770,7 @@ export default {
           //预上传
           await http
             .post(
-              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=${token}`,
               {
                 path: '/apps/BTBD',
                 size: this.size,
@@ -1790,7 +1784,7 @@ export default {
               preparams = res.data
             })
             .catch((err) => {
-              throw new Error(err)
+              throw err
             })
 
           // 分片上传
@@ -1801,7 +1795,7 @@ export default {
             params.append('file', blobSlice.call(file, start, end))
             chunksarr.push(
               axios.post(
-                `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${preparams.uploadid}&partseq=${preparams.block_list[i]}`,
+                `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=${token}&type=tmpfile&path=/apps/BTBD&uploadid=${preparams.uploadid}&partseq=${preparams.block_list[i]}`,
                 params,
                 {
                   headers: { 'Content-Type': 'multipart/form-data' },
@@ -1813,13 +1807,13 @@ export default {
             .then((res) => {
               console.log(res)
             })
-            .catch((error) => {
-              throw new Error(error)
+            .catch(() => {
+              This.$message.error('上传失败')
             })
           // 创建文件
           await http
             .post(
-              ` https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              ` https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=${token}`,
               {
                 path: `/apps/BTBD/${file.name}`,
                 size: fileSize,
@@ -1828,8 +1822,11 @@ export default {
                 block_list: JSON.stringify(block_list),
               },
             )
-            .then((res) => {
-              console.log(res, '文件上传成功')
+            .then(() => {
+              This.$message({
+                message: '文件上传成功',
+                type: 'success',
+              })
             })
             .catch((error) => {
               throw new Error(error)
@@ -1849,6 +1846,13 @@ export default {
     //  文件下载
     downLoadFile() {
       //  ftp-目录出创建
+      const seafile = new SeafileAPI()
+      let { host, pwd, user } = JSON.parse(localStorage.getItem('config'))[0]
+      const seafileServer = seafile.init({
+        server: 'http://' + host,
+        username: user,
+        password: pwd,
+      })
       switch (this.parents[0]) {
         case 'ftp':
           var filepath = dialog.showOpenDialog({
@@ -1901,6 +1905,14 @@ export default {
               console.log(res)
             })
           break
+        default:
+          seafileServer.login().then(() => {
+            seafileServer
+              .getFileDownloadLink(this.rowDate.repos_id, this.rowDate.path)
+              .then((res) => {
+                window.location.href = res.data
+              })
+          })
       }
     },
     // 移动、复制模态框
@@ -1911,8 +1923,10 @@ export default {
     },
     //  选中行，获取行数据
     selec(selection, row) {
+      console.log(selection)
       if (selection.length) {
         this.rowDate = row
+        this.selec_rowDatas = selection
         this.show = false
       } else {
         this.rowDate = []
