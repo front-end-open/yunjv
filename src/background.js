@@ -103,7 +103,7 @@ ipcMain.on('download', (event, msg) => {
       let count = 0
       result.data.on('data', (c) => {
         count += c.length
-        if(count / 1000 * 1000)
+        // if(size > 1KB)
         let prcentage = ((count / size) * 100).toFixed(0)
         event.reply('async-authcode-reply', {
           download: prcentage,
