@@ -234,9 +234,9 @@ app.on('ready', async () => {
           if (status > 1) {
             try {
               await client.access({
-                host: '10.10.12.8',
-                user: 'scitc',
-                password: 'scitc',
+                host: '192.168.31.15',
+                user: 'username',
+                password: '175623',
               })
               await client
                 .uploadFrom(path, `/BackUp/${extname}`)
@@ -266,9 +266,9 @@ app.on('ready', async () => {
           const client = new ftp.Client()
           try {
             await client.access({
-              host: '10.10.12.8',
-              user: 'scitc',
-              password: 'scitc',
+              host: '192.168.31.15',
+              user: 'username',
+              password: '175623',
             })
             await client
               .uploadFromDir(backupPath, '/BackUp')
