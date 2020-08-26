@@ -2,6 +2,61 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+# [1.7.0](https://github.com/PachVerb/yunjv/compare/v1.6.1...v1.7.0) (2020-08-26)
+
+
+### 修复
+
+* **seafile:** 登陆失败 ([69594a1](https://github.com/PachVerb/yunjv/commit/69594a1a88e3b8c1a0a411829d0cc48c9cf92cd2))
+* 备份记录删除 ([b320b66](https://github.com/PachVerb/yunjv/commit/b320b663ea9f4371a5aeade4b640d510196cae6a))
+* **store:** 文件传输列表 ([f75fd4b](https://github.com/PachVerb/yunjv/commit/f75fd4ba2805d857fd49a307bc1ba0a533e2b12a))
+* index ([20c7666](https://github.com/PachVerb/yunjv/commit/20c7666706a9d4838afb922f9d96baac8e569686))
+* **router/:** seafile服务服务地址 ([d036c32](https://github.com/PachVerb/yunjv/commit/d036c320bd713e7f1628138ca320329b6b3cc31e))
+
+
+### 功能
+
+* 文件夹大小显示问题 ([2e0ba88](https://github.com/PachVerb/yunjv/commit/2e0ba8801a378b7a3ef9baca7b4a44df6b1993bd))
+* **ftp:** ftp上传传输列表添加 ([12be135](https://github.com/PachVerb/yunjv/commit/12be1355552940199c2d9fc62ef108a0f9f4729f))
+* **ftp:** ftp文件传输下载列表添加 ([d478910](https://github.com/PachVerb/yunjv/commit/d47891060db30e81cd9aba114a2c8645c67e72ea))
+
+
+### 文档
+
+* 主进程代码格式调成 ([4510ed0](https://github.com/PachVerb/yunjv/commit/4510ed02cffc65b17025974ddcfb8ff0118b3f52))
+
+
+### 杂务
+
+* 代码格式调整 ([ba5fa3b](https://github.com/PachVerb/yunjv/commit/ba5fa3b9e136ebbfbf5e69489d5d3c63a1a96b45))
+* 代码格式调整（store ([83e7404](https://github.com/PachVerb/yunjv/commit/83e74047d5b25caac71237ae2ca50fe7da536c1f))
+* **主测分支合并:** 分支代码同步 ([c0c5985](https://github.com/PachVerb/yunjv/commit/c0c5985df463063cddaffa0ea0bf6c865d866790))
+* seafile 服务 review ([fc49db4](https://github.com/PachVerb/yunjv/commit/fc49db438cd7495a21f95d9c4851add40f72fecf))
+* xxx ([71e2fcb](https://github.com/PachVerb/yunjv/commit/71e2fcb0198c2a029e5422175dc48f46e8ef9fb9))
+* 打包日志提交 ([0841532](https://github.com/PachVerb/yunjv/commit/08415324b299b003952737fdecb883521c7dddca))
+
+
+### 格式
+
+* removeText ([434eb7e](https://github.com/PachVerb/yunjv/commit/434eb7e59c2c62a88332c993edbb272462fa3640))
+
+
+### 重构
+
+* **backup:** 备份优化 ([2ea980c](https://github.com/PachVerb/yunjv/commit/2ea980ce8023833a2d79fcaf683c8065c9e7c626))
+* **baidu:** 百度文件上传 ([27cae2b](https://github.com/PachVerb/yunjv/commit/27cae2bdf1a0993f275770b1ff8b664e56d13075))
+* **filelist:** 服务索引重置 ([0229ee3](https://github.com/PachVerb/yunjv/commit/0229ee34125d2a38ac7b761ab5654521f8683a3a))
+* **filelist:** 服务索引错误 ([ec12a2e](https://github.com/PachVerb/yunjv/commit/ec12a2ecc288aeda33aefc76959605106cc14fd2))
+* **filist:** 百度文件传输功能修复 ([04933d9](https://github.com/PachVerb/yunjv/commit/04933d905adcdcf4ee73a3dc2e5b18baa9b9f6a7))
+* **ftp:** ftp备份 ([e3274d4](https://github.com/PachVerb/yunjv/commit/e3274d4bcc5989cb90106abf4bb462c570a34b87))
+* **login/sign:** 登陆注册同步服务器 ([9d30dea](https://github.com/PachVerb/yunjv/commit/9d30dea937f9d9b73a7a03b5e8137fd161c0ddd0))
+* **server:** 服务列表服务更新 ([c86db20](https://github.com/PachVerb/yunjv/commit/c86db203ca8db805ff0c492754d0930af0480eeb))
+* **备份:** 备份服务列表 ([12d2c5f](https://github.com/PachVerb/yunjv/commit/12d2c5f7e5cf25aa17ad40e46588924696145785))
+* ftp备份 ([921c752](https://github.com/PachVerb/yunjv/commit/921c752bef9c58873e1740b77fdc35c792103957))
+* **setting:** 用户配置同步服务器 ([fe652ec](https://github.com/PachVerb/yunjv/commit/fe652ec33d63a045bfcaa19bd78e5b21da09c353))
+* **smb下载文件列表添加:** smb文件列表添加 ([bc99e7f](https://github.com/PachVerb/yunjv/commit/bc99e7ffd41a92aab10464925ba09bb0a0741acb))
+* 服务配置数据同步服务器 ([2080239](https://github.com/PachVerb/yunjv/commit/2080239fc36537783c7d082c91705fd5455af2b2))
+
 ## [1.6.1](https://github.com/PachVerb/yunjv/compare/v1.6.0...v1.6.1) (2020-08-22)
 
 
