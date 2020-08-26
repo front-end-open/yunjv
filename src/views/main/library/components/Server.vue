@@ -107,7 +107,7 @@
                         opration: JSON.parse(list.config).type,
                         index: list.id,
                       }"
-                      icon="el-icon-delete-solid"
+                      icon="el-icon-folder-opened"
                       >查看文件</el-dropdown-item
                     >
                   </el-dropdown-menu>

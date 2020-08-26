@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import { Upload } from 'element-ui'
 import VueRouter from 'vue-router'
-// import Home from '../views/Home.vue'
 import Main from '@/layout/main' //主页
 import MainLibrary from '../views/main/library' //
 import MainTransmission from '../views/main/transmission'
@@ -33,8 +32,6 @@ VueRouter.prototype.push = function push(location) {
   return originalPush.call(this, location).catch((err) => err)
 }
 
-// const config = JSON.parse(localStorage.getItem('config')),
-//   { token } = config
 const routes = [
   {
     path: '/',
