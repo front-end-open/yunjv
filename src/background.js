@@ -196,7 +196,7 @@ app.on('ready', async () => {
   })
   // backup-BT
   ipcMain.on('async-openBackDialog', (event, msg) => {
-    let { status, path } = msg
+    let { status, path, config } = msg
     if (status === 'getPath') {
       let filepath = dialog.showOpenDialog(win, {
         title: '选择备份目录',
@@ -234,9 +234,9 @@ app.on('ready', async () => {
           if (status > 1) {
             try {
               await client.access({
-                host: '192.168.31.15',
-                user: 'username',
-                password: '175623',
+                host: config.host,
+                user: config.user,
+                password: config.pwd,
               })
               await client
                 .uploadFrom(path, `/BackUp/${extname}`)
@@ -266,9 +266,9 @@ app.on('ready', async () => {
           const client = new ftp.Client()
           try {
             await client.access({
-              host: '192.168.31.15',
-              user: 'username',
-              password: '175623',
+              host: config.host,
+              user: config.user,
+              password: config.pwd,
             })
             await client
               .uploadFromDir(backupPath, '/BackUp')

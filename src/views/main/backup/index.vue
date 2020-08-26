@@ -96,7 +96,6 @@
 </template>
 <script>
 const ipcRenderer = require('electron').ipcRenderer
-
 export default {
   name: 'BackUp',
   data() {
@@ -109,7 +108,7 @@ export default {
         server: [{ required: true, message: '请选择服务', trigger: 'blur' }],
         path: [{ required: true, message: '请选择备份目录', trigger: 'blur' }],
       },
-      config: ['FTP', 'Seafile', 'BaiDu', 'SMB'],
+      config: ['FTP'],
       centerDialogVisible: false,
       backupDir: [],
       backDirList: [],
@@ -137,6 +136,7 @@ export default {
           ipcRenderer.send('async-openBackDialog', {
             status: 'backup',
             path: this.input,
+            config: JSON.parse(localStorage.getItem('config'))[0],
           })
 
           this.backupDir.push(this.input)
@@ -148,7 +148,6 @@ export default {
             })
           })
         } else {
-          console.log('error submit!!')
           return false
         }
       })
