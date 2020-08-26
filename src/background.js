@@ -273,7 +273,7 @@ app.on('ready', async () => {
             await client
               .uploadFromDir(backupPath, '/BackUp')
               .then(() => {
-                console.log('备份成功')
+                event.reply('send', '备份成功')
               })
               .catch((error) => {
                 console.log(error)

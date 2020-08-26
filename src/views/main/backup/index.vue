@@ -109,18 +109,13 @@ export default {
         server: [{ required: true, message: '请选择服务', trigger: 'blur' }],
         path: [{ required: true, message: '请选择备份目录', trigger: 'blur' }],
       },
-      config: [],
+      config: ['FTP', 'Seafile', 'BaiDu', 'SMB'],
       centerDialogVisible: false,
       backupDir: [],
       backDirList: [],
     }
   },
   created() {
-    let config = JSON.parse(localStorage.getItem('config'))
-    config.forEach((item) => {
-      this.config.push(item.type)
-    })
-
     ipcRenderer.on('async-get', (event, msg) => {
       this.input = msg[0]
       this.backDirList.push(msg[0])
@@ -145,6 +140,13 @@ export default {
           })
 
           this.backupDir.push(this.input)
+          ipcRenderer.on('send', (event, msg) => {
+            console.log(event, msg)
+            this.$message({
+              message: msg,
+              type: 'success',
+            })
+          })
         } else {
           console.log('error submit!!')
           return false
