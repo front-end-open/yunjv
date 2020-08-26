@@ -16,7 +16,7 @@
               </el-tooltip>
             </template>
             <div>
-              设置本分目录，自动同步更新上传。。。。。。。
+              备份频繁使用、不定期更新的照片、占用本地空间的文件、番剧等
             </div>
           </el-collapse-item>
         </el-collapse>
@@ -132,7 +132,7 @@ export default {
       ipcRenderer.send('async-openBackDialog', { status: 'getPath' })
     },
     delec(index) {
-      this.backDirList.slice(index, 1)
+      this.backDirList.splice(index, 1)
     },
     // 开始备份
     submitForm(formName) {
