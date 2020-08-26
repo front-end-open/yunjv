@@ -96,6 +96,7 @@
 </template>
 <script>
 const ipcRenderer = require('electron').ipcRenderer
+import axios from 'axios'
 export default {
   name: 'BackUp',
   data() {
@@ -119,6 +120,18 @@ export default {
       this.input = msg[0]
       this.backDirList.push(msg[0])
     })
+    axios
+      .post('http://121.40.30.117:5000/server/getservers', {
+        user_id: this.$store.state.user_id,
+      })
+      .then((res) => {
+        const { server_configs } = res.data
+        server_configs.forEach((val) => {
+          if (val.config.type == 'FTP1') {
+            ipcRenderer.send('async-openBackDialog', val.config)
+          }
+        })
+      })
   },
   methods: {
     // 备份目录
@@ -130,7 +143,6 @@ export default {
     },
     // 开始备份
     submitForm(formName) {
-      this.centerDialogVisible = false
       this.$refs[formName].validate((valid) => {
         if (valid) {
           ipcRenderer.send('async-openBackDialog', {
@@ -141,11 +153,11 @@ export default {
 
           this.backupDir.push(this.input)
           ipcRenderer.on('send', (event, msg) => {
-            console.log(event, msg)
             this.$message({
               message: msg,
               type: 'success',
             })
+            this.centerDialogVisible = false
           })
         } else {
           return false

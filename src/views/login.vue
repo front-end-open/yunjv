@@ -58,16 +58,15 @@ const instance = Axios.create({
 })
 instance.interceptors.response.use(
   function(response) {
-    // Any status code that lie within the range of 2xx cause this function to trigger
-    // Do something with response data
     console.log(response)
     return response
   },
   function(error) {
-    // Any status codes that falls outside the range of 2xx cause this function to trigger
-    // Do something with response error
-    console.log(error.toJSON())
-    return Promise.reject(error)
+    if (error.toJSON().message == 'Network Error') {
+      alert('网络错误，请检查网络')
+    } else {
+      return Promise.reject(error)
+    }
   },
 )
 export default {

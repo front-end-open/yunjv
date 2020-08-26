@@ -113,7 +113,6 @@ ServerFactory.prototype = {
     // 文件上传
     this.upload = function(path, destination, parent) {
       console.log(path, destination, parent)
-      // let fileList = null
       try {
         var smbclient = new SMB({
           share: `\\\\${host}\\share`,
@@ -136,20 +135,7 @@ ServerFactory.prototype = {
             store.commit('process', 100)
             readStream.write(chunks)
           })
-          // data.pipe(readStream)
         })
-        // smbclient.createWriteStream(path, function(err, writeStream) {
-        //   if (err) throw err
-        //   var readStream = fs.createReadStream(destination)
-        //   readStream.pipe(writeStream)
-        //   // TODO: 列表更新
-        //   smbclient.readdir(parent, (error, files) => {
-        //     if (error) throw error
-        //     fileList = files
-        //   })
-        // })
-
-        // return fileList
       } catch (error) {
         console.log(error)
       }
@@ -188,6 +174,7 @@ ServerFactory.prototype = {
   FTP: function(serverindx, config, localpath, remotepath, rowfileinfo) {
     //连接ftp
     const ftp = new client.Client()
+
     // 服务连接
     this.loadFile = async function() {
       const config = JSON.parse(localStorage.getItem('config'))[serverindx]
@@ -200,12 +187,10 @@ ServerFactory.prototype = {
           secure: false,
           port,
         })
-        return await ftp.list('')
-      } catch (err) {
-        console.log(err)
-        ftp.close()
-        ftp.ftp.verbose = true
+        return ftp.list('')
+      } catch (error) {
         alert('登陆超时，请检查你的网络是否正确')
+        throw error
       }
     }
     // 文件上传
@@ -221,11 +206,10 @@ ServerFactory.prototype = {
             100
           ).toFixed(0)
           store.commit('process', process)
+          if (process) {
+            store.commit('clearDownTask')
+          }
         }
-        console.log('File', info.name)
-        console.log('Type', info.type)
-        console.log('Transferred', info.bytes)
-        console.log('Transferred Overall', info.bytesOverall)
       })
       try {
         await ftp.access({
@@ -280,11 +264,10 @@ ServerFactory.prototype = {
             100
           ).toFixed(0)
           store.commit('process', process)
+          if (process) {
+            store.commit('clearDownTask')
+          }
         }
-        console.log('File', info.name)
-        console.log('Type', info.type)
-        console.log('Transferred', info.bytes)
-        console.log('Transferred Overall', info.bytesOverall)
       })
       try {
         await ftp.access({

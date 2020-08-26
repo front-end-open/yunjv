@@ -6,8 +6,6 @@ import {
   installVueDevtools,
 } from 'vue-cli-plugin-electron-builder/lib'
 import LoginBaidu from '@/lib/BaiduDiskLogin.js'
-// import { Buffer } from 'buffer'
-// import http from '@/server/index.js'
 const OAuth2Provider = require('electron-oauth-helper/dist/oauth2').default
 const querystring = require('querystring')
 const isDevelopment = process.env.NODE_ENV !== 'production'
@@ -16,17 +14,12 @@ const fs = require('fs')
 const chokidar = require('chokidar')
 const ftp = require('basic-ftp')
 const paths = require('path')
-// const md5 = require('md5')
-// const FormData = require('form-data')
 
 let win
 
-// Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
-// shell.openExternal('https://github.com')
-// 通信-授权
 ipcMain.on('async-authcode', function(event) {
   const baiduWin = new BrowserWindow({
     width: 600,
@@ -35,6 +28,7 @@ ipcMain.on('async-authcode', function(event) {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
+      devTools: false,
     },
   })
   if (!process.env.IS_TEST) baiduWin.webContents.openDevTools()
@@ -69,8 +63,7 @@ ipcMain.on('async-authcode', function(event) {
 })
 
 //webDAV
-ipcMain.on('async-webdav', function(event, arg) {
-  console.log(arg)
+ipcMain.on('async-webdav', function() {
   let win = new BrowserWindow({
     minWidth: '500',
     minHeight: '400',
@@ -196,7 +189,7 @@ app.on('ready', async () => {
   })
   // backup-BT
   ipcMain.on('async-openBackDialog', (event, msg) => {
-    let { status, path, config } = msg
+    let { status, path, config, port } = msg
     if (status === 'getPath') {
       let filepath = dialog.showOpenDialog(win, {
         title: '选择备份目录',
@@ -207,7 +200,6 @@ app.on('ready', async () => {
         event.reply('async-get', filepath)
       }
     } else {
-      console.log('111111')
       var watcher = chokidar.watch(path, {
         ignored: /[\\/\\]\./,
         persistent: true,
@@ -237,6 +229,7 @@ app.on('ready', async () => {
                 host: config.host,
                 user: config.user,
                 password: config.pwd,
+                port,
               })
               await client
                 .uploadFrom(path, `/BackUp/${extname}`)
@@ -269,6 +262,7 @@ app.on('ready', async () => {
               host: config.host,
               user: config.user,
               password: config.pwd,
+              port,
             })
             await client
               .uploadFromDir(backupPath, '/BackUp')

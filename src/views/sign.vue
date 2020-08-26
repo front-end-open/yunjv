@@ -70,6 +70,21 @@
 </template>
 <script>
 import Axios from 'axios'
+const instance = Axios.create({
+  baseURL: 'http://121.40.30.117:5000',
+})
+instance.interceptors.response.use(
+  function(response) {
+    return response
+  },
+  function(error) {
+    if (error.toJSON().message == 'Network Error') {
+      return Promise.reject({ status: 1, msg: '网络错误' })
+    } else {
+      return Promise.reject(error)
+    }
+  },
+)
 export default {
   name: 'Register',
   data() {
@@ -125,11 +140,12 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          Axios.post('http://121.40.30.117:5000/api/user/sign', {
-            nick: this.ruleForm2.name,
-            account: this.ruleForm2.user,
-            pwd: this.ruleForm2.pass,
-          })
+          instance
+            .post('/api/user/sign', {
+              nick: this.ruleForm2.name,
+              account: this.ruleForm2.user,
+              pwd: this.ruleForm2.pass,
+            })
             .then((res) => {
               const { status, msg } = res.data
               if (status === 5) {
@@ -147,12 +163,15 @@ export default {
               }
             })
             .catch((error) => {
-              this.$message({
-                showClose: true,
-                message: '注册失败',
-                type: 'error',
-              })
-              console.log(error)
+              if (error.status && error.status == 1) {
+                alert(error.msg)
+              } else {
+                this.$message({
+                  message: '注册失败',
+                  type: 'success',
+                })
+                throw error
+              }
             })
         } else {
           console.log('error submit!!')

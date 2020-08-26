@@ -4,7 +4,6 @@
       <el-row class="row-bg" :gutter="20">
         <el-col :span="10">
           <div class="flexBox">
-            <span>{{ process }} hello</span>
             <el-button size="small" plain @click="createDiretory"
               >新建文件夹</el-button
             >
