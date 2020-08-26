@@ -1722,7 +1722,7 @@ export default {
         }
       } else if (this.parents[0] == 'smb') {
         const selecfilepath = dialog.showOpenDialog({
-          properties: ['openFile', 'promptToCreate'],
+          properties: ['openFile', 'promptToCreate', 'openDirectory'],
           message: '选择文件',
         })
         let filename = path.basename(selecfilepath[0])
@@ -1932,14 +1932,17 @@ export default {
             '',
             '',
           )
-          smb
-            .download(
-              this.rowDate.path,
-              `${selecfilepath[0]}//${this.rowDate.server_filename}`,
-            )
-            .then((res) => {
-              console.log(res)
-            })
+          smb.download(
+            this.rowDate.path,
+            `${selecfilepath[0]}/${this.rowDate.server_filename}`,
+          )
+          var tasks = []
+          tasks.push(this.rowDate)
+          this.$store.commit('downloadTasks', {
+            file: tasks,
+            downpath: '',
+            index: 0,
+          })
           break
       }
     },

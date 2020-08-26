@@ -121,7 +121,7 @@ ipcMain.on('download', (event, msg) => {
       })
     })
     .catch((err) => {
-      console.log('错误')
+      alert('下载失败')
       console.log(err)
     })
 })

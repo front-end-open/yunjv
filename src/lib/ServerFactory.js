@@ -165,10 +165,21 @@ ServerFactory.prototype = {
           password: pwd,
           autocloseTimeout: 0,
         })
-        smbclient.createReadStream('1.png', function(err, data) {
+        var readStream = fs.createWriteStream(destination + '/2222.docx')
+        console.log(fs.statSync(destination + '/2222.docx'))
+
+        smbclient.createReadStream('2222.docx', function(err, data) {
           if (err) throw err
-          var readStream = fs.createWriteStream(destination)
-          data.pipe(readStream)
+          let chunks = 0
+          // let length = 0
+          data.on('data', function(chunk) {
+            chunks += chunk
+          })
+          data.on('end', function() {
+            store.commit('process', 100)
+            readStream.write(chunks)
+          })
+          // data.pipe(readStream)
         })
         // smbclient.createWriteStream(path, function(err, writeStream) {
         //   if (err) throw err
@@ -188,8 +199,8 @@ ServerFactory.prototype = {
     }
     // 文件下载
     this.download = function(path, destination) {
-      const { host, pwd, user } = config[serverindx]
-
+      // const { host, pwd, user } = config[serverindx]
+      console.log(path, destination)
       try {
         var smbclient = new SMB({
           share: `\\\\${host}\\share`,
@@ -198,15 +209,21 @@ ServerFactory.prototype = {
           password: pwd,
           autocloseTimeout: 0,
         })
-        smbclient.createReadStream(path, function(err, readStream) {
+        var readStream = fs.createWriteStream(destination)
+
+        smbclient.createReadStream(path, function(err, data) {
           if (err) throw err
-          var writeStream = fs.createWriteStream(destination)
-          readStream.pipe(writeStream)
+          let chunks = 0
+          data.on('data', function(chunk) {
+            chunks += chunk
+          })
+          data.on('end', function() {
+            store.commit('process', 100)
+            readStream.write(chunks)
+          })
         })
-        smbclient.disconnect()
-      } catch (error) {
-        smbclient.disconnect()
-        console.log(error)
+      } catch (err) {
+        console.log(err)
       }
     }
   },
