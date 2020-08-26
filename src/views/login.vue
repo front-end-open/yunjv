@@ -58,7 +58,6 @@ const instance = Axios.create({
 })
 instance.interceptors.response.use(
   function(response) {
-    console.log(response)
     return response
   },
   function(error) {
@@ -114,7 +113,6 @@ export default {
               pwd: this.ruleForm2.pass,
             })
             .then((res) => {
-              console.log(res)
               const { status, msg, user_id } = res.data
               if (status) {
                 this.$message({

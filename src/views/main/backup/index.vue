@@ -113,6 +113,7 @@ export default {
       centerDialogVisible: false,
       backupDir: [],
       backDirList: [],
+      ftp: null,
     }
   },
   created() {
@@ -127,8 +128,9 @@ export default {
       .then((res) => {
         const { server_configs } = res.data
         server_configs.forEach((val) => {
-          if (val.config.type == 'FTP1') {
-            ipcRenderer.send('async-openBackDialog', val.config)
+          if (JSON.parse(val.config).type == 'FTP1') {
+            this.ftp = JSON.parse(val.config)
+            console.log(this)
           }
         })
       })
@@ -148,7 +150,7 @@ export default {
           ipcRenderer.send('async-openBackDialog', {
             status: 'backup',
             path: this.input,
-            config: JSON.parse(localStorage.getItem('config'))[0],
+            config: this.ftp,
           })
 
           this.backupDir.push(this.input)
