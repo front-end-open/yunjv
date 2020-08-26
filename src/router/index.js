@@ -111,7 +111,7 @@ const routes = [
               const seafileServer = seafileAPI.init(obj)
               switch (serverType) {
                 case 'baid':
-                  http
+                  await http
                     .get(
                       `/rest/2.0/xpan/file?method=list&access_token=${token}`,
                     )
