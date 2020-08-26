@@ -199,11 +199,6 @@ const routes = [
                   })
                   break
                 default:
-                  // seafileAPI.init(obj)
-                  // seafileServer.login((res) => {
-                  //   console.log(res)
-                  // })
-
                   seafileServer
                     .login()
                     .then(async () => {
@@ -278,7 +273,11 @@ const routes = [
                       next()
                     })
                     .catch((error) => {
-                      console.log(error)
+                      if (error.status && error.status == 1) {
+                        alert(error.msg)
+                      } else {
+                        throw error
+                      }
                     })
               }
             },

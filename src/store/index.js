@@ -38,7 +38,11 @@ export default new Vuex.Store({
       state.tag = true
     },
     clearDownTask(state) {
-      state.tag = false
+      clearTimeout(time)
+      var time = setTimeout(function() {
+        state.tag = false
+      }, 2000)
+
       state.precentage = 100
     },
     process(state, payload) {

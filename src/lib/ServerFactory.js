@@ -12,13 +12,10 @@ const client = require('basic-ftp')
 const path = require('path')
 const SMB = require('@marsaud/smb2')
 const fs = require('fs')
-// const md5 = require('md5')
 const { SeafileAPI } = require('seafile-js')
 import SizeConvert from '@/lib/SizeConvert.js'
 import convert from './SizeConvert.js'
 import OwnerConvert from './PERMISSIONCONVERT.js'
-import http from '@/server/index.js'
-import axios from 'axios'
 import store from '@/store/index.js'
 import { Buffer } from 'buffer'
 import Distinct from '@/lib/arryDuplicateRemove.js'
@@ -74,46 +71,6 @@ ServerFactory.prototype = {
           lpath,
           fileC,
         })
-      })
-    }
-    this.uploadpieces = function(chunkSize, size, i, lpath, file) {
-      // 创建可读流
-      let enddata = Math.min(size, (i + 1) * chunkSize)
-      let arr = []
-      //创建一个readStream对象，根据文件起始位置和结束位置读取固定的分片
-      let readStream = fs.createReadStream(lpath, {
-        start: i * chunkSize,
-        end: enddata - 1,
-      })
-      //on data读取数据
-      readStream.on('data', (data) => {
-        arr.push(data)
-      })
-      //on end在该分片读取完成时触发
-      readStream.on('end', async () => {
-        http
-          .post(
-            `/rest/2.0/xpan/file?method=precreate&access_token=123.408e3e7cbc0ba103a86b3bc80131f84a.Ymd0wqY1YGm0DkZJL0NRQBR-6EVbhgVqBZhhNkT.BDR5Ig`,
-            {
-              path: '/apps/BTBD',
-              size,
-              isdir: '0',
-              autoinit: 1,
-              rtype: 1,
-              block_list: convert,
-            },
-          )
-          .then(() => {
-            let params = new FormData()
-            params.append('file', file)
-            axios.post(
-              `/rest/2.0/pcs/superfile2?method=upload&access_token=123.9b363f1852f72c024a6470c1e5e730fa.YgzruX0wiZqvTI4l6cI9XHemcKfx6yl9mBF4IdL.Bp9iaA&type=tmpfile&path=/apps/BTBD&uploadid=N1-NjEuMTU3LjI0My4xMjE6MTU5MjE5MDI4NjozODYwNzE1NTUzNjI5MTQ3Mzk1&partseq=1`,
-              params,
-              {
-                headers: { 'Content-Type': 'multipart/form-data' },
-              },
-            )
-          })
       })
     }
   },
@@ -219,6 +176,7 @@ ServerFactory.prototype = {
           })
           data.on('end', function() {
             store.commit('process', 100)
+            store.commit('clearDownTask')
             readStream.write(chunks)
           })
         })
@@ -247,7 +205,7 @@ ServerFactory.prototype = {
         console.log(err)
         ftp.close()
         ftp.ftp.verbose = true
-        alert('登陆超时，请检查你的网络是否正常接入或账号密码是否正确')
+        alert('登陆超时，请检查你的网络是否正确')
       }
     }
     // 文件上传

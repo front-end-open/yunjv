@@ -1770,8 +1770,16 @@ export default {
       }
     },
     btUp(files) {
-      const { token } = JSON.parse(localStorage.getItem('config'))[0]
-
+      const { token } = JSON.parse(localStorage.getItem('config'))[0],
+        { name, size } = files.raw
+      let taskinfo = { server_filename: name, size },
+        task = []
+      task.push(taskinfo)
+      this.$store.commit('downloadTasks', {
+        file: task,
+        index: 0,
+        downpath: '',
+      })
       this.upload_list = []
       let file = files.raw
       let block_list = []
@@ -1865,6 +1873,7 @@ export default {
                 message: '上传成功',
                 type: 'success',
               })
+              This.$store.commit('clearDownTask')
             })
             .catch((error) => {
               throw new Error(error)
