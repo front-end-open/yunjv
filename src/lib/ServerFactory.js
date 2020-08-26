@@ -232,6 +232,13 @@ ServerFactory.prototype = {
       let currentFileInfo = {},
         fileData = []
       ftp.trackProgress((info) => {
+        if (info.type == 'upload') {
+          let process = (
+            (info.bytes / store.state.downloadLists[0].size) *
+            100
+          ).toFixed(0)
+          store.commit('process', process)
+        }
         console.log('File', info.name)
         console.log('Type', info.type)
         console.log('Transferred', info.bytes)
@@ -244,34 +251,38 @@ ServerFactory.prototype = {
           password: pwd,
           port,
         })
-        await ftp.uploadFromDir(
+        await ftp.uploadFrom(
           localpath,
           `${remotepath}/${formatLocalPath[formatLocalPath.length - 1]}`,
         )
-        await ftp
-          .list(remotepath)
-          .then((res) => {
-            for (let item of res) {
-              const { name, size, isDirectory, permissions, date, user } = item
-              currentFileInfo = {}
-              currentFileInfo.id = (Math.random() + 1) * 10
-              currentFileInfo.server_filename = name
-              currentFileInfo.size = convert(size)
-              currentFileInfo.parent = path.basename(remotepath)
-              currentFileInfo.parentsPath = remotepath
-              currentFileInfo.path = `${remotepath}/${name}`
-              currentFileInfo.isdir = Number(isDirectory)
-              currentFileInfo.local_mtime = date
-              currentFileInfo.permission = permissions
-                ? OwnerConvert(permissions)
-                : ''
-              currentFileInfo.Owner = user
-              fileData.push(currentFileInfo)
-            }
-          })
-          .catch((error) => {
-            console.log(error)
-          })
+        console.log(
+          `${remotepath}/${formatLocalPath[formatLocalPath.length - 1]}`,
+        )
+        // await ftp
+        //   .list(remotepath)
+        //   .then((res) => {
+        //     // console.log(res)
+        //     for (let item of res) {
+        //       const { name, size, isDirectory, permissions, date, user } = item
+        //       currentFileInfo = {}
+        //       currentFileInfo.id = (Math.random() + 1) * 10
+        //       currentFileInfo.server_filename = name
+        //       currentFileInfo.size = convert(size)
+        //       currentFileInfo.parent = path.basename(remotepath)
+        //       currentFileInfo.parentsPath = remotepath
+        //       currentFileInfo.path = `${remotepath}/${name}`
+        //       currentFileInfo.isdir = Number(isDirectory)
+        //       currentFileInfo.local_mtime = date
+        //       currentFileInfo.permission = permissions
+        //         ? OwnerConvert(permissions)
+        //         : ''
+        //       currentFileInfo.Owner = user
+        //       fileData.push(currentFileInfo)
+        //     }
+        //   })
+        //   .catch((error) => {
+        //     console.log(error)
+        //   })
         const filelist = await ftp.list(remotepath)
         for (let item of filelist) {
           const { name, size, isDirectory, permissions, date, user } = item

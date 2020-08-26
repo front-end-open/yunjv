@@ -363,7 +363,7 @@ const ftp = require('basic-ftp')
 const SMB = require('@marsaud/smb2')
 const { dialog } = require('electron').remote
 const client = new ftp.Client()
-// const fs = require('fs')
+const fs = require('fs')
 
 export default {
   name: 'fileList',
@@ -1690,13 +1690,24 @@ export default {
     upLoadFile() {
       if (this.parents[0] == 'ftp') {
         const filepath = dialog.showOpenDialog({
-          properties: ['openDirectory'],
+          properties: ['openFile'],
         })
         if (filepath) {
+          console.log(filepath)
           // const dirs = fs.readdirSync(filepath[0])
-          // fs.stat(dirs[0], false, function(err, stat) {
-
-          // })
+          fs.stat(filepath[0], false, (err, stat) => {
+            if (err) throw err
+            let { base } = path.parse(filepath[0])
+            const { size } = stat,
+              uptask = { size, server_filename: base }
+            let task = []
+            task.push(uptask)
+            this.$store.commit('downloadTasks', {
+              file: task,
+              downpath: '',
+              index: 0,
+            })
+          })
           const server = new Server(
             'FTP',
             0,
@@ -1707,7 +1718,6 @@ export default {
           )
           server.upload().then((res) => {
             this.tableData = res
-            console.log(res)
           })
         }
       } else if (this.parents[0] == 'smb') {
