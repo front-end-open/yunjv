@@ -119,16 +119,19 @@ ServerFactory.prototype = {
   },
   SMB: function(serverindx, config) {
     // 首页文件目录加载
+    const { host, user, pwd } = config[0]
     this.loadFile = function() {
       let smbData = [] //存放smb数据
-      const { host, user, pwd } = config[serverindx]
+
       try {
         const smbclient = new SMB({
           share: `\\\\${host}\\share`,
           domain: 'WORKGROUP',
           username: user,
           password: pwd,
+          autocloseTimeout: 0,
         })
+        console.log(smbclient)
         smbclient.readdir('', (err, files) => {
           if (err) throw err
           let smbFile = {}
@@ -142,6 +145,7 @@ ServerFactory.prototype = {
             smbData.push(smbFile)
           }
         })
+        // smbclient.disconnect()
         return smbData
       } catch (error) {
         console.log(error)
@@ -151,8 +155,8 @@ ServerFactory.prototype = {
 
     // 文件上传
     this.upload = function(path, destination, parent) {
-      const { host, pwd, user } = config[serverindx]
-      let fileList = null
+      console.log(path, destination, parent)
+      // let fileList = null
       try {
         var smbclient = new SMB({
           share: `\\\\${host}\\share`,
@@ -161,20 +165,24 @@ ServerFactory.prototype = {
           password: pwd,
           autocloseTimeout: 0,
         })
-        smbclient.createWriteStream(path, function(err, writeStream) {
+        smbclient.createReadStream('1.png', function(err, data) {
           if (err) throw err
-          var readStream = fs.createReadStream(destination)
-          readStream.pipe(writeStream)
-          // TODO: 列表更新
-          smbclient.readdir(parent, (error, files) => {
-            if (error) throw error
-            fileList = files
-          })
+          var readStream = fs.createWriteStream(destination)
+          data.pipe(readStream)
         })
-        return fileList
-      } catch (error) {
-        smbclient.disconnect()
+        // smbclient.createWriteStream(path, function(err, writeStream) {
+        //   if (err) throw err
+        //   var readStream = fs.createReadStream(destination)
+        //   readStream.pipe(writeStream)
+        //   // TODO: 列表更新
+        //   smbclient.readdir(parent, (error, files) => {
+        //     if (error) throw error
+        //     fileList = files
+        //   })
+        // })
 
+        // return fileList
+      } catch (error) {
         console.log(error)
       }
     }

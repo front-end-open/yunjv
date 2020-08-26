@@ -1,6 +1,6 @@
 'use strict'
 
-import { ipcMain, app, protocol, BrowserWindow, dialog, shell } from 'electron'
+import { ipcMain, app, protocol, BrowserWindow, dialog } from 'electron'
 import {
   createProtocol,
   installVueDevtools,
@@ -25,7 +25,7 @@ let win
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
-shell.openExternal('https://github.com')
+// shell.openExternal('https://github.com')
 // 通信-授权
 ipcMain.on('async-authcode', function(event) {
   const baiduWin = new BrowserWindow({

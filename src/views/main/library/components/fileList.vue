@@ -1728,7 +1728,7 @@ export default {
         let filename = path.basename(selecfilepath[0])
         let smbServer = new Server(
           'SMB',
-          this.servertypeIndex,
+          0,
           JSON.parse(localStorage.getItem('config')),
           '',
           '',
@@ -1766,6 +1766,8 @@ export default {
       }
     },
     btUp(files) {
+      const { token } = JSON.parse(localStorage.getItem('config'))[0]
+
       this.upload_list = []
       let file = files.raw
       let block_list = []
@@ -1782,6 +1784,7 @@ export default {
       let currentChunk = 0
       let preparams = null
       let chunksarr = []
+      let This = this
       // 文件hash, 分块hash
       reader.onload = async function(e) {
         const result = e.target.result
@@ -1797,7 +1800,7 @@ export default {
           //预上传
           await http
             .post(
-              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              `https://pan.baidu.com/rest/2.0/xpan/file?method=precreate&access_token=${token}`,
               {
                 path: '/apps/BTBD',
                 size: this.size,
@@ -1822,7 +1825,7 @@ export default {
             params.append('file', blobSlice.call(file, start, end))
             chunksarr.push(
               axios.post(
-                `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ&type=tmpfile&path=/apps/BTBD&uploadid=${preparams.uploadid}&partseq=${preparams.block_list[i]}`,
+                `https://d.pcs.baidu.com/rest/2.0/pcs/superfile2?method=upload&access_token=${token}&type=tmpfile&path=/apps/BTBD&uploadid=${preparams.uploadid}&partseq=${preparams.block_list[i]}`,
                 params,
                 {
                   headers: { 'Content-Type': 'multipart/form-data' },
@@ -1835,12 +1838,16 @@ export default {
               console.log(res)
             })
             .catch((error) => {
+              This.$message({
+                message: '上传失败',
+                type: 'warning',
+              })
               throw new Error(error)
             })
           // 创建文件
           await http
             .post(
-              ` https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=123.17ab2fea084763a72ce05e1a7ec74b3c.YsWy6lXitNM7caGvCWxAm1b6Hzf4LY_3feRIAK5.hQgeXQ`,
+              ` https://pan.baidu.com/rest/2.0/xpan/file?method=create&access_token=${token}`,
               {
                 path: `/apps/BTBD/${file.name}`,
                 size: fileSize,
@@ -1849,8 +1856,11 @@ export default {
                 block_list: JSON.stringify(block_list),
               },
             )
-            .then((res) => {
-              console.log(res, '文件上传成功')
+            .then(() => {
+              This.$message({
+                message: '上传成功',
+                type: 'success',
+              })
             })
             .catch((error) => {
               throw new Error(error)
@@ -1916,7 +1926,7 @@ export default {
           })
           var smb = new Server(
             'SMB',
-            this.servertypeIndex,
+            0,
             JSON.parse(localStorage.getItem('config')),
             '',
             '',
