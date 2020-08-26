@@ -39,11 +39,13 @@ export default new Vuex.Store({
     },
     clearDownTask(state) {
       state.tag = false
-      state.precentage = 0
-      state.downloadLists = []
+      state.precentage = 100
     },
     process(state, payload) {
       state.precentage = payload
+    },
+    removeDownTask(state, index) {
+      state.downloadLists.splice(index, 1)
     },
     loginstate(state, payload) {
       if (payload.islogin) {
@@ -62,7 +64,7 @@ export default new Vuex.Store({
       const fsidarr = []
       let dlink = ''
       const { token } = JSON.parse(localStorage.getItem('config'))[0]
-      fsidarr.push(state.downloadLists[0].fs_id)
+      fsidarr.push(state.downloadLists[state.downloadLists.length - 1].fs_id)
       await http
         .get(
           `https://pan.baidu.com/rest/2.0/xpan/multimedia?method=filemetas&access_token=${token}`,
@@ -82,7 +84,7 @@ export default new Vuex.Store({
       ipcRenderer.send('download', {
         dinks,
         path,
-        size: state.downloadLists[0].size,
+        size: state.downloadLists[0].sizeC,
       })
       ipcRenderer.on('async-authcode-reply', (event, msg) => {
         if (!msg.status) {

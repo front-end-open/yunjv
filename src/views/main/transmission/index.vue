@@ -30,14 +30,7 @@
           <el-button
             size="mini"
             type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
-          >
-            <i class="el-icon-video-play"></i
-          ></el-button>
-          <el-button
-            size="mini"
-            type="danger"
-            @click="handleDelete(scope.$index, scope.row)"
+            @click="handleDelete(scope.$index)"
             ><i class="el-icon-delete"></i
           ></el-button>
         </template>
@@ -79,11 +72,8 @@ export default {
     console.log(this.$store.state.precentage)
   },
   methods: {
-    handleEdit(index, row) {
-      console.log(index, row)
-    },
-    handleDelete(index, row) {
-      console.log(index, row)
+    handleDelete(index) {
+      this.$store.commit('removeDownTask', index)
     },
   },
   watch: {

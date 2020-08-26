@@ -1,6 +1,6 @@
 'use strict'
 
-import { ipcMain, app, protocol, BrowserWindow, dialog } from 'electron'
+import { ipcMain, app, protocol, BrowserWindow, dialog, shell } from 'electron'
 import {
   createProtocol,
   installVueDevtools,
@@ -25,7 +25,7 @@ let win
 protocol.registerSchemesAsPrivileged([
   { scheme: 'app', privileges: { secure: true, standard: true } },
 ])
-
+shell.openExternal('https://github.com')
 // 通信-授权
 ipcMain.on('async-authcode', function(event) {
   const baiduWin = new BrowserWindow({
@@ -103,7 +103,6 @@ ipcMain.on('download', (event, msg) => {
       let count = 0
       result.data.on('data', (c) => {
         count += c.length
-        // if(size > 1KB)
         let prcentage = ((count / size) * 100).toFixed(0)
         event.reply('async-authcode-reply', {
           download: prcentage,

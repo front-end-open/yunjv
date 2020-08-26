@@ -82,14 +82,6 @@
                 ></el-option>
               </el-select>
             </el-form-item>
-            <el-form-item label="备份地址" prop="path">
-              <el-select v-model="ruleForm.path" placeholder="请选择活动区域">
-                <el-option
-                  :label="ruleForm.path"
-                  :value="ruleForm.path"
-                ></el-option>
-              </el-select>
-            </el-form-item>
             <el-form-item>
               <el-button type="primary" @click="submitForm('ruleForm')"
                 >立即创建</el-button
@@ -111,8 +103,7 @@ export default {
     return {
       input: '',
       ruleForm: {
-        server: '',
-        path: '/apps/BTBD',
+        server: [],
       },
       rules: {
         server: [{ required: true, message: '请选择服务', trigger: 'blur' }],
@@ -129,15 +120,16 @@ export default {
     config.forEach((item) => {
       this.config.push(item.type)
     })
+
+    ipcRenderer.on('async-get', (event, msg) => {
+      this.input = msg[0]
+      this.backDirList.push(msg[0])
+    })
   },
   methods: {
     // 备份目录
     addPath() {
       ipcRenderer.send('async-openBackDialog', { status: 'getPath' })
-      ipcRenderer.on('async-get', (event, msg) => {
-        this.input = msg[0]
-        this.backDirList.push(msg[0])
-      })
     },
     delec(index) {
       this.backDirList.slice(index, 1)
@@ -153,7 +145,6 @@ export default {
           })
 
           this.backupDir.push(this.input)
-          localStorage.setItem('backup')
         } else {
           console.log('error submit!!')
           return false
@@ -195,6 +186,7 @@ export default {
 }
 .add,
 .grid-content {
+  min-width: 164px;
   min-height: 40px;
   line-height: 40px;
   padding-left: 12px;

@@ -208,16 +208,18 @@ ServerFactory.prototype = {
     // 服务连接
     this.loadFile = async function() {
       const config = JSON.parse(localStorage.getItem('config'))[serverindx]
-      const { host, user, pwd } = config
+      const { host, user, pwd, port } = config
       try {
         await ftp.access({
           host,
           user,
           password: pwd,
           secure: false,
+          port,
         })
         return await ftp.list('')
       } catch (err) {
+        console.log(err)
         ftp.close()
         ftp.ftp.verbose = true
         alert('登陆超时，请检查你的网络是否正常接入或账号密码是否正确')
@@ -226,15 +228,21 @@ ServerFactory.prototype = {
     // 文件上传
     this.upload = async function() {
       const formatLocalPath = localpath.split('/')
-      const { host, user, pwd } = config[serverindx]
+      const { host, user, pwd, port } = config[serverindx]
       let currentFileInfo = {},
         fileData = []
-
+      ftp.trackProgress((info) => {
+        console.log('File', info.name)
+        console.log('Type', info.type)
+        console.log('Transferred', info.bytes)
+        console.log('Transferred Overall', info.bytesOverall)
+      })
       try {
         await ftp.access({
           host,
           user,
           password: pwd,
+          port,
         })
         await ftp.uploadFromDir(
           localpath,
@@ -283,21 +291,24 @@ ServerFactory.prototype = {
           currentFileInfo.Owner = user
           fileData.push(currentFileInfo)
         }
+
         return fileData
       } catch (error) {
         ftp.close()
         console.log(error, JSON.stringify(error))
       }
+      ftp.trackProgress()
     }
     //文件下载
     this.download = async function() {
-      const { host, user, pwd } = config[serverindx]
+      const { host, user, pwd, port } = config[serverindx]
       const { server_filename, path, isdir } = rowfileinfo
       try {
         await ftp.access({
           host,
           user,
           password: pwd,
+          port,
         })
         if (isdir) {
           return await ftp.downloadToDir(localpath, path)
@@ -310,7 +321,7 @@ ServerFactory.prototype = {
     }
     // 创建目录
     this.createDir = async function(creatName) {
-      const { host, user, pwd } = config[serverindx]
+      const { host, user, pwd, port } = config[serverindx]
       let currentFileInfo = {},
         fileData = []
       try {
@@ -319,6 +330,7 @@ ServerFactory.prototype = {
           user,
           password: pwd,
           secure: false,
+          port,
         })
         await ftp.ensureDir(`${remotepath}/${creatName}-${Math.random()}`)
 
@@ -354,13 +366,14 @@ ServerFactory.prototype = {
     }
     //重命名
     this.rename = async function(currentName, newName) {
-      const { host, user, pwd } = config[serverindx]
+      const { host, user, pwd, port } = config[serverindx]
       try {
         await client.access({
           host,
           user,
           password: pwd,
           secure: false,
+          port,
         })
         await client.rename(
           currentName, //设置要更改的文件/文件夹路径
