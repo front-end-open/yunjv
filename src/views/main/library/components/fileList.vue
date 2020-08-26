@@ -124,7 +124,11 @@
             </div>
           </template>
         </el-table-column>
-        <el-table-column prop="size" label="大小"> </el-table-column>
+        <el-table-column prop="size" label="大小">
+          <template slot-scope="scope">
+            <span>{{ scope.row.isdir == 1 ? '--' : scope.row.size }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="local_mtime" label="已改变" sortable width="180">
         </el-table-column>
         <el-table-column prop="permission" label="权限" sortable width="180">
