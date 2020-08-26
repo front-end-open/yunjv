@@ -2,6 +2,18 @@
 
 规范参考：[Conventional Commits](https://conventionalcommits.org)
 
+## [1.7.1](https://github.com/PachVerb/yunjv/compare/v1.7.0...v1.7.1) (2020-08-26)
+
+
+### 修复
+
+* **备份:** 备份功能修复 ([b5dbf71](https://github.com/PachVerb/yunjv/commit/b5dbf714dff06b6ccb5ef866a1147c3e2dcdb3fb))
+
+
+### 其他
+
+* Merge branch 'dev' ([1118309](https://github.com/PachVerb/yunjv/commit/11183097d6aedf4f3296df14c70911ac64f98af5))
+
 # [1.7.0](https://github.com/PachVerb/yunjv/compare/v1.6.1...v1.7.0) (2020-08-26)
 
 
