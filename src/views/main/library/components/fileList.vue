@@ -1875,17 +1875,26 @@ export default {
           var filepath = dialog.showOpenDialog({
             properties: ['openDirectory'],
           })
-          var server = new Server(
-            'FTP',
-            0,
-            JSON.parse(localStorage.getItem('config')),
-            filepath[0],
-            this.path,
-            this.rowDate,
-          )
-          server.download().then((res) => {
-            console.log(res)
-          })
+          var task = []
+          task.push(this.rowDate)
+          if (filepath) {
+            this.$store.commit('downloadTasks', {
+              file: task,
+              downpath: '',
+              index: 0,
+            })
+            var server = new Server(
+              'FTP',
+              0,
+              JSON.parse(localStorage.getItem('config')),
+              filepath[0],
+              this.path,
+              this.rowDate,
+            )
+            server.download().then((res) => {
+              console.log(res)
+            })
+          }
           break
         case 'baid':
           if (this.rowDate.isdir == 0) {
