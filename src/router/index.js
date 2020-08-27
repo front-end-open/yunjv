@@ -113,7 +113,7 @@ const routes = [
                 case 'baid':
                   await http
                     .get(
-                      `/rest/2.0/xpan/file?method=list&access_token=${token}`,
+                      `https://pan.baidu.com/rest/2.0/xpan/file?method=list&access_token=${token}`,
                     )
                     .then((res) => {
                       const { list } = res.data

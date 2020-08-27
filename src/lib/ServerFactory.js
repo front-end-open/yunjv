@@ -184,7 +184,6 @@ ServerFactory.prototype = {
           host,
           user,
           password: pwd,
-          secure: false,
           port,
         })
         return ftp.list('')
